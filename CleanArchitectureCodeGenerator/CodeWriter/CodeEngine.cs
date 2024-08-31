@@ -1,34 +1,41 @@
-﻿using CleanArchitecture.CodeGenerator.Helpers;
+﻿using CleanArchitecture.CodeGenerator.Configuration;
+using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
-namespace CleanArchitecture.CodeGenerator
+namespace CleanArchitecture.CodeGenerator.CodeWriter
 {
     /// <summary>
     /// Main class responsible for generating code files based on user input and templates.
     /// </summary>
-    public class CodeGenerator
+    public class CodeEngine
     {
-        public static string ROOT_DIRECTORY = @"D:\CleanArchitectureWithBlazorServer-main\src";
-        public static string ROOT_NAMESPACE = "CleanArchitecture.Blazor";
-        public static string DOMAIN_PROJECT = "Domain";
-        public static string UI_PROJECT = "Server.UI";
-        public static string INFRASTRUCTURE_PROJECT = "Infrastructure";
-        public static string APPLICATION_PROJECT = "Application";
-   
+        private string RootDirectory { get; set; }
+        private string RootNamespace { get; set; }
+        private string DomainProject { get; set; }
+        private string UiProject { get; set; }
+        private string InfrastructureProject { get; set; }
+        private string ApplicationProject { get; set; }
 
-        public static async Task RunAsync()
+        public CodeEngine()
         {
-            var Directory_Domain_Project = Path.Combine(ROOT_DIRECTORY, DOMAIN_PROJECT);
-            var Directory_Infrastructure_Project = Path.Combine(ROOT_DIRECTORY, INFRASTRUCTURE_PROJECT);
-            var Directory_IU_Project = Path.Combine(ROOT_DIRECTORY, UI_PROJECT);
-            var Directory_Application_Project = Path.Combine(ROOT_DIRECTORY, APPLICATION_PROJECT);
+            string configFilePath = "appsettings.json";
+            var configHandler = new ConfigurationHandler(configFilePath);
+            var configSettings = configHandler.GetConfiguration();
+
+            RootDirectory = configSettings.RootDirectory;
+            RootNamespace = configSettings.RootNamespace;
+            DomainProject = configSettings.DomainProject;
+            UiProject = configSettings.UiProject;
+            InfrastructureProject = configSettings.InfrastructureProject;
+            ApplicationProject = configSettings.ApplicationProject;
+        }
+
+        public async Task RunAsync()
+        {
+            var Directory_Domain_Project = Path.Combine(RootDirectory, DomainProject);
+            var Directory_Infrastructure_Project = Path.Combine(RootDirectory, InfrastructureProject);
+            var Directory_IU_Project = Path.Combine(RootDirectory, UiProject);
+            var Directory_Application_Project = Path.Combine(RootDirectory, ApplicationProject);
 
 
             var includes = new string[] { "IEntity", "BaseEntity", "BaseAuditableEntity", "BaseAuditableSoftDeleteEntity", "AuditTrail", "OwnerPropertyEntity", "KeyValue" };
@@ -152,7 +159,7 @@ namespace CleanArchitecture.CodeGenerator
         }
 
 
-        private static async Task AddFileAsync(IntellisenseObject ModalClassObject, string TargetClassPath, string ModalClassName, string TargetProjectDirectory)
+        private async Task AddFileAsync(CSharpClassObject ModalClassObject, string TargetClassPath, string ModalClassName, string TargetProjectDirectory)
         {
             var isValid = Utility.ValidatePath(TargetClassPath, TargetProjectDirectory);
             if (!isValid) { return; }
@@ -160,10 +167,11 @@ namespace CleanArchitecture.CodeGenerator
             FileInfo file = new FileInfo(Path.Combine(TargetProjectDirectory, TargetClassPath));
 
             if (!file.Exists)
-            {                   
+            {
                 try
                 {
-                    string template = await TemplateMapper.GenerateClass(ModalClassObject, file.FullName, ModalClassName, TargetProjectDirectory);
+                    TemplateMapper templateMapper = new TemplateMapper();
+                    string template = await templateMapper.GenerateClass(ModalClassObject, file.FullName, ModalClassName, TargetProjectDirectory);
 
                     if (!string.IsNullOrEmpty(template))
                     {
@@ -172,7 +180,7 @@ namespace CleanArchitecture.CodeGenerator
 
                     Console.WriteLine($"Created file: {file.FullName}");
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Console.WriteLine($"Error GetTemplateFilePathAsync: {ex.InnerException.Message}");
                 }

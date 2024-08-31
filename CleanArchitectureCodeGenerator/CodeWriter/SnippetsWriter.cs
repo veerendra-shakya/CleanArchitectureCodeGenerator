@@ -1,161 +1,23 @@
-﻿using CleanArchitecture.CodeGenerator.Models;
-using System.ComponentModel.DataAnnotations;
-using System.Reflection;
-using System.Text;
-using System.Text.RegularExpressions;
-using CleanArchitecture.CodeGenerator.Helpers;
+﻿using CleanArchitecture.CodeGenerator.Helpers;
+using CleanArchitecture.CodeGenerator.Models;
+using System;
 using System.Collections.Generic;
-using System.Xml.Linq;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace CleanArchitecture.CodeGenerator
+namespace CleanArchitecture.CodeGenerator.CodeWriter
 {
-    public static class TemplateMapper
+    public class SnippetsWriter
     {
-        private static readonly List<string> _templateFiles = new List<string>();
-        private const string _defaultExt = ".txt";
-    
         public const string PRIMARYKEY = "Id";
 
-        static TemplateMapper()
-        {
-            var assembly = Assembly.GetExecutingAssembly().Location;
-            var _template_folder = Path.Combine(Path.GetDirectoryName(assembly), "Templates");
-            _templateFiles.AddRange(Directory.GetFiles(_template_folder, "*" + _defaultExt, SearchOption.AllDirectories));
-        }
-
-        public static async Task<string> GenerateClass(IntellisenseObject ModalClassObject, string FileFullName, string ModalClassName, string TargetProjectDirectory)
-        {
-            var relativePath = Utility.MakeRelativePath(CodeGenerator.ROOT_DIRECTORY, Path.GetDirectoryName(FileFullName) ?? "");
-           
-            string templateFile = GetTemplateFile(relativePath, FileFullName);
-
-            var template = await ReplaceTokensAsync(ModalClassObject, ModalClassName, relativePath, templateFile, TargetProjectDirectory);
-            return Utility.NormalizeLineEndings(template);
-        }
-
-        private static string GetTemplateFile(string relative, string file)
-        {
-            var list = _templateFiles.ToList();
-            var templateFolders = new[]
-            {
-                "Commands\\AcceptChanges",
-                "Commands\\Create",
-                "Commands\\Delete",
-                "Commands\\Update",
-                "Commands\\AddEdit",
-                "Commands\\Import",
-                "DTOs",
-                "Caching",
-                "EventHandlers",
-                "Events",
-                "Specification",
-                "Queries\\Export",
-                "Queries\\GetAll",
-                "Queries\\GetById",
-                "Queries\\Pagination",
-                "Pages",
-                "Pages\\Components",
-                "Persistence\\Configurations",
-                "PermissionSet",
-            };
-
-            var extension = Path.GetExtension(file).ToLowerInvariant();
-            var name = Path.GetFileName(file);
-            var safeName = name.StartsWith(".") ? name : Path.GetFileNameWithoutExtension(file);
-
-            // Determine the folder pattern based on the relative path
-            var folderPattern = templateFolders
-                .FirstOrDefault(x => relative.IndexOf(x, StringComparison.OrdinalIgnoreCase) >= 0)
-                ?.Replace("\\", "\\\\");
-
-            if (!string.IsNullOrEmpty(folderPattern))
-            {
-                // Look for direct file name matches in the specified template folder
-                var matchingFile = list
-                    .OrderByDescending(f => f.Length)
-                    .FirstOrDefault(f => Regex.IsMatch(f, folderPattern, RegexOptions.IgnoreCase) &&
-                                         Path.GetFileNameWithoutExtension(f).Split('.')
-                                         .All(x => name.IndexOf(x, StringComparison.OrdinalIgnoreCase) >= 0));
-
-                if (!string.IsNullOrEmpty(matchingFile))
-                {
-                    return matchingFile;
-                }
-            }
-
-            // If no direct match, look for file extension matches
-            var extensionMatch = list
-                .FirstOrDefault(f => Path.GetFileName(f).Equals(extension + _defaultExt, StringComparison.OrdinalIgnoreCase) &&
-                                     File.Exists(f));
-
-            if (extensionMatch != null)
-            {
-                var adjustedName = AdjustForSpecific(safeName, extension);
-                return Path.Combine(Path.GetDirectoryName(extensionMatch), adjustedName + _defaultExt);
-            }
-
-            // If no match is found, return null or throw an exception as per your requirement
-            return null;
-        }
-
-        private static string AdjustForSpecific(string safeName, string extension)
-        {
-            if (Regex.IsMatch(safeName, "^I[A-Z].*"))
-            {
-                return extension += "-interface";
-            }
-
-            return extension;
-        }
-        private static async Task<string> ReplaceTokensAsync(IntellisenseObject ModalClassObject, string ModalClassName, string relativePath, string templateFile, string TargetProjectDirectory)
-        {
-
-            //using CleanArchitecture.Blazor.Application.Features.Customers.DTOs;
-            if (string.IsNullOrEmpty(templateFile))
-            {
-                return templateFile;
-            }
-
-            var ns = CodeGenerator.ROOT_NAMESPACE;
-            if (!string.IsNullOrEmpty(relativePath))
-            {
-                ns += "." + Utility.RelativePath_To_Namespace(relativePath);
-            }
-            ns = ns.TrimEnd('.');
-
-            using (var reader = new StreamReader(templateFile))
-            {
-                var content = await reader.ReadToEndAsync();
-                var nameofPlural = Utility.Pluralize(ModalClassName);
-                var dtoFieldDefinition = CreateDtoFieldDefinition(ModalClassObject);
-                var importFuncExpression = CreateImportFuncExpression(ModalClassObject);
-                var templateFieldDefinition = CreateTemplateFieldDefinition(ModalClassObject);
-                var exportFuncExpression = CreateExportFuncExpression(ModalClassObject);
-                var mudTdDefinition = CreateMudTdDefinition(ModalClassObject);
-                var mudTdHeaderDefinition = CreateMudTdHeaderDefinition(ModalClassObject);
-                var mudFormFieldDefinition = CreateMudFormFieldDefinition(ModalClassObject);
-                var fieldAssignmentDefinition = CreateFieldAssignmentDefinition(ModalClassObject);
-
-                return content.Replace("{rootnamespace}", CodeGenerator.ROOT_NAMESPACE)
-                              .Replace("{selectns}", $"{CodeGenerator.ROOT_NAMESPACE}.{Utility.GetProjectNameFromPath(TargetProjectDirectory)}.Features")
-                              .Replace("{namespace}", ns)
-                              .Replace("{itemname}", ModalClassName)
-                              .Replace("{nameofPlural}", nameofPlural)
-                              .Replace("{dtoFieldDefinition}", dtoFieldDefinition)
-                              .Replace("{fieldAssignmentDefinition}", fieldAssignmentDefinition)
-                              .Replace("{importFuncExpression}", importFuncExpression)
-                              .Replace("{templateFieldDefinition}", templateFieldDefinition)
-                              .Replace("{exportFuncExpression}", exportFuncExpression)
-                              .Replace("{mudTdDefinition}", mudTdDefinition)
-                              .Replace("{mudTdHeaderDefinition}", mudTdHeaderDefinition)
-                              .Replace("{mudFormFieldDefinition}", mudFormFieldDefinition);
-            }
-        }
-
-        private static string CreateDtoFieldDefinition(IntellisenseObject classObject)
+        public string CreateDtoFieldDefinition(CSharpClassObject classObject)
         {
             var output = new StringBuilder();
-            foreach (var property in classObject.Properties.Where(x => x.Type.IsKnownType))
+            List<ClassProperty> temp = classObject.Properties.ToList();
+            // foreach (var property in classObject.Properties.Where(x => x.Type.IsKnownType))
+            foreach (var property in temp)
             {
                 output.AppendLine($"    [Description(\"{Utility.SplitCamelCase(property.Name)}\")]");
                 if (property.Name == PRIMARYKEY)
@@ -194,7 +56,7 @@ namespace CleanArchitecture.CodeGenerator
             return output.ToString();
         }
 
-        private static string CreateImportFuncExpression(IntellisenseObject classObject)
+        public string CreateImportFuncExpression(CSharpClassObject classObject)
         {
             var output = new StringBuilder();
             foreach (var property in classObject.Properties.Where(x => x.Type.IsKnownType))
@@ -212,7 +74,7 @@ namespace CleanArchitecture.CodeGenerator
             return output.ToString();
         }
 
-        private static string CreateTemplateFieldDefinition(IntellisenseObject classObject)
+        public string CreateTemplateFieldDefinition(CSharpClassObject classObject)
         {
             var output = new StringBuilder();
             foreach (var property in classObject.Properties.Where(x => x.Type.IsKnownType))
@@ -223,7 +85,7 @@ namespace CleanArchitecture.CodeGenerator
             return output.ToString();
         }
 
-        private static string CreateExportFuncExpression(IntellisenseObject classObject)
+        public string CreateExportFuncExpression(CSharpClassObject classObject)
         {
             var output = new StringBuilder();
             foreach (var property in classObject.Properties.Where(x => x.Type.IsKnownType))
@@ -233,7 +95,7 @@ namespace CleanArchitecture.CodeGenerator
             return output.ToString();
         }
 
-        private static string CreateMudTdHeaderDefinition(IntellisenseObject classObject)
+        public string CreateMudTdHeaderDefinition(CSharpClassObject classObject)
         {
             var output = new StringBuilder();
             var defaultFieldNames = new string[] { "Name", "Description" };
@@ -265,7 +127,7 @@ namespace CleanArchitecture.CodeGenerator
             return output.ToString();
         }
 
-        private static string CreateMudTdDefinition(IntellisenseObject classObject)
+        public string CreateMudTdDefinition(CSharpClassObject classObject)
         {
             var output = new StringBuilder();
             var defaultFieldNames = new string[] { "Name", "Description" };
@@ -312,7 +174,7 @@ namespace CleanArchitecture.CodeGenerator
             return output.ToString();
         }
 
-        private static string CreateMudFormFieldDefinition(IntellisenseObject classObject)
+        public string CreateMudFormFieldDefinition(CSharpClassObject classObject)
         {
             var output = new StringBuilder();
             foreach (var property in classObject.Properties.Where(x => x.Type.IsKnownType))
@@ -369,7 +231,7 @@ namespace CleanArchitecture.CodeGenerator
             return output.ToString();
         }
 
-        private static string CreateFieldAssignmentDefinition(IntellisenseObject classObject)
+        public string CreateFieldAssignmentDefinition(CSharpClassObject classObject)
         {
             var output = new StringBuilder();
             foreach (var property in classObject.Properties.Where(x => x.Type.IsKnownType && x.Name != PRIMARYKEY))

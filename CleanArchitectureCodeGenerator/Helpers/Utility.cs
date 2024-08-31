@@ -204,10 +204,11 @@ namespace CleanArchitecture.CodeGenerator.Helpers
         /// Retrieves all entities from a project directory by analyzing the files.
         /// </summary>
         /// <param name="projectDirectory">The directory of the project.</param>
-        /// <returns>A list of <see cref="IntellisenseObject"/> representing the entities.</returns>
-        public static IEnumerable<IntellisenseObject> GetEntities(string projectDirectory)
+        /// <returns>A list of <see cref="CSharpClassObject"/> representing the entities.</returns>
+        public static IEnumerable<CSharpClassObject> GetEntities(string projectDirectory)
         {
-            var list = new List<IntellisenseObject>();
+            CSharpSyntaxParser IntellisenseParser = new CSharpSyntaxParser();
+            var list = new List<CSharpClassObject>();
             var _files = Directory.EnumerateFiles(projectDirectory, "*.cs", SearchOption.AllDirectories);
             foreach (var filePath in _files)
             {
