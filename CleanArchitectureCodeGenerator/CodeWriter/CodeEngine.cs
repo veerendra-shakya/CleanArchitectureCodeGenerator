@@ -1,6 +1,10 @@
 ﻿using CleanArchitecture.CodeGenerator.Configuration;
 using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CleanArchitecture.CodeGenerator.CodeWriter
 {
@@ -9,147 +13,58 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
     /// </summary>
     public class CodeEngine
     {
-        private string RootDirectory { get; set; }
-        private string RootNamespace { get; set; }
-        private string DomainProject { get; set; }
-        private string UiProject { get; set; }
-        private string InfrastructureProject { get; set; }
-        private string ApplicationProject { get; set; }
+        private readonly string _rootDirectory;
+        private readonly string _rootNamespace;
+        private readonly string _domainProject;
+        private readonly string _uiProject;
+        private readonly string _infrastructureProject;
+        private readonly string _applicationProject;
 
         public CodeEngine()
         {
-            string configFilePath = "appsettings.json";
-            var configHandler = new ConfigurationHandler(configFilePath);
+            var configHandler = new ConfigurationHandler("appsettings.json");
             var configSettings = configHandler.GetConfiguration();
 
-            RootDirectory = configSettings.RootDirectory;
-            RootNamespace = configSettings.RootNamespace;
-            DomainProject = configSettings.DomainProject;
-            UiProject = configSettings.UiProject;
-            InfrastructureProject = configSettings.InfrastructureProject;
-            ApplicationProject = configSettings.ApplicationProject;
+            _rootDirectory = configSettings.RootDirectory;
+            _rootNamespace = configSettings.RootNamespace;
+            _domainProject = configSettings.DomainProject;
+            _uiProject = configSettings.UiProject;
+            _infrastructureProject = configSettings.InfrastructureProject;
+            _applicationProject = configSettings.ApplicationProject;
         }
 
         public async Task RunAsync()
         {
-            var Directory_Domain_Project = Path.Combine(RootDirectory, DomainProject);
-            var Directory_Infrastructure_Project = Path.Combine(RootDirectory, InfrastructureProject);
-            var Directory_IU_Project = Path.Combine(RootDirectory, UiProject);
-            var Directory_Application_Project = Path.Combine(RootDirectory, ApplicationProject);
+            string domainProjectDir = Path.Combine(_rootDirectory, _domainProject);
+            string infrastructureProjectDir = Path.Combine(_rootDirectory, _infrastructureProject);
+            string uiProjectDir = Path.Combine(_rootDirectory, _uiProject);
+            string applicationProjectDir = Path.Combine(_rootDirectory, _applicationProject);
 
+            string[] includes = { "IEntity", "BaseEntity", "BaseAuditableEntity", "BaseAuditableSoftDeleteEntity", "AuditTrail", "OwnerPropertyEntity", "KeyValue" };
 
-            var includes = new string[] { "IEntity", "BaseEntity", "BaseAuditableEntity", "BaseAuditableSoftDeleteEntity", "AuditTrail", "OwnerPropertyEntity", "KeyValue" };
-
-            var objectList = Utility.GetEntities(Directory_Domain_Project)
+            var objectList = Utility.GetEntities(domainProjectDir)
                 .Where(x => includes.Contains(x.BaseName) && !includes.Contains(x.Name));
             var entities = objectList.Select(x => x.Name).Distinct().ToArray();
 
+            Console.Clear();
             while (true)
             {
-                // Display the menu of entities
-                Console.WriteLine("Please select an entity to generate by entering the corresponding number:");
-                for (int i = 0; i < entities.Length; i++)
-                {
-                    Console.WriteLine($"{i + 1}. {entities[i]}");
-                }
-                Console.WriteLine("Enter the number of the entity (or 'q' to quit):");
+                DisplayEntityMenu(entities);
 
-                // Get user input
                 string input = Console.ReadLine().Trim();
 
-                // Check if the user wants to quit
                 if (input.Equals("q", StringComparison.OrdinalIgnoreCase))
                 {
                     Console.WriteLine("Exiting.");
                     return;
                 }
 
-                // Validate input
                 if (int.TryParse(input, out int selectedIndex) && selectedIndex > 0 && selectedIndex <= entities.Length)
                 {
                     string selectedEntity = entities[selectedIndex - 1];
                     Console.WriteLine($"You selected: {selectedEntity}");
 
-                    // Process the selected entity
-                    string[] parsedInputs = Utility.GetParsedInput(selectedEntity);
-
-                    foreach (string inputName in parsedInputs)
-                    {
-                        try
-                        {
-                            var ModalClassName = Path.GetFileNameWithoutExtension(inputName);
-                            var ModalClassNamePlural = Utility.Pluralize(ModalClassName);
-                            var ModalClassObject = objectList.First(x => x.Name == ModalClassName);
-
-                            var events = new List<string>
-                            {
-                                $"Events/{ModalClassName}CreatedEvent.cs",
-                                $"Events/{ModalClassName}DeletedEvent.cs",
-                                $"Events/{ModalClassName}UpdatedEvent.cs",
-                            };
-                            foreach (var TargetClassPath in events)
-                            {
-                                await AddFileAsync(ModalClassObject, TargetClassPath, ModalClassName, Directory_Domain_Project);
-                            }
-
-                            var configurations = new List<string>
-                            {
-                                $"Persistence/Configurations/{ModalClassName}Configuration.cs",
-                                $"PermissionSet/{ModalClassNamePlural}.cs"
-                            };
-                            foreach (var TargetClassPath in configurations)
-                            {
-                                await AddFileAsync(ModalClassObject, TargetClassPath, ModalClassName, Directory_Infrastructure_Project);
-                            }
-
-                            var list = new List<string>
-                            {
-                                $"Features/{ModalClassNamePlural}/Commands/AddEdit/AddEdit{ModalClassName}Command.cs",
-                                $"Features/{ModalClassNamePlural}/Commands/AddEdit/AddEdit{ModalClassName}CommandValidator.cs",
-                                $"Features/{ModalClassNamePlural}/Commands/Create/Create{ModalClassName}Command.cs",
-                                $"Features/{ModalClassNamePlural}/Commands/Create/Create{ModalClassName}CommandValidator.cs",
-                                $"Features/{ModalClassNamePlural}/Commands/Delete/Delete{ModalClassName}Command.cs",
-                                $"Features/{ModalClassNamePlural}/Commands/Delete/Delete{ModalClassName}CommandValidator.cs",
-                                $"Features/{ModalClassNamePlural}/Commands/Update/Update{ModalClassName}Command.cs",
-                                $"Features/{ModalClassNamePlural}/Commands/Update/Update{ModalClassName}CommandValidator.cs",
-                                $"Features/{ModalClassNamePlural}/Commands/Import/Import{ModalClassNamePlural}Command.cs",
-                                $"Features/{ModalClassNamePlural}/Commands/Import/Import{ModalClassNamePlural}CommandValidator.cs",
-                                $"Features/{ModalClassNamePlural}/Caching/{ModalClassName}CacheKey.cs",
-                                $"Features/{ModalClassNamePlural}/DTOs/{ModalClassName}Dto.cs",
-                                $"Features/{ModalClassNamePlural}/EventHandlers/{ModalClassName}CreatedEventHandler.cs",
-                                $"Features/{ModalClassNamePlural}/EventHandlers/{ModalClassName}UpdatedEventHandler.cs",
-                                $"Features/{ModalClassNamePlural}/EventHandlers/{ModalClassName}DeletedEventHandler.cs",
-                                $"Features/{ModalClassNamePlural}/Specifications/{ModalClassName}AdvancedFilter.cs",
-                                $"Features/{ModalClassNamePlural}/Specifications/{ModalClassName}AdvancedSpecification.cs",
-                                $"Features/{ModalClassNamePlural}/Specifications/{ModalClassName}ByIdSpecification.cs",
-                                $"Features/{ModalClassNamePlural}/Queries/Export/Export{ModalClassNamePlural}Query.cs",
-                                $"Features/{ModalClassNamePlural}/Queries/GetAll/GetAll{ModalClassNamePlural}Query.cs",
-                                $"Features/{ModalClassNamePlural}/Queries/GetById/Get{ModalClassName}ByIdQuery.cs",
-                                $"Features/{ModalClassNamePlural}/Queries/Pagination/{ModalClassNamePlural}PaginationQuery.cs",
-                            };
-                            foreach (var TargetClassPath in list)
-                            {
-                                await AddFileAsync(ModalClassObject, TargetClassPath, ModalClassName, Directory_Application_Project);
-                            }
-
-                            var pages = new List<string>
-                            {
-                                $"Pages/{ModalClassNamePlural}/{ModalClassNamePlural}.razor",
-                                $"Pages/{ModalClassNamePlural}/Components/{ModalClassName}FormDialog.razor",
-                                $"Pages/{ModalClassNamePlural}/Components/{ModalClassNamePlural}AdvancedSearchComponent.razor"
-                            };
-                            foreach (var TargetClassPath in pages)
-                            {
-                                await AddFileAsync(ModalClassObject, TargetClassPath, ModalClassName, Directory_IU_Project);
-                            }
-
-                            Console.WriteLine($"Successfully generated files for {ModalClassName}.");
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error creating file '{inputName}': {ex.Message}");
-                        }
-                    }
+                    await ProcessEntityAsync(objectList, selectedEntity, domainProjectDir, infrastructureProjectDir, applicationProjectDir, uiProjectDir);
                 }
                 else
                 {
@@ -158,38 +73,149 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             }
         }
 
-
-        private async Task AddFileAsync(CSharpClassObject ModalClassObject, string TargetClassPath, string ModalClassName, string TargetProjectDirectory)
+        private static void DisplayEntityMenu(string[] entities)
         {
-            var isValid = Utility.ValidatePath(TargetClassPath, TargetProjectDirectory);
-            if (!isValid) { return; }
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("=============================================================");
+            Console.WriteLine("                    ENTITY SELECTION MENU                     ");
+            Console.WriteLine("=============================================================");
+            Console.ResetColor();
 
-            FileInfo file = new FileInfo(Path.Combine(TargetProjectDirectory, TargetClassPath));
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Please select an entity to generate by entering the corresponding number:");
+            Console.ResetColor();
 
-            if (!file.Exists)
+            for (int i = 0; i < entities.Length; i++)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Write($"  {i + 1}. ");
+                Console.ResetColor();
+                Console.WriteLine(entities[i]);
+            }
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("\nEnter the number of the entity (or 'q' to quit):");
+            Console.ResetColor();
+        }
+
+
+
+        private async Task ProcessEntityAsync(IEnumerable<CSharpClassObject> objectList, string selectedEntity, string domainProjectDir, string infrastructureProjectDir, string applicationProjectDir, string uiProjectDir)
+        {
+            string[] parsedInputs = Utility.GetParsedInput(selectedEntity);
+
+            foreach (string inputName in parsedInputs)
             {
                 try
                 {
-                    TemplateMapper templateMapper = new TemplateMapper();
-                    string template = await templateMapper.GenerateClass(ModalClassObject, file.FullName, ModalClassName, TargetProjectDirectory);
+                    string modalClassName = Path.GetFileNameWithoutExtension(inputName);
+                    string modalClassNamePlural = Utility.Pluralize(modalClassName);
+                    var modalClassObject = objectList.First(x => x.Name == modalClassName);
 
-                    if (!string.IsNullOrEmpty(template))
-                    {
-                        await Utility.WriteToDiskAsync(file.FullName, template);
-                    }
-
-                    Console.WriteLine($"Created file: {file.FullName}");
+                    await GenerateFilesAsync(modalClassObject, modalClassName, modalClassNamePlural, domainProjectDir, infrastructureProjectDir, applicationProjectDir, uiProjectDir);
+                    Console.WriteLine($"Successfully generated files for {modalClassName}.");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error GetTemplateFilePathAsync: {ex.InnerException.Message}");
+                    Console.WriteLine($"Error creating file '{inputName}': {ex.Message}");
                 }
-            }
-            else
-            {
-                Console.WriteLine($"The file '{file}' already exists.");
             }
         }
 
+        private async Task GenerateFilesAsync(CSharpClassObject modalClassObject, string modalClassName, string modalClassNamePlural, string domainProjectDir, string infrastructureProjectDir, string applicationProjectDir, string uiProjectDir)
+        {
+            var eventPaths = new[]
+            {
+                $"Events/{modalClassName}CreatedEvent.cs",
+                $"Events/{modalClassName}DeletedEvent.cs",
+                $"Events/{modalClassName}UpdatedEvent.cs"
+            };
+
+            var configPaths = new[]
+            {
+                $"Persistence/Configurations/{modalClassName}Configuration.cs",
+                $"PermissionSet/{modalClassNamePlural}.cs"
+            };
+
+            var featurePaths = new[]
+            {
+                $"Features/{modalClassNamePlural}/Commands/AddEdit/AddEdit{modalClassName}Command.cs",
+                $"Features/{modalClassNamePlural}/Commands/AddEdit/AddEdit{modalClassName}CommandValidator.cs",
+                $"Features/{modalClassNamePlural}/Commands/Create/Create{modalClassName}Command.cs",
+                $"Features/{modalClassNamePlural}/Commands/Create/Create{modalClassName}CommandValidator.cs",
+                $"Features/{modalClassNamePlural}/Commands/Delete/Delete{modalClassName}Command.cs",
+                $"Features/{modalClassNamePlural}/Commands/Delete/Delete{modalClassName}CommandValidator.cs",
+                $"Features/{modalClassNamePlural}/Commands/Update/Update{modalClassName}Command.cs",
+                $"Features/{modalClassNamePlural}/Commands/Update/Update{modalClassName}CommandValidator.cs",
+                $"Features/{modalClassNamePlural}/Commands/Import/Import{modalClassNamePlural}Command.cs",
+                $"Features/{modalClassNamePlural}/Commands/Import/Import{modalClassNamePlural}CommandValidator.cs",
+                $"Features/{modalClassNamePlural}/Caching/{modalClassName}CacheKey.cs",
+                $"Features/{modalClassNamePlural}/DTOs/{modalClassName}Dto.cs",
+                $"Features/{modalClassNamePlural}/EventHandlers/{modalClassName}CreatedEventHandler.cs",
+                $"Features/{modalClassNamePlural}/EventHandlers/{modalClassName}UpdatedEventHandler.cs",
+                $"Features/{modalClassNamePlural}/EventHandlers/{modalClassName}DeletedEventHandler.cs",
+                $"Features/{modalClassNamePlural}/Specifications/{modalClassName}AdvancedFilter.cs",
+                $"Features/{modalClassNamePlural}/Specifications/{modalClassName}AdvancedSpecification.cs",
+                $"Features/{modalClassNamePlural}/Specifications/{modalClassName}ByIdSpecification.cs",
+                $"Features/{modalClassNamePlural}/Queries/Export/Export{modalClassNamePlural}Query.cs",
+                $"Features/{modalClassNamePlural}/Queries/GetAll/GetAll{modalClassNamePlural}Query.cs",
+                $"Features/{modalClassNamePlural}/Queries/GetById/Get{modalClassName}ByIdQuery.cs",
+                $"Features/{modalClassNamePlural}/Queries/Pagination/{modalClassNamePlural}PaginationQuery.cs"
+            };
+
+            var pagePaths = new[]
+            {
+                $"Pages/{modalClassNamePlural}/{modalClassNamePlural}.razor",
+                $"Pages/{modalClassNamePlural}/Components/{modalClassName}FormDialog.razor",
+                $"Pages/{modalClassNamePlural}/Components/{modalClassNamePlural}AdvancedSearchComponent.razor"
+            };
+
+            await Task.WhenAll(
+                ProcessFilesAsync(modalClassObject, eventPaths, modalClassName, domainProjectDir),
+                ProcessFilesAsync(modalClassObject, configPaths, modalClassName, infrastructureProjectDir),
+                ProcessFilesAsync(modalClassObject, featurePaths, modalClassName, applicationProjectDir),
+                ProcessFilesAsync(modalClassObject, pagePaths, modalClassName, uiProjectDir)
+            );
+        }
+
+        private async Task ProcessFilesAsync(CSharpClassObject modalClassObject, IEnumerable<string> targetPaths, string modalClassName, string targetProjectDirectory)
+        {
+            foreach (var targetPath in targetPaths)
+            {
+                await AddFileAsync(modalClassObject, targetPath, modalClassName, targetProjectDirectory);
+            }
+        }
+
+        private async Task AddFileAsync(CSharpClassObject modalClassObject, string targetPath, string modalClassName, string targetProjectDirectory)
+        {
+            if (!Utility.ValidatePath(targetPath, targetProjectDirectory))
+            {
+                return;
+            }
+
+            FileInfo file = new FileInfo(Path.Combine(targetProjectDirectory, targetPath));
+
+            if (file.Exists)
+            {
+                Console.WriteLine($"The file '{file.FullName}' already exists.");
+                return;
+            }
+
+            try
+            {
+                TemplateMapper templateMapper = new TemplateMapper();
+                string template = await templateMapper.GenerateClass(modalClassObject, file.FullName, modalClassName, targetProjectDirectory);
+
+                if (!string.IsNullOrEmpty(template))
+                {
+                    await Utility.WriteToDiskAsync(file.FullName, template);
+                    Console.WriteLine($"Created file: {file.FullName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error generating file '{file.FullName}': {ex.Message}");
+            }
+        }
     }
 }
