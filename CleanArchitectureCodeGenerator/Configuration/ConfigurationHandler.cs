@@ -26,6 +26,38 @@ namespace CleanArchitecture.CodeGenerator.Configuration
         {
             return _configuration.GetSection("ConfigurationSettings").Get<ConfigurationSettings>();
         }
+
+        public void PrintConfiguration()
+        {
+            var configSettings = GetConfiguration();
+    
+            Console.Clear();
+            Console.WriteLine("\n");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("=============================================================");
+            Console.WriteLine("             Current Configuration Settings                  ");
+            Console.WriteLine("=============================================================");
+            Console.ResetColor();
+            Console.WriteLine("\n");
+            PrintConfig("Root Directory", configSettings.RootDirectory, ConsoleColor.Yellow);
+            PrintConfig("Root Namespace", configSettings.RootNamespace, ConsoleColor.Yellow);
+            PrintConfig("Domain Project", configSettings.DomainProject, ConsoleColor.Yellow);
+            PrintConfig("UI Project", configSettings.UiProject, ConsoleColor.Yellow);
+            PrintConfig("Infrastructure Project", configSettings.InfrastructureProject, ConsoleColor.Yellow);
+            PrintConfig("Application Project", configSettings.ApplicationProject, ConsoleColor.Yellow);
+
+            Console.WriteLine("\n");
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("Note: These configuration settings can be changed in the appsettings.json file.");
+            Console.ResetColor();
+        }
+
+        private void PrintConfig(string name, string value, ConsoleColor color)
+        {
+            Console.ForegroundColor = color;
+            Console.WriteLine($"{name}: {value}");
+            Console.ResetColor();
+        }
     }
 
 }

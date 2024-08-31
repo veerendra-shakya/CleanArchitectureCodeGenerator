@@ -12,6 +12,8 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             var filePaths = Directory.GetFiles(rootDirectory, "*.cs", SearchOption.AllDirectories)
                 .Where(file => file.EndsWith("IApplicationDbContext.cs") || file.EndsWith("ApplicationDbContext.cs"))
                 .ToList();
+
+            Console.WriteLine($"Found {filePaths.Count} DbContext files.");
             return filePaths;
         }
 
@@ -21,6 +23,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             {
                 try
                 {
+                    Console.WriteLine($"Processing file: {filePath}");
                     var code = File.ReadAllText(filePath);
                     var tree = CSharpSyntaxTree.ParseText(code);
                     var root = tree.GetRoot() as CompilationUnitSyntax;
@@ -41,7 +44,6 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                 }
                 catch (Exception ex)
                 {
-                    // Log or handle the exception as needed
                     Console.WriteLine($"Error processing file {filePath}: {ex.Message}");
                 }
             }
@@ -54,27 +56,39 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             {
                 var pluralizedEntityName = Utility.Pluralize(entityName);
 
-                var propertyDeclaration = SyntaxFactory.PropertyDeclaration(
-                                                SyntaxFactory.GenericName(
-                                                    SyntaxFactory.Identifier("DbSet"))
-                                                    .WithTypeArgumentList(
-                                                        SyntaxFactory.TypeArgumentList(
-                                                            SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                                                                SyntaxFactory.IdentifierName(entityName))))
-                                                ,
-                                                SyntaxFactory.Identifier(pluralizedEntityName))
-                                            .WithAccessorList(SyntaxFactory.AccessorList(
-                                                SyntaxFactory.List(new AccessorDeclarationSyntax[]{
-                                                    SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                                                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
-                                                    SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
-                                                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-                                                })));
+                // Check if the property already exists
+                var existingProperty = interfaceDeclaration.Members.OfType<PropertyDeclarationSyntax>()
+                    .FirstOrDefault(prop => prop.Identifier.Text == pluralizedEntityName);
 
-                var newInterfaceDeclaration = interfaceDeclaration.AddMembers(propertyDeclaration);
-                var newRoot = root.ReplaceNode(interfaceDeclaration, newInterfaceDeclaration);
+                if (existingProperty == null)
+                {
+                    var propertyDeclaration = SyntaxFactory.PropertyDeclaration(
+                                                    SyntaxFactory.GenericName(
+                                                        SyntaxFactory.Identifier("DbSet"))
+                                                        .WithTypeArgumentList(
+                                                            SyntaxFactory.TypeArgumentList(
+                                                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                                                    SyntaxFactory.IdentifierName(entityName))))
+                                                    ,
+                                                    SyntaxFactory.Identifier(pluralizedEntityName))
+                                                .WithAccessorList(SyntaxFactory.AccessorList(
+                                                    SyntaxFactory.List(new AccessorDeclarationSyntax[]{
+                                                SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                                                    .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                                                SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
+                                                    .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                                                    })));
 
-                File.WriteAllText(filePath, newRoot.NormalizeWhitespace().ToFullString());
+                    var newInterfaceDeclaration = interfaceDeclaration.AddMembers(propertyDeclaration);
+                    var newRoot = root.ReplaceNode(interfaceDeclaration, newInterfaceDeclaration);
+
+                    File.WriteAllText(filePath, newRoot.NormalizeWhitespace().ToFullString());
+                    Console.WriteLine($"Added property {pluralizedEntityName} to interface {interfaceDeclaration.Identifier.Text} in {filePath}");
+                }
+                else
+                {
+                    Console.WriteLine($"Property {pluralizedEntityName} already exists in interface {interfaceDeclaration.Identifier.Text}.");
+                }
             }
         }
 
@@ -85,28 +99,40 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             {
                 var pluralizedEntityName = Utility.Pluralize(entityName);
 
-                var propertyDeclaration = SyntaxFactory.PropertyDeclaration(
-                                                SyntaxFactory.GenericName(
-                                                    SyntaxFactory.Identifier("DbSet"))
-                                                    .WithTypeArgumentList(
-                                                        SyntaxFactory.TypeArgumentList(
-                                                            SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                                                                SyntaxFactory.IdentifierName(entityName))))
-                                                ,
-                                                SyntaxFactory.Identifier(pluralizedEntityName))
-                                            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-                                            .WithAccessorList(SyntaxFactory.AccessorList(
-                                                SyntaxFactory.List(new AccessorDeclarationSyntax[]{
-                                                    SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                                                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
-                                                    SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
-                                                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-                                                })));
+                // Check if the property already exists
+                var existingProperty = classDeclaration.Members.OfType<PropertyDeclarationSyntax>()
+                    .FirstOrDefault(prop => prop.Identifier.Text == pluralizedEntityName);
 
-                var newClassDeclaration = classDeclaration.AddMembers(propertyDeclaration);
-                var newRoot = root.ReplaceNode(classDeclaration, newClassDeclaration);
+                if (existingProperty == null)
+                {
+                    var propertyDeclaration = SyntaxFactory.PropertyDeclaration(
+                                                    SyntaxFactory.GenericName(
+                                                        SyntaxFactory.Identifier("DbSet"))
+                                                        .WithTypeArgumentList(
+                                                            SyntaxFactory.TypeArgumentList(
+                                                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                                                    SyntaxFactory.IdentifierName(entityName))))
+                                                    ,
+                                                    SyntaxFactory.Identifier(pluralizedEntityName))
+                                                .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+                                                .WithAccessorList(SyntaxFactory.AccessorList(
+                                                    SyntaxFactory.List(new AccessorDeclarationSyntax[]{
+                                                SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                                                    .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                                                SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
+                                                    .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                                                    })));
 
-                File.WriteAllText(filePath, newRoot.NormalizeWhitespace().ToFullString());
+                    var newClassDeclaration = classDeclaration.AddMembers(propertyDeclaration);
+                    var newRoot = root.ReplaceNode(classDeclaration, newClassDeclaration);
+
+                    File.WriteAllText(filePath, newRoot.NormalizeWhitespace().ToFullString());
+                    Console.WriteLine($"Added property {pluralizedEntityName} to class {classDeclaration.Identifier.Text} in {filePath}");
+                }
+                else
+                {
+                    Console.WriteLine($"Property {pluralizedEntityName} already exists in class {classDeclaration.Identifier.Text}.");
+                }
             }
         }
 
@@ -116,6 +142,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             {
                 try
                 {
+                    Console.WriteLine($"Processing file: {filePath}");
                     var code = File.ReadAllText(filePath);
                     var tree = CSharpSyntaxTree.ParseText(code);
                     var root = tree.GetRoot() as CompilationUnitSyntax;
@@ -136,7 +163,6 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                 }
                 catch (Exception ex)
                 {
-                    // Log or handle the exception as needed
                     Console.WriteLine($"Error processing file {filePath}: {ex.Message}");
                 }
             }
@@ -158,6 +184,11 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                     var newRoot = root.ReplaceNode(interfaceDeclaration, newInterfaceDeclaration);
 
                     File.WriteAllText(filePath, newRoot.NormalizeWhitespace().ToFullString());
+                    Console.WriteLine($"Removed property {pluralizedEntityName} from interface {interfaceDeclaration.Identifier.Text} in {filePath}");
+                }
+                else
+                {
+                    Console.WriteLine($"Property {pluralizedEntityName} not found in interface {interfaceDeclaration.Identifier.Text}.");
                 }
             }
         }
@@ -178,6 +209,11 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                     var newRoot = root.ReplaceNode(classDeclaration, newClassDeclaration);
 
                     File.WriteAllText(filePath, newRoot.NormalizeWhitespace().ToFullString());
+                    Console.WriteLine($"Removed property {pluralizedEntityName} from class {classDeclaration.Identifier.Text} in {filePath}");
+                }
+                else
+                {
+                    Console.WriteLine($"Property {pluralizedEntityName} not found in class {classDeclaration.Identifier.Text}.");
                 }
             }
         }

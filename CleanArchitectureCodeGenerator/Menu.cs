@@ -1,4 +1,5 @@
 ﻿using CleanArchitecture.CodeGenerator.CodeWriter;
+using CleanArchitecture.CodeGenerator.Configuration;
 
 namespace CleanArchitecture.CodeGenerator
 {
@@ -18,10 +19,10 @@ namespace CleanArchitecture.CodeGenerator
                 Console.ResetColor();
 
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("1. Check Configurations");
-                Console.WriteLine("2. Scaffold Feature");
-                Console.WriteLine("3. Delete Feature");
-                Console.WriteLine("4. Test Feature");
+                Console.WriteLine("\n1. Check Configurations");
+                Console.WriteLine("\n2. Add New Scaffold Feature");
+                Console.WriteLine("\n3. Remove Feature (This will delete Feature files)");
+                Console.WriteLine("\n4. Test (For Developemnt Purpose Only!))");
                 Console.ResetColor();
 
                 Console.ForegroundColor = ConsoleColor.Red;
@@ -46,7 +47,7 @@ namespace CleanArchitecture.CodeGenerator
                         await DeleteFeature();
                         break;
                     case "4":
-                        await DbContextModifier_fun();
+                        await Test();
                         break;
                     case "q":
                         exit = true;
@@ -71,6 +72,10 @@ namespace CleanArchitecture.CodeGenerator
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("You selected: Check Configurations");
             Console.ResetColor();
+
+            ConfigurationHandler configurationHandler = new ConfigurationHandler("appsettings.json");
+            configurationHandler.PrintConfiguration();
+
             Pause();
         }
 
@@ -99,7 +104,7 @@ namespace CleanArchitecture.CodeGenerator
             Pause();
         }
 
-        private async Task DbContextModifier_fun()
+        private async Task Test()
         {
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Green;
@@ -113,7 +118,7 @@ namespace CleanArchitecture.CodeGenerator
             var paths = dbContextModifier.SearchDbContextFiles(rootDirectory);
 
             // Add a property
-            //dbContextModifier.AddEntityProperty(paths, entityName);
+            dbContextModifier.AddEntityProperty(paths, entityName);
 
             //Remove a property
             dbContextModifier.RemoveEntityProperty(paths, entityName);
