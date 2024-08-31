@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace CleanArchitecture.CodeGenerator.CodeWriter
 {
-    public class DbContextModifier
+    public class Update_DbContext
     {
         public List<string> SearchDbContextFiles(string rootDirectory)
         {

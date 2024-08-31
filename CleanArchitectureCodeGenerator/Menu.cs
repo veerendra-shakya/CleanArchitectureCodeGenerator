@@ -114,14 +114,18 @@ namespace CleanArchitecture.CodeGenerator
             var rootDirectory = @"D:\CleanArchitectureWithBlazorServer-main\src";
             var entityName = "NewEntity";
 
-            DbContextModifier dbContextModifier = new DbContextModifier();
-            var paths = dbContextModifier.SearchDbContextFiles(rootDirectory);
+            //////Update_DbContext dbContextModifier = new Update_DbContext();
+            //////var paths = dbContextModifier.SearchDbContextFiles(rootDirectory);
 
-            // Add a property
-            dbContextModifier.AddEntityProperty(paths, entityName);
+            //////// Add a property
+            //////dbContextModifier.AddEntityProperty(paths, entityName);
 
-            //Remove a property
-            dbContextModifier.RemoveEntityProperty(paths, entityName);
+            ////////Remove a property
+            //////dbContextModifier.RemoveEntityProperty(paths, entityName);
+
+
+ 
+
 
             Pause();
         }
@@ -133,5 +137,8 @@ namespace CleanArchitecture.CodeGenerator
             Console.ResetColor();
             Console.ReadKey();
         }
+
+
+
     }
 }
