@@ -1,4 +1,5 @@
 ﻿using CleanArchitecture.CodeGenerator.Models;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -68,6 +69,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
 
             return relativePath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
         }
+
         public static string AppendDirectorySeparatorChar(string path)
         {
             if (!path.EndsWith(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal))
@@ -91,7 +93,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                  (?<=[A-Za-z])(?=[^A-Za-z])", RegexOptions.IgnorePatternWhitespace);
             return r.Replace(str, " ");
         }
-       
+
         public static void WriteToDiskAsync(string file, string content)
         {
             // Ensure all directories in the path exist
@@ -113,7 +115,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
 
                 case ".cshtml":
                 case ".razor":
-                   // content = RazorPageFormatter.ReformatRazorPage(content);
+                    // content = RazorPageFormatter.ReformatRazorPage(content);
                     break;
 
                 // Add cases for other file types as needed
@@ -130,11 +132,11 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             // Write content to the file
             using (StreamWriter writer = new StreamWriter(file, false, GetFileEncoding(file)))
             {
-                 writer.Write(content);
+                writer.Write(content);
             }
         }
 
-            public static Encoding GetFileEncoding(string file)
+        public static Encoding GetFileEncoding(string file)
         {
             string[] noBom = { ".cmd", ".bat", ".json" };
             string ext = Path.GetExtension(file).ToLowerInvariant();
@@ -146,6 +148,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
 
             return new UTF8Encoding(true);
         }
+
         public static string[] GetParsedInput(string input)
         {
             Regex pattern = new Regex(@"[,]?([^(,]*)([\.\/\\]?)[(]?((?<=[^(])[^,]*|[^)]+)[)]?");
@@ -170,7 +173,6 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             }
             return results.ToArray();
         }
-
 
         public static bool ValidatePath(string path, string targetDirectory)
         {
@@ -205,7 +207,6 @@ namespace CleanArchitecture.CodeGenerator.Helpers
 
             return true; // Path is valid
         }
-
 
         public static string GetProjectNameFromPath(string path)
         {
@@ -245,6 +246,205 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             return list;
         }
 
+
+        // This method checks if the type is a known type (primitive types, base classes, etc.)
+        public static bool IsKnownType(TypeSyntax typeSyntax)
+        {
+            var knownPrimitiveTypes = new HashSet<string>
+                {
+                    // Represents a 32-bit signed integer.
+                    "int",    // Maps to `int` in the database (SQL Server).
+
+                    // Nullable 32-bit signed integer.
+                    "int?",   // Maps to `int` in the database with nullability.
+
+                    // Represents a 64-bit signed integer.
+                    "long",   // Maps to `bigint` in the database.
+
+                    // Nullable 64-bit signed integer.
+                    "long?",  // Maps to `bigint` in the database with nullability.
+
+                    // Represents a 16-bit signed integer.
+                    "short",  // Maps to `smallint` in the database.
+
+                    // Nullable 16-bit signed integer.
+                    "short?", // Maps to `smallint` in the database with nullability.
+
+                    // Represents an 8-bit unsigned integer.
+                    "byte",   // Maps to `tinyint` in the database.
+
+                    // Nullable 8-bit unsigned integer.
+                    "byte?",  // Maps to `tinyint` in the database with nullability.
+
+                    // Represents a single-precision floating-point number.
+                    "float",  // Maps to `real` in the database.
+
+                    // Nullable single-precision floating-point number.
+                    "float?", // Maps to `real` in the database with nullability.
+
+                    // Represents a double-precision floating-point number.
+                    "double", // Maps to `float` in the database.
+
+                    // Nullable double-precision floating-point number.
+                    "double?",// Maps to `float` in the database with nullability.
+
+                    // Represents a decimal number with higher precision.
+                    "decimal",// Maps to `decimal(18, 2)` in the database, with customizable precision and scale.
+
+                    // Nullable decimal number with higher precision.
+                    "decimal?", // Maps to `decimal(18, 2)` in the database with nullability.
+
+                    // Represents a Boolean value (true or false).
+                    "bool",   // Maps to `bit` in the database.
+
+                    // Nullable Boolean value.
+                    "bool?",  // Maps to `bit` in the database with nullability.
+
+                    // Represents a single Unicode character.
+                    "char",   // Maps to `nchar(1)` in the database.
+
+                    // Nullable Unicode character.
+                    "char?",  // Maps to `nchar(1)` in the database with nullability.
+
+                    // Represents a sequence of Unicode characters (a string).
+                    "string", // Maps to `nvarchar(max)` in the database by default. Length can be specified.
+
+                    // Nullable string.
+                    "string?",// Maps to `nvarchar(max)` in the database with nullability. Length can be specified.
+
+                    // Represents a date and time.
+                    "DateTime", // Maps to `datetime2` in the database, providing higher precision.
+
+                    // Nullable date and time.
+                    "DateTime?", // Maps to `datetime2` in the database with nullability.
+
+                    // Represents a globally unique identifier.
+                    "Guid", // Maps to `uniqueidentifier` in the database.
+
+                    // Nullable globally unique identifier.
+                    "Guid?", // Maps to `uniqueidentifier` in the database with nullability.
+                };
+
+            return knownPrimitiveTypes.Contains(typeSyntax.ToString());
+        }
+
+        // This method checks if the type is a known base type, similar to the base classes check in the original class
+        public static bool IsKnownBaseType(TypeSyntax typeSyntax)
+        {
+            var knownBaseTypes = new HashSet<string>
+                {
+                    "BaseAuditableSoftDeleteEntity", "BaseAuditableEntity", "BaseEntity", "IEntity", "ISoftDelete"
+                };
+
+            return knownBaseTypes.Contains(typeSyntax.ToString());
+        }
+
+        public static bool IsKnownBaseType(string typeName)
+        {
+            var knownBaseTypes = new HashSet<string>
+                {
+                    "BaseAuditableSoftDeleteEntity", "BaseAuditableEntity", "BaseEntity", "IEntity", "ISoftDelete"
+                };
+
+            return knownBaseTypes.Contains(typeName);
+        }
+
+
+        public static bool IsPropertyNameValid(string propertyName)
+        {
+            // Rule 1: Check if the name is in CamelCase
+            if (!IsCamelCase(propertyName))
+            {
+                return false;
+            }
+
+            // Rule 2: Check for spaces, hyphens, or underscores
+            if (propertyName.Contains(' ') || propertyName.Contains('-') || propertyName.Contains('_'))
+            {
+                return false;
+            }
+
+            //// Rule 3: Check if the name is singular (simple heuristic, assuming singular form is just checking for 's' at the end)
+            //if (propertyName.EndsWith("s", StringComparison.OrdinalIgnoreCase))
+            //{
+            //    return false;
+            //}
+
+            return true;
+        }
+
+        public static bool IsCamelCase(string input)
+        {
+            // Check if the first character is uppercase and the rest do not contain spaces or special characters
+            return char.IsUpper(input[0]) && input.Skip(1).All(c => !char.IsWhiteSpace(c) && c != '-' && c != '_');
+        }
+
+        public static bool IsModelClassValid(CSharpClassObject classObject)
+        {
+            // Rule 1: Check if the name is in CamelCase
+            if (!IsCamelCase(classObject.Name))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Error: The Entity/Model class name must be in CamelCase.");
+                Console.ResetColor();
+                return false;
+            }
+
+            // Rule 2: Check for spaces, hyphens, or underscores
+            if (classObject.Name.Contains(' ') || classObject.Name.Contains('-') || classObject.Name.Contains('_'))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Error: The Entity/Model class name must not contain spaces, hyphens, or underscores.");
+                Console.ResetColor();
+                return false;
+            }
+
+            // Rule 3: Check if the name is singular (simple heuristic, assuming singular form is just checking for 's' at the end)
+            if (classObject.Name.EndsWith("s", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Error: The Entity/Model class name should be singular and not end with 's'.");
+                Console.ResetColor();
+                return false;
+            }
+
+            // Rule 4: Check if the base type is known
+            if (!IsKnownBaseType(classObject.BaseName))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Error: The Entity/Model class base type is invalid. It should be one of the following: \"BaseAuditableSoftDeleteEntity\", \"BaseAuditableEntity\", \"BaseEntity\", \"IEntity\", \"ISoftDelete\".");
+                Console.ResetColor();
+                return false;
+            }
+
+            return true;
+        }
+
+        public static bool ValidateClassProperties(CSharpClassObject classObject)
+        { 
+            foreach (var property in classObject.Properties)
+            {
+                var typeSyntax = property.propertyDeclarationSyntax.Type;
+
+                if (!IsKnownType(typeSyntax))
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"Error: The type '{typeSyntax}' of property '{property.PropertyName}' is not a known type.");
+                    Console.ResetColor();
+                    return false;
+                }
+
+                if (!IsPropertyNameValid(property.PropertyName))
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"Error: The property name '{property.PropertyName}' is not valid.");
+                    Console.ResetColor();
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 
 }

@@ -44,7 +44,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
 
             var objectList = Utility.GetEntities(domainProjectDir)
                 .Where(x => includes.Contains(x.BaseName) && !includes.Contains(x.Name));
-            
+
             var entities = objectList
                   .Where(x => x.Name != "Contact" && x.Name != "Document" && x.Name != "Product")
                   .Select(x => x.Name)
@@ -115,6 +115,20 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                     string modalClassName = Path.GetFileNameWithoutExtension(inputName);
                     string modalClassNamePlural = Utility.Pluralize(modalClassName);
                     var modalClassObject = objectList.First(x => x.Name == modalClassName);
+
+                    // Validate the class & properties before generating files
+
+                    if (!Utility.IsModelClassValid(modalClassObject))
+                    {
+                        Console.WriteLine("File generation aborted due to validation errors.");
+                        return;
+                    }
+                    if (!Utility.ValidateClassProperties(modalClassObject))
+                    {
+                        Console.WriteLine("File generation aborted due to validation errors.");
+                        return;
+                    }
+
 
                     GenerateFiles(modalClassObject, modalClassName, modalClassNamePlural, domainProjectDir, infrastructureProjectDir, applicationProjectDir, uiProjectDir);
                     Console.WriteLine($"Successfully generated files for {modalClassName}.");
@@ -234,5 +248,6 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                 Console.WriteLine($"Error generating file '{file.FullName}': {ex.Message}");
             }
         }
+
     }
 }

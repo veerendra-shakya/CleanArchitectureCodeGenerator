@@ -161,8 +161,8 @@ namespace CleanArchitecture.CodeGenerator.Helpers
         {
 
             bool isNullable = typeSyntax is NullableTypeSyntax;
-            bool isKnownType = IsKnownType(typeSyntax);
-            bool isKnownBaseType = IsKnownBaseType(typeSyntax);
+            bool isKnownType = Utility.IsKnownType(typeSyntax);
+            bool isKnownBaseType = Utility.IsKnownBaseType(typeSyntax);
 
             var type = new PropertyType
             {
@@ -181,97 +181,6 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             return type;
         }
 
-        // This method checks if the type is a known type (primitive types, base classes, etc.)
-        private bool IsKnownType(TypeSyntax typeSyntax)
-        {
-            var knownPrimitiveTypes = new HashSet<string>
-                {
-                    // Represents a 32-bit signed integer.
-                    "int",    // Maps to `int` in the database (SQL Server).
-
-                    // Nullable 32-bit signed integer.
-                    "int?",   // Maps to `int` in the database with nullability.
-
-                    // Represents a 64-bit signed integer.
-                    "long",   // Maps to `bigint` in the database.
-
-                    // Nullable 64-bit signed integer.
-                    "long?",  // Maps to `bigint` in the database with nullability.
-
-                    // Represents a 16-bit signed integer.
-                    "short",  // Maps to `smallint` in the database.
-
-                    // Nullable 16-bit signed integer.
-                    "short?", // Maps to `smallint` in the database with nullability.
-
-                    // Represents an 8-bit unsigned integer.
-                    "byte",   // Maps to `tinyint` in the database.
-
-                    // Nullable 8-bit unsigned integer.
-                    "byte?",  // Maps to `tinyint` in the database with nullability.
-
-                    // Represents a single-precision floating-point number.
-                    "float",  // Maps to `real` in the database.
-
-                    // Nullable single-precision floating-point number.
-                    "float?", // Maps to `real` in the database with nullability.
-
-                    // Represents a double-precision floating-point number.
-                    "double", // Maps to `float` in the database.
-
-                    // Nullable double-precision floating-point number.
-                    "double?",// Maps to `float` in the database with nullability.
-
-                    // Represents a decimal number with higher precision.
-                    "decimal",// Maps to `decimal(18, 2)` in the database, with customizable precision and scale.
-
-                    // Nullable decimal number with higher precision.
-                    "decimal?", // Maps to `decimal(18, 2)` in the database with nullability.
-
-                    // Represents a Boolean value (true or false).
-                    "bool",   // Maps to `bit` in the database.
-
-                    // Nullable Boolean value.
-                    "bool?",  // Maps to `bit` in the database with nullability.
-
-                    // Represents a single Unicode character.
-                    "char",   // Maps to `nchar(1)` in the database.
-
-                    // Nullable Unicode character.
-                    "char?",  // Maps to `nchar(1)` in the database with nullability.
-
-                    // Represents a sequence of Unicode characters (a string).
-                    "string", // Maps to `nvarchar(max)` in the database by default. Length can be specified.
-
-                    // Nullable string.
-                    "string?",// Maps to `nvarchar(max)` in the database with nullability. Length can be specified.
-
-                    // Represents a date and time.
-                    "DateTime", // Maps to `datetime2` in the database, providing higher precision.
-
-                    // Nullable date and time.
-                    "DateTime?", // Maps to `datetime2` in the database with nullability.
-
-                    // Represents a globally unique identifier.
-                    "Guid", // Maps to `uniqueidentifier` in the database.
-
-                    // Nullable globally unique identifier.
-                    "Guid?", // Maps to `uniqueidentifier` in the database with nullability.
-                };
-
-            return knownPrimitiveTypes.Contains(typeSyntax.ToString());
-        }
-
-        // This method checks if the type is a known base type, similar to the base classes check in the original class
-        private bool IsKnownBaseType(TypeSyntax typeSyntax)
-        {
-            var knownBaseTypes = new HashSet<string>
-                {
-                    "BaseAuditableSoftDeleteEntity", "BaseAuditableEntity", "BaseEntity", "IEntity", "ISoftDelete"
-                };
-
-            return knownBaseTypes.Contains(typeSyntax.ToString());
-        }
 
 
 
