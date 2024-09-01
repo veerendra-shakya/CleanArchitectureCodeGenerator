@@ -24,7 +24,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 return null;
             }
 
-            
+
             var list = new List<CSharpClassObject>();
 
             foreach (var namespaceDecl in root.Members.OfType<NamespaceDeclarationSyntax>())
@@ -168,15 +168,15 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             {
                 TypeName = typeSyntax.ToString(),
                 IsArray = typeSyntax is ArrayTypeSyntax,
-                IsList = typeSyntax is GenericNameSyntax genericName && 
+                IsList = typeSyntax is GenericNameSyntax genericName &&
                                 (genericName.Identifier.Text == "List" || genericName.Identifier.Text == "IList"),
                 IsDictionary = typeSyntax is GenericNameSyntax genericNameDict &&
                                 (genericNameDict.Identifier.Text == "Dictionary" || genericNameDict.Identifier.Text == "IDictionary"),
                 IsNullable = isNullable,
                 // The IsKnown property is true if both IsKnownType and IsKnownBaseType are true.
-               // IsKnown = isKnownType && isKnownBaseType,
+                // IsKnown = isKnownType && isKnownBaseType,
                 IsKnownType = isKnownType,
-               // IsKnownBaseType = isKnownBaseType
+                // IsKnownBaseType = isKnownBaseType
             };
             return type;
         }
@@ -185,31 +185,80 @@ namespace CleanArchitecture.CodeGenerator.Helpers
         private bool IsKnownType(TypeSyntax typeSyntax)
         {
             var knownPrimitiveTypes = new HashSet<string>
-            {
-                "int", "int?",
-                "long", "long?",
-                "short", "short?",
-                "byte", "byte?",
-                "uint", "uint?",
-                "ulong", "ulong?",
-                "ushort", "ushort?",
-                "sbyte", "sbyte?",
-                "float", "float?",
-                "double", "double?",
-                "decimal", "decimal?",
-                "bool", "bool?",
-                "char", "char?",
-                "string","string?",
-                "object","object?",
-                "DateTime", "DateTime?",
-                "nint", "nint?",
-                "nuint", "nuint?",
-                "Guid", "Guid?",
-                "TimeSpan", "TimeSpan?",
-                "DateTimeOffset", "DateTimeOffset?",
-                "BigInteger", "BigInteger?",
-                "Half", "Half?"
-            };
+                {
+                    // Represents a 32-bit signed integer.
+                    "int",    // Maps to `int` in the database (SQL Server).
+
+                    // Nullable 32-bit signed integer.
+                    "int?",   // Maps to `int` in the database with nullability.
+
+                    // Represents a 64-bit signed integer.
+                    "long",   // Maps to `bigint` in the database.
+
+                    // Nullable 64-bit signed integer.
+                    "long?",  // Maps to `bigint` in the database with nullability.
+
+                    // Represents a 16-bit signed integer.
+                    "short",  // Maps to `smallint` in the database.
+
+                    // Nullable 16-bit signed integer.
+                    "short?", // Maps to `smallint` in the database with nullability.
+
+                    // Represents an 8-bit unsigned integer.
+                    "byte",   // Maps to `tinyint` in the database.
+
+                    // Nullable 8-bit unsigned integer.
+                    "byte?",  // Maps to `tinyint` in the database with nullability.
+
+                    // Represents a single-precision floating-point number.
+                    "float",  // Maps to `real` in the database.
+
+                    // Nullable single-precision floating-point number.
+                    "float?", // Maps to `real` in the database with nullability.
+
+                    // Represents a double-precision floating-point number.
+                    "double", // Maps to `float` in the database.
+
+                    // Nullable double-precision floating-point number.
+                    "double?",// Maps to `float` in the database with nullability.
+
+                    // Represents a decimal number with higher precision.
+                    "decimal",// Maps to `decimal(18, 2)` in the database, with customizable precision and scale.
+
+                    // Nullable decimal number with higher precision.
+                    "decimal?", // Maps to `decimal(18, 2)` in the database with nullability.
+
+                    // Represents a Boolean value (true or false).
+                    "bool",   // Maps to `bit` in the database.
+
+                    // Nullable Boolean value.
+                    "bool?",  // Maps to `bit` in the database with nullability.
+
+                    // Represents a single Unicode character.
+                    "char",   // Maps to `nchar(1)` in the database.
+
+                    // Nullable Unicode character.
+                    "char?",  // Maps to `nchar(1)` in the database with nullability.
+
+                    // Represents a sequence of Unicode characters (a string).
+                    "string", // Maps to `nvarchar(max)` in the database by default. Length can be specified.
+
+                    // Nullable string.
+                    "string?",// Maps to `nvarchar(max)` in the database with nullability. Length can be specified.
+
+                    // Represents a date and time.
+                    "DateTime", // Maps to `datetime2` in the database, providing higher precision.
+
+                    // Nullable date and time.
+                    "DateTime?", // Maps to `datetime2` in the database with nullability.
+
+                    // Represents a globally unique identifier.
+                    "Guid", // Maps to `uniqueidentifier` in the database.
+
+                    // Nullable globally unique identifier.
+                    "Guid?", // Maps to `uniqueidentifier` in the database with nullability.
+                };
+
             return knownPrimitiveTypes.Contains(typeSyntax.ToString());
         }
 
