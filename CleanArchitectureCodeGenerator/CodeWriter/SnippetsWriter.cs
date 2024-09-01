@@ -62,12 +62,60 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             foreach (var property in classObject.Properties.Where(x => x.Type.IsKnownType))
             {
                 if (property.PropertyName == PRIMARYKEY) continue;
-                if (property.Type.TypeName.StartsWith("bool"))
+
+                var typeName = property.Type.TypeName;
+
+                if (typeName.StartsWith("bool"))
                 {
                     output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = Convert.ToBoolean(row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]]) }},");
                 }
+                else if (typeName.StartsWith("int"))
+                {
+                    output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = Convert.ToInt32(row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]]) }},");
+                }
+                else if (typeName.StartsWith("long"))
+                {
+                    output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = Convert.ToInt64(row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]]) }},");
+                }
+                else if (typeName.StartsWith("short"))
+                {
+                    output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = Convert.ToInt16(row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]]) }},");
+                }
+                else if (typeName.StartsWith("byte"))
+                {
+                    output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = Convert.ToByte(row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]]) }},");
+                }
+                else if (typeName.StartsWith("float"))
+                {
+                    output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = Convert.ToSingle(row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]]) }},");
+                }
+                else if (typeName.StartsWith("double"))
+                {
+                    output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = Convert.ToDouble(row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]]) }},");
+                }
+                else if (typeName.StartsWith("decimal"))
+                {
+                    output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = Convert.ToDecimal(row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]]) }},");
+                }
+                else if (typeName.StartsWith("DateTime"))
+                {
+                    output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = Convert.ToDateTime(row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]]) }},");
+                }
+                else if (typeName.StartsWith("Guid"))
+                {
+                    output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = Guid.Parse(row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]].ToString()) }},");
+                }
+                else if (typeName.StartsWith("char"))
+                {
+                    output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = Convert.ToChar(row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]]) }},");
+                }
+                else if (typeName.StartsWith("string"))
+                {
+                    output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]].ToString() }},");
+                }
                 else
                 {
+                    // Default case, handle as string if no specific type is matched
                     output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]].ToString() }},");
                 }
             }
