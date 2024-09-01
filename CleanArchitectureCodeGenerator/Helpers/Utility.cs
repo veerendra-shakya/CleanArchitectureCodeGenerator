@@ -101,6 +101,32 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 Directory.CreateDirectory(directoryPath);
             }
 
+            // Determine the file extension
+            string fileExtension = Path.GetExtension(file).ToLowerInvariant();
+
+            // Format content based on file type
+            switch (fileExtension)
+            {
+                case ".cs":
+                    content = CodeFormatter.ReformatCode(content);
+                    break;
+
+                case ".cshtml":
+                case ".razor":
+                   // content = RazorPageFormatter.ReformatRazorPage(content);
+                    break;
+
+                // Add cases for other file types as needed
+                // case ".html":
+                //     content = FormatHtmlContent(content);
+                //     break;
+
+                default:
+                    // No formatting needed
+                    break;
+            }
+
+
             // Write content to the file
             using (StreamWriter writer = new StreamWriter(file, false, GetFileEncoding(file)))
             {

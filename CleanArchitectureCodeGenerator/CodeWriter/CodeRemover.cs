@@ -30,7 +30,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             _applicationProject = configSettings.ApplicationProject;
         }
 
-        public async Task RunAsync()
+        public void Run()
         {
             var domainProjectDir = Path.Combine(_rootDirectory, _domainProject);
             var infrastructureProjectDir = Path.Combine(_rootDirectory, _infrastructureProject);
@@ -41,7 +41,12 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
 
             var objectList = Utility.GetEntities(domainProjectDir)
                 .Where(x => includes.Contains(x.BaseName) && !includes.Contains(x.Name));
-            var entities = objectList.Select(x => x.Name).Distinct().ToArray();
+            
+            var entities = objectList
+              .Where(x => x.Name != "Contact" && x.Name != "Document" && x.Name != "Product")
+              .Select(x => x.Name)
+              .Distinct()
+              .ToArray();
 
             Console.Clear();
             while (true)
@@ -61,7 +66,33 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                     string selectedEntity = entities[selectedIndex - 1];
                     Console.WriteLine($"You selected: {selectedEntity}");
 
-                    await ProcessEntityAsync(objectList, selectedEntity, domainProjectDir, infrastructureProjectDir, applicationProjectDir, uiProjectDir);
+                    // Display confirmation message
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("\n=====================================");
+                    Console.WriteLine("**  CONFIRMATION REQUIRED  **".PadLeft(40));
+                    Console.WriteLine("=====================================");
+                    Console.ResetColor();
+                    Console.WriteLine("Do you want to proceed with the selected entity?");
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"Entity: {selectedEntity}".PadLeft(30).PadRight(40));
+                    Console.ResetColor();
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("Press 'Y' to confirm, or any other key to cancel.");
+                    Console.WriteLine("=====================================");
+                    Console.ResetColor();
+
+
+                    // Waiting for user confirmation
+                    ConsoleKeyInfo keyInfo = Console.ReadKey();
+                    if (keyInfo.Key == ConsoleKey.Y)
+                    {
+                        Console.WriteLine("\nYou confirmed the selection.");
+                        ProcessEntity(objectList, selectedEntity, domainProjectDir, infrastructureProjectDir, applicationProjectDir, uiProjectDir);
+                    }
+                    else
+                    {
+                        Console.WriteLine("\nSelection canceled. Returning to menu.");
+                    }
                 }
                 else
                 {
@@ -70,7 +101,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             }
         }
 
-        private static void DisplayEntityMenu(string[] entities)
+        private void DisplayEntityMenu(string[] entities)
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("=============================================================");
@@ -95,8 +126,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             Console.ResetColor();
         }
 
-
-        private async Task ProcessEntityAsync(IEnumerable<CSharpClassObject> objectList, string selectedEntity, string domainProjectDir, string infrastructureProjectDir, string applicationProjectDir, string uiProjectDir)
+        private void ProcessEntity(IEnumerable<CSharpClassObject> objectList, string selectedEntity, string domainProjectDir, string infrastructureProjectDir, string applicationProjectDir, string uiProjectDir)
         {
             string[] parsedInputs = Utility.GetParsedInput(selectedEntity);
 
@@ -108,7 +138,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                     string modalClassNamePlural = Utility.Pluralize(modalClassName);
                     var modalClassObject = objectList.First(x => x.Name == modalClassName);
 
-                    await DeleteFilesAsync(modalClassObject, modalClassName, modalClassNamePlural, domainProjectDir, infrastructureProjectDir, applicationProjectDir, uiProjectDir);
+                    DeleteFiles(modalClassObject, modalClassName, modalClassNamePlural, domainProjectDir, infrastructureProjectDir, applicationProjectDir, uiProjectDir);
                     Console.WriteLine($"Successfully deleted files for {modalClassName}.");
                 }
                 catch (Exception ex)
@@ -118,7 +148,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             }
         }
 
-        private async Task DeleteFilesAsync(CSharpClassObject modalClassObject, string modalClassName, string modalClassNamePlural, string domainProjectDir, string infrastructureProjectDir, string applicationProjectDir, string uiProjectDir)
+        private void DeleteFiles(CSharpClassObject modalClassObject, string modalClassName, string modalClassNamePlural, string domainProjectDir, string infrastructureProjectDir, string applicationProjectDir, string uiProjectDir)
         {
             var eventPaths = new[]
             {
@@ -166,21 +196,33 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                 $"Pages/{modalClassNamePlural}/Components/{modalClassNamePlural}AdvancedSearchComponent.razor"
             };
 
-            await Task.WhenAll(
-                ProcessFilesAsync(eventPaths, domainProjectDir),
-                ProcessFilesAsync(configPaths, infrastructureProjectDir),
-                ProcessFilesAsync(featurePaths, applicationProjectDir),
-                ProcessFilesAsync(pagePaths, uiProjectDir)
-            );
+
+            ProcessFiles(eventPaths, domainProjectDir);
+            ProcessFiles(configPaths, infrastructureProjectDir);
+            ProcessFiles(featurePaths, applicationProjectDir);
+            ProcessFiles(pagePaths, uiProjectDir);
+
+            Console.WriteLine($"\n--------------------- {modalClassName} Update DbContext Started...  --------------------");
+            Update_DbContext dbContextModifier = new Update_DbContext();
+            var paths = dbContextModifier.SearchDbContextFiles(_rootDirectory);
+            dbContextModifier.RemoveEntityProperty(paths, modalClassName);
+            Console.WriteLine($"---------------------  Update DbContext Completed...  --------------------\n");
+
         }
 
-        private async Task ProcessFilesAsync(IEnumerable<string> targetPaths, string targetProjectDirectory)
+        private void ProcessFiles(IEnumerable<string> targetPaths, string targetProjectDirectory)
         {
+            Console.WriteLine($"\n---------------------  {Utility.GetProjectNameFromPath(targetProjectDirectory)} Started...  --------------------");
+            int count = 1;
             foreach (var targetPath in targetPaths)
             {
+                Console.Write($" {count} of {targetPaths.Count()}  ");
                 DeleteFileIfExists(Path.Combine(targetProjectDirectory, targetPath));
-                await Task.CompletedTask; // Keeping the method async for consistency
+                Thread.Sleep(500);
+                count++;
             }
+            Console.WriteLine($"---------------------  {Utility.GetProjectNameFromPath(targetProjectDirectory)} Completed...  --------------------\n");
+
         }
 
         internal void DeleteFileIfExists(string filePath)

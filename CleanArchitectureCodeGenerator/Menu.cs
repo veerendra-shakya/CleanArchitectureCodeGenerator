@@ -88,7 +88,7 @@ namespace CleanArchitecture.CodeGenerator
 
             // Run the code generator.
             CodeEngine codeGenerator = new CodeEngine();
-            codeGenerator.RunAsync();
+            codeGenerator.Run();
             Pause();
         }
 
@@ -100,7 +100,7 @@ namespace CleanArchitecture.CodeGenerator
             Console.ResetColor();
 
             CodeRemover codeRemover = new CodeRemover();
-            await codeRemover.RunAsync();
+            codeRemover.Run();
             Pause();
         }
 

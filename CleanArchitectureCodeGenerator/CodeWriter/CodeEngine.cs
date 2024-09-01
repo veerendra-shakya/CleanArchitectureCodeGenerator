@@ -33,7 +33,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             _applicationProject = configSettings.ApplicationProject;
         }
 
-        public void RunAsync()
+        public void Run()
         {
             string domainProjectDir = Path.Combine(_rootDirectory, _domainProject);
             string infrastructureProjectDir = Path.Combine(_rootDirectory, _infrastructureProject);
@@ -44,7 +44,13 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
 
             var objectList = Utility.GetEntities(domainProjectDir)
                 .Where(x => includes.Contains(x.BaseName) && !includes.Contains(x.Name));
-            var entities = objectList.Select(x => x.Name).Distinct().ToArray();
+            
+            var entities = objectList
+                  .Where(x => x.Name != "Contact" && x.Name != "Document" && x.Name != "Product")
+                  .Select(x => x.Name)
+                  .Distinct()
+                  .ToArray();
+
 
             Console.Clear();
             while (true)
@@ -64,7 +70,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                     string selectedEntity = entities[selectedIndex - 1];
                     Console.WriteLine($"You selected: {selectedEntity}");
 
-                    ProcessEntityAsync(objectList, selectedEntity, domainProjectDir, infrastructureProjectDir, applicationProjectDir, uiProjectDir);
+                    ProcessEntity(objectList, selectedEntity, domainProjectDir, infrastructureProjectDir, applicationProjectDir, uiProjectDir);
                 }
                 else
                 {
@@ -73,7 +79,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             }
         }
 
-        private static void DisplayEntityMenu(string[] entities)
+        private void DisplayEntityMenu(string[] entities)
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("=============================================================");
@@ -98,9 +104,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             Console.ResetColor();
         }
 
-
-
-        private void ProcessEntityAsync(IEnumerable<CSharpClassObject> objectList, string selectedEntity, string domainProjectDir, string infrastructureProjectDir, string applicationProjectDir, string uiProjectDir)
+        private void ProcessEntity(IEnumerable<CSharpClassObject> objectList, string selectedEntity, string domainProjectDir, string infrastructureProjectDir, string applicationProjectDir, string uiProjectDir)
         {
             string[] parsedInputs = Utility.GetParsedInput(selectedEntity);
 
@@ -112,7 +116,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                     string modalClassNamePlural = Utility.Pluralize(modalClassName);
                     var modalClassObject = objectList.First(x => x.Name == modalClassName);
 
-                    GenerateFilesAsync(modalClassObject, modalClassName, modalClassNamePlural, domainProjectDir, infrastructureProjectDir, applicationProjectDir, uiProjectDir);
+                    GenerateFiles(modalClassObject, modalClassName, modalClassNamePlural, domainProjectDir, infrastructureProjectDir, applicationProjectDir, uiProjectDir);
                     Console.WriteLine($"Successfully generated files for {modalClassName}.");
                 }
                 catch (Exception ex)
@@ -122,7 +126,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             }
         }
 
-        private void GenerateFilesAsync(CSharpClassObject modalClassObject, string modalClassName, string modalClassNamePlural, string domainProjectDir, string infrastructureProjectDir, string applicationProjectDir, string uiProjectDir)
+        private void GenerateFiles(CSharpClassObject modalClassObject, string modalClassName, string modalClassNamePlural, string domainProjectDir, string infrastructureProjectDir, string applicationProjectDir, string uiProjectDir)
         {
             var eventPaths = new[]
             {
@@ -171,21 +175,27 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             };
 
 
-            ProcessFilesAsync(modalClassObject, eventPaths, modalClassName, domainProjectDir);
-            ProcessFilesAsync(modalClassObject, configPaths, modalClassName, infrastructureProjectDir);
-            ProcessFilesAsync(modalClassObject, featurePaths, modalClassName, applicationProjectDir);
-            ProcessFilesAsync(modalClassObject, pagePaths, modalClassName, uiProjectDir);
-            
+            ProcessFiles(modalClassObject, eventPaths, modalClassName, domainProjectDir);
+            ProcessFiles(modalClassObject, configPaths, modalClassName, infrastructureProjectDir);
+            ProcessFiles(modalClassObject, featurePaths, modalClassName, applicationProjectDir);
+            ProcessFiles(modalClassObject, pagePaths, modalClassName, uiProjectDir);
+
+            Console.WriteLine($"\n--------------------- {modalClassName} Update DbContext Started...  --------------------");
+            Update_DbContext dbContextModifier = new Update_DbContext();
+            var paths = dbContextModifier.SearchDbContextFiles(_rootDirectory);
+            dbContextModifier.AddEntityProperty(paths, modalClassName);
+            Console.WriteLine($"---------------------  Update DbContext Completed...  --------------------\n");
+
         }
 
-        private void ProcessFilesAsync(CSharpClassObject modalClassObject, IEnumerable<string> targetPaths, string modalClassName, string targetProjectDirectory)
+        private void ProcessFiles(CSharpClassObject modalClassObject, IEnumerable<string> targetPaths, string modalClassName, string targetProjectDirectory)
         {
             Console.WriteLine($"\n---------------------  {Utility.GetProjectNameFromPath(targetProjectDirectory)} Started...  --------------------");
             int count = 1;
             foreach (var targetPath in targetPaths)
             {
                 Console.Write($" {count} of {targetPaths.Count()}  ");
-                AddFileAsync(modalClassObject, targetPath, modalClassName, targetProjectDirectory);
+                AddFile(modalClassObject, targetPath, modalClassName, targetProjectDirectory);
                 // Add a 0.5-second delay
                 Thread.Sleep(500);
                 count++;
@@ -193,7 +203,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             Console.WriteLine($"---------------------  {Utility.GetProjectNameFromPath(targetProjectDirectory)} Completed...  --------------------\n");
         }
 
-        private void AddFileAsync(CSharpClassObject modalClassObject, string targetPath, string modalClassName, string targetProjectDirectory)
+        private void AddFile(CSharpClassObject modalClassObject, string targetPath, string modalClassName, string targetProjectDirectory)
         {
             if (!Utility.ValidatePath(targetPath, targetProjectDirectory))
             {

@@ -47,7 +47,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
 
             string templateFile = GetTemplateFile(relativePath, FileFullName);
 
-            var template = ReplaceTokensAsync(ModalClassObject, ModalClassName, relativePath, templateFile, TargetProjectDirectory);
+            var template = ReplaceTokens(ModalClassObject, ModalClassName, relativePath, templateFile, TargetProjectDirectory);
             return Utility.NormalizeLineEndings(template);
         }
 
@@ -126,7 +126,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             return extension;
         }
 
-        private string ReplaceTokensAsync(CSharpClassObject ModalClassObject, string ModalClassName, string relativePath, string templateFile, string TargetProjectDirectory)
+        private string ReplaceTokens(CSharpClassObject ModalClassObject, string ModalClassName, string relativePath, string templateFile, string TargetProjectDirectory)
         {
 
             //using CleanArchitecture.Blazor.Application.Features.Customers.DTOs;
