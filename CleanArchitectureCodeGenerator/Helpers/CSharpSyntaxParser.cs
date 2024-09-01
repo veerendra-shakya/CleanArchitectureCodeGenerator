@@ -24,6 +24,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 return null;
             }
 
+            
             var list = new List<CSharpClassObject>();
 
             foreach (var namespaceDecl in root.Members.OfType<NamespaceDeclarationSyntax>())
@@ -89,7 +90,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             {
                 var prop = new ClassProperty
                 {
-                    Name = member.Identifier.Text,
+                    PropertyName = member.Identifier.Text,
                     Summary = GetSummary(member),
                     InitExpression = member.EqualsValue?.Value.ToString()
                 };
@@ -131,9 +132,10 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             {
                 var prop = new ClassProperty
                 {
-                    Name = member.Identifier.Text,
+                    PropertyName = member.Identifier.Text,
                     Type = GetType(member.Type),
-                    Summary = GetSummary(member)
+                    Summary = GetSummary(member),
+                    propertyDeclarationSyntax = member
                 };
 
                 data.Properties.Add(prop);
@@ -157,13 +159,72 @@ namespace CleanArchitecture.CodeGenerator.Helpers
 
         private PropertyType GetType(TypeSyntax typeSyntax)
         {
-            return new PropertyType
+
+            bool isNullable = typeSyntax is NullableTypeSyntax;
+            bool isKnownType = IsKnownType(typeSyntax);
+            bool isKnownBaseType = IsKnownBaseType(typeSyntax);
+
+            var type = new PropertyType
             {
-                CodeName = typeSyntax.ToString(),
+                TypeName = typeSyntax.ToString(),
                 IsArray = typeSyntax is ArrayTypeSyntax,
-                IsDictionary = typeSyntax is GenericNameSyntax genericName &&
-                               (genericName.Identifier.Text == "Dictionary" || genericName.Identifier.Text == "IDictionary")
+                IsList = typeSyntax is GenericNameSyntax genericName && 
+                                (genericName.Identifier.Text == "List" || genericName.Identifier.Text == "IList"),
+                IsDictionary = typeSyntax is GenericNameSyntax genericNameDict &&
+                                (genericNameDict.Identifier.Text == "Dictionary" || genericNameDict.Identifier.Text == "IDictionary"),
+                IsNullable = isNullable,
+                // The IsKnown property is true if both IsKnownType and IsKnownBaseType are true.
+               // IsKnown = isKnownType && isKnownBaseType,
+                IsKnownType = isKnownType,
+               // IsKnownBaseType = isKnownBaseType
             };
+            return type;
         }
+
+        // This method checks if the type is a known type (primitive types, base classes, etc.)
+        private bool IsKnownType(TypeSyntax typeSyntax)
+        {
+            var knownPrimitiveTypes = new HashSet<string>
+            {
+                "int", "int?",
+                "long", "long?",
+                "short", "short?",
+                "byte", "byte?",
+                "uint", "uint?",
+                "ulong", "ulong?",
+                "ushort", "ushort?",
+                "sbyte", "sbyte?",
+                "float", "float?",
+                "double", "double?",
+                "decimal", "decimal?",
+                "bool", "bool?",
+                "char", "char?",
+                "string","string?",
+                "object","object?",
+                "DateTime", "DateTime?",
+                "nint", "nint?",
+                "nuint", "nuint?",
+                "Guid", "Guid?",
+                "TimeSpan", "TimeSpan?",
+                "DateTimeOffset", "DateTimeOffset?",
+                "BigInteger", "BigInteger?",
+                "Half", "Half?"
+            };
+            return knownPrimitiveTypes.Contains(typeSyntax.ToString());
+        }
+
+        // This method checks if the type is a known base type, similar to the base classes check in the original class
+        private bool IsKnownBaseType(TypeSyntax typeSyntax)
+        {
+            var knownBaseTypes = new HashSet<string>
+                {
+                    "BaseAuditableSoftDeleteEntity", "BaseAuditableEntity", "BaseEntity", "IEntity", "ISoftDelete"
+                };
+
+            return knownBaseTypes.Contains(typeSyntax.ToString());
+        }
+
+
+
     }
 }

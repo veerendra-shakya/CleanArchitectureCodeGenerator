@@ -41,13 +41,13 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             ApplicationProject = configSettings.ApplicationProject;
         }
 
-        public async Task<string> GenerateClass(CSharpClassObject ModalClassObject, string FileFullName, string ModalClassName, string TargetProjectDirectory)
+        public string GenerateClass(CSharpClassObject ModalClassObject, string FileFullName, string ModalClassName, string TargetProjectDirectory)
         {
             var relativePath = Utility.MakeRelativePath(RootDirectory, Path.GetDirectoryName(FileFullName) ?? "");
 
             string templateFile = GetTemplateFile(relativePath, FileFullName);
 
-            var template = await ReplaceTokensAsync(ModalClassObject, ModalClassName, relativePath, templateFile, TargetProjectDirectory);
+            var template = ReplaceTokensAsync(ModalClassObject, ModalClassName, relativePath, templateFile, TargetProjectDirectory);
             return Utility.NormalizeLineEndings(template);
         }
 
@@ -126,7 +126,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             return extension;
         }
 
-        private async Task<string> ReplaceTokensAsync(CSharpClassObject ModalClassObject, string ModalClassName, string relativePath, string templateFile, string TargetProjectDirectory)
+        private string ReplaceTokensAsync(CSharpClassObject ModalClassObject, string ModalClassName, string relativePath, string templateFile, string TargetProjectDirectory)
         {
 
             //using CleanArchitecture.Blazor.Application.Features.Customers.DTOs;

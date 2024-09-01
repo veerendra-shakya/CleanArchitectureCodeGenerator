@@ -88,7 +88,7 @@ namespace CleanArchitecture.CodeGenerator
 
             // Run the code generator.
             CodeEngine codeGenerator = new CodeEngine();
-            await codeGenerator.RunAsync();
+            codeGenerator.RunAsync();
             Pause();
         }
 

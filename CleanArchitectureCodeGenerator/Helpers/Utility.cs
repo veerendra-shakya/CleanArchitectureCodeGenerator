@@ -91,7 +91,8 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                  (?<=[A-Za-z])(?=[^A-Za-z])", RegexOptions.IgnorePatternWhitespace);
             return r.Replace(str, " ");
         }
-        public static async Task WriteToDiskAsync(string file, string content)
+       
+        public static void WriteToDiskAsync(string file, string content)
         {
             // Ensure all directories in the path exist
             string directoryPath = Path.GetDirectoryName(file);
@@ -103,7 +104,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             // Write content to the file
             using (StreamWriter writer = new StreamWriter(file, false, GetFileEncoding(file)))
             {
-                await writer.WriteAsync(content);
+                 writer.Write(content);
             }
         }
 

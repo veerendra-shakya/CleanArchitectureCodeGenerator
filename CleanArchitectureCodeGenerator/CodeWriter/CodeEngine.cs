@@ -33,7 +33,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             _applicationProject = configSettings.ApplicationProject;
         }
 
-        public async Task RunAsync()
+        public void RunAsync()
         {
             string domainProjectDir = Path.Combine(_rootDirectory, _domainProject);
             string infrastructureProjectDir = Path.Combine(_rootDirectory, _infrastructureProject);
@@ -64,7 +64,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                     string selectedEntity = entities[selectedIndex - 1];
                     Console.WriteLine($"You selected: {selectedEntity}");
 
-                    await ProcessEntityAsync(objectList, selectedEntity, domainProjectDir, infrastructureProjectDir, applicationProjectDir, uiProjectDir);
+                    ProcessEntityAsync(objectList, selectedEntity, domainProjectDir, infrastructureProjectDir, applicationProjectDir, uiProjectDir);
                 }
                 else
                 {
@@ -100,7 +100,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
 
 
 
-        private async Task ProcessEntityAsync(IEnumerable<CSharpClassObject> objectList, string selectedEntity, string domainProjectDir, string infrastructureProjectDir, string applicationProjectDir, string uiProjectDir)
+        private void ProcessEntityAsync(IEnumerable<CSharpClassObject> objectList, string selectedEntity, string domainProjectDir, string infrastructureProjectDir, string applicationProjectDir, string uiProjectDir)
         {
             string[] parsedInputs = Utility.GetParsedInput(selectedEntity);
 
@@ -112,7 +112,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                     string modalClassNamePlural = Utility.Pluralize(modalClassName);
                     var modalClassObject = objectList.First(x => x.Name == modalClassName);
 
-                    await GenerateFilesAsync(modalClassObject, modalClassName, modalClassNamePlural, domainProjectDir, infrastructureProjectDir, applicationProjectDir, uiProjectDir);
+                    GenerateFilesAsync(modalClassObject, modalClassName, modalClassNamePlural, domainProjectDir, infrastructureProjectDir, applicationProjectDir, uiProjectDir);
                     Console.WriteLine($"Successfully generated files for {modalClassName}.");
                 }
                 catch (Exception ex)
@@ -122,7 +122,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             }
         }
 
-        private async Task GenerateFilesAsync(CSharpClassObject modalClassObject, string modalClassName, string modalClassNamePlural, string domainProjectDir, string infrastructureProjectDir, string applicationProjectDir, string uiProjectDir)
+        private void GenerateFilesAsync(CSharpClassObject modalClassObject, string modalClassName, string modalClassNamePlural, string domainProjectDir, string infrastructureProjectDir, string applicationProjectDir, string uiProjectDir)
         {
             var eventPaths = new[]
             {
@@ -170,23 +170,30 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                 $"Pages/{modalClassNamePlural}/Components/{modalClassNamePlural}AdvancedSearchComponent.razor"
             };
 
-            await Task.WhenAll(
-                ProcessFilesAsync(modalClassObject, eventPaths, modalClassName, domainProjectDir),
-                ProcessFilesAsync(modalClassObject, configPaths, modalClassName, infrastructureProjectDir),
-                ProcessFilesAsync(modalClassObject, featurePaths, modalClassName, applicationProjectDir),
-                ProcessFilesAsync(modalClassObject, pagePaths, modalClassName, uiProjectDir)
-            );
+
+            ProcessFilesAsync(modalClassObject, eventPaths, modalClassName, domainProjectDir);
+            ProcessFilesAsync(modalClassObject, configPaths, modalClassName, infrastructureProjectDir);
+            ProcessFilesAsync(modalClassObject, featurePaths, modalClassName, applicationProjectDir);
+            ProcessFilesAsync(modalClassObject, pagePaths, modalClassName, uiProjectDir);
+            
         }
 
-        private async Task ProcessFilesAsync(CSharpClassObject modalClassObject, IEnumerable<string> targetPaths, string modalClassName, string targetProjectDirectory)
+        private void ProcessFilesAsync(CSharpClassObject modalClassObject, IEnumerable<string> targetPaths, string modalClassName, string targetProjectDirectory)
         {
+            Console.WriteLine($"\n---------------------  {Utility.GetProjectNameFromPath(targetProjectDirectory)} Started...  --------------------");
+            int count = 1;
             foreach (var targetPath in targetPaths)
             {
-                await AddFileAsync(modalClassObject, targetPath, modalClassName, targetProjectDirectory);
+                Console.Write($" {count} of {targetPaths.Count()}  ");
+                AddFileAsync(modalClassObject, targetPath, modalClassName, targetProjectDirectory);
+                // Add a 0.5-second delay
+                Thread.Sleep(500);
+                count++;
             }
+            Console.WriteLine($"---------------------  {Utility.GetProjectNameFromPath(targetProjectDirectory)} Completed...  --------------------\n");
         }
 
-        private async Task AddFileAsync(CSharpClassObject modalClassObject, string targetPath, string modalClassName, string targetProjectDirectory)
+        private void AddFileAsync(CSharpClassObject modalClassObject, string targetPath, string modalClassName, string targetProjectDirectory)
         {
             if (!Utility.ValidatePath(targetPath, targetProjectDirectory))
             {
@@ -204,11 +211,11 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             try
             {
                 TemplateMapper templateMapper = new TemplateMapper();
-                string template = await templateMapper.GenerateClass(modalClassObject, file.FullName, modalClassName, targetProjectDirectory);
+                string template = templateMapper.GenerateClass(modalClassObject, file.FullName, modalClassName, targetProjectDirectory);
 
                 if (!string.IsNullOrEmpty(template))
                 {
-                    await Utility.WriteToDiskAsync(file.FullName, template);
+                    Utility.WriteToDiskAsync(file.FullName, template);
                     Console.WriteLine($"Created file: {file.FullName}");
                 }
             }
