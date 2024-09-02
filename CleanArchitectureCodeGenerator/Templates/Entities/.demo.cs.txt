@@ -1,0 +1,81 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Numerics;
+using {selectns}.{nameofPlural}.DTOs;
+
+namespace {namespace}
+{
+    public class {itemname} : BaseAuditableEntity
+    {
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public string? Address { get; set; }
+        public string? ContactNumber { get; set; }
+        public decimal TotalOrderValue { get; set; }
+
+        // Additions for all supported types
+
+        // Represents a 32-bit signed integer.
+        public int IntValue { get; set; }
+        public int? NullableIntValue { get; set; }
+
+        // Represents a 64-bit signed integer.
+        public long LongValue { get; set; }
+        public long? NullableLongValue { get; set; }
+
+        // Represents a 16-bit signed integer.
+        public short ShortValue { get; set; }
+        public short? NullableShortValue { get; set; }
+
+        // Represents an 8-bit unsigned integer.
+        public byte ByteValue { get; set; }
+        public byte? NullableByteValue { get; set; }
+
+        // Represents a single-precision floating-point number.
+        public float FloatValue { get; set; }
+        public float? NullableFloatValue { get; set; }
+
+        // Represents a double-precision floating-point number.
+        public double DoubleValue { get; set; }
+        public double? NullableDoubleValue { get; set; }
+
+        // Represents a decimal number with higher precision.
+        public decimal DecimalValue { get; set; }
+        public decimal? NullableDecimalValue { get; set; }
+
+        // Represents a Boolean value (true or false).
+        public bool BoolValue { get; set; }
+        public bool? NullableBoolValue { get; set; }
+
+        // Represents a single Unicode character.
+        public char CharValue { get; set; }
+        public char? NullableCharValue { get; set; }
+
+        // Represents a sequence of Unicode characters (a string).
+        public string StringValue { get; set; } = string.Empty;
+        public string? NullableStringValue { get; set; }
+
+        // Represents a date and time.
+        public DateTime DateTimeValue { get; set; }
+        public DateTime? NullableDateTimeValue { get; set; }
+
+        // Represents a globally unique identifier.
+        public Guid GuidValue { get; set; }
+        public Guid? NullableGuidValue { get; set; }
+    }
+}
+
+
+
+
+//using System.Numerics;
+//using CleanArchitecture.Blazor.Domain.Common.Entities;
+
+//namespace CleanArchitecture.Blazor.Domain.Entities;
+
+//public class Customer : BaseAuditableEntity
+//{
+   
+//}
