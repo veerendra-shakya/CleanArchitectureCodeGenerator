@@ -1,6 +1,7 @@
 ﻿using CleanArchitecture.CodeGenerator.Models;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Globalization;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -444,6 +445,98 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             }
 
             return true;
+        }
+
+        public static List<string> GetTemplateFiles()
+        {
+            List<string> _templateFiles = new List<string>();
+            string _defaultExt = ".txt";
+            var assembly = Assembly.GetExecutingAssembly().Location;
+            var _template_folder = Path.Combine(Path.GetDirectoryName(assembly), "Templates");
+            _templateFiles.AddRange(Directory.GetFiles(_template_folder, "*" + _defaultExt, SearchOption.AllDirectories));
+            return _templateFiles.ToList();
+        }
+        /// <summary>
+        /// Search and Returns Template File Path
+        /// </summary>
+        /// <param name="relative">Domain\Events\</param>
+        /// <param name="file">D:\CleanArchitectureWithBlazorServer-main\src\Domain\Events\CustomerCreatedEvent.cs</param>
+        /// <returns></returns>
+        public static string GetTemplateFile(string relative, string file)
+        {
+            string _defaultExt = ".txt";
+            var list = GetTemplateFiles();
+            var templateFolders = new[]
+            {
+                "Commands\\AcceptChanges",
+                "Commands\\Create",
+                "Commands\\Delete",
+                "Commands\\Update",
+                "Commands\\AddEdit",
+                "Commands\\Import",
+                "DTOs",
+                "Caching",
+                "EventHandlers",
+                "Events",
+                "Specification",
+                "Queries\\Export",
+                "Queries\\GetAll",
+                "Queries\\GetById",
+                "Queries\\Pagination",
+                "Pages",
+                "Pages\\Components",
+                "Persistence\\Configurations",
+                "PermissionSet",
+                "Entities",
+            };
+
+            var extension = Path.GetExtension(file).ToLowerInvariant();
+            var name = Path.GetFileName(file);
+            var safeName = name.StartsWith(".") ? name : Path.GetFileNameWithoutExtension(file);
+
+            // Determine the folder pattern based on the relative path
+            var folderPattern = templateFolders
+                .FirstOrDefault(x => relative.IndexOf(x, StringComparison.OrdinalIgnoreCase) >= 0)
+                ?.Replace("\\", "\\\\");
+
+            if (!string.IsNullOrEmpty(folderPattern))
+            {
+                // Look for direct file name matches in the specified template folder
+                var matchingFile = list
+                    .OrderByDescending(f => f.Length)
+                    .FirstOrDefault(f => Regex.IsMatch(f, folderPattern, RegexOptions.IgnoreCase) &&
+                                         Path.GetFileNameWithoutExtension(f).Split('.')
+                                         .All(x => name.IndexOf(x, StringComparison.OrdinalIgnoreCase) >= 0));
+
+                if (!string.IsNullOrEmpty(matchingFile))
+                {
+                    return matchingFile;
+                }
+            }
+
+            // If no direct match, look for file extension matches
+            var extensionMatch = list
+                .FirstOrDefault(f => Path.GetFileName(f).Equals(extension + _defaultExt, StringComparison.OrdinalIgnoreCase) &&
+                                     File.Exists(f));
+
+            if (extensionMatch != null)
+            {
+                var adjustedName = AdjustForSpecific(safeName, extension);
+                return Path.Combine(Path.GetDirectoryName(extensionMatch), adjustedName + _defaultExt);
+            }
+
+            // If no match is found, return null or throw an exception as per your requirement
+            return null;
+        }
+
+        private static string AdjustForSpecific(string safeName, string extension)
+        {
+            if (Regex.IsMatch(safeName, "^I[A-Z].*"))
+            {
+                return extension += "-interface";
+            }
+
+            return extension;
         }
     }
 

@@ -123,8 +123,10 @@ namespace CleanArchitecture.CodeGenerator
             ////////Remove a property
             //////dbContextModifier.RemoveEntityProperty(paths, entityName);
 
+            Scaffolder scaffolder = new Scaffolder();
+            scaffolder.AddMasterDemoEntity();
 
- 
+
 
 
             Pause();
