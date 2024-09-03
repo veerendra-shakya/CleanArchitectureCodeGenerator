@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using {selectns};
-
+using {selectns}.Common.Entities;
+using {selectns}.Common.Attributes;
 
 namespace {namespace}
 {
@@ -14,7 +14,7 @@ namespace {namespace}
         [MaxLength(50)]
         [RegularExpression(@"^[a-zA-Z]*$", ErrorMessage = "Only alphabetic characters are allowed.")]
         [PropertyCategory(PropertyCategory.Master)]
-        public string FirstName { get; set; } FirstName
+        public string FirstName { get; set; } 
 
         [Display(Name = "Last Name")]
         [Description("Last name of the author")]

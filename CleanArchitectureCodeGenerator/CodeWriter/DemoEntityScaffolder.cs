@@ -73,5 +73,37 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             Console.WriteLine("=============================================================");
             Console.ResetColor();
         }
+
+        public void AddArticleDemoEntity()
+        {
+            string Target = $"Entities\\{"Demo"}Author.cs";
+            string TargerFilePath = Path.Combine(_domainProjectDir, Target);
+            var RelativePath = Utility.MakeRelativePath(_rootDirectory, Path.GetDirectoryName(TargerFilePath) ?? "");
+            string TemplateFilePath = Utility.GetTemplateFile(RelativePath, TargerFilePath);
+            string content = File.ReadAllText(TemplateFilePath, Encoding.UTF8);
+
+            var ns = _rootNamespace;
+            if (!string.IsNullOrEmpty(RelativePath))
+            {
+                ns += "." + Utility.RelativePath_To_Namespace(RelativePath);
+            }
+            ns = ns.TrimEnd('.');
+
+            // Replace tokens in the content
+            content = content.Replace("{rootnamespace}", _rootNamespace);
+            content = content.Replace("{selectns}", $"{_rootNamespace}.{Utility.GetProjectNameFromPath(_domainProjectDir)}");
+            content = content.Replace("{namespace}", ns);
+            content = content.Replace("{itemname}", "DemoAuthor");
+            Utility.WriteToDiskAsync(TargerFilePath, content);
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("=============================================================");
+            Console.WriteLine("                    ADDED AUTHOR MODEL                       ");
+            Console.WriteLine("=============================================================");
+            Console.WriteLine($"Created file: {TargerFilePath}");
+            Console.WriteLine("=============================================================");
+            Console.ResetColor();
+        }
+
     }
 }

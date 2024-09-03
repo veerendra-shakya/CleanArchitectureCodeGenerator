@@ -304,7 +304,7 @@
 
     private async Task OnDelete({itemname}Dto dto)
     {
-        var contentText = string.Format(ConstantString.DeleteConfirmation, dto.Name);
+        var contentText = string.Format(ConstantString.DeleteConfirmation, dto.{masterProperty});
         var command = new Delete{itemname}Command(new int[] { dto.Id });
         await DialogServiceHelper.ShowDeleteConfirmationDialog(command, ConstantString.DeleteConfirmationTitle, contentText,
             async () =>

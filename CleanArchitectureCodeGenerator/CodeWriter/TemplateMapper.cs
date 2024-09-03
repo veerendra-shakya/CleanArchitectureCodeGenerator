@@ -75,6 +75,9 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             var mudFormFieldDefinition = snippetsWriter.CreateMudFormFieldDefinition(ModalClassObject);
             var fieldAssignmentDefinition = snippetsWriter.CreateFieldAssignmentDefinition(ModalClassObject);
             var fluentValidation = FluentValidationGenerator.GenerateFluentValidation(ModalClassObject);
+            var masterProperty = ModalClassObject.Properties.Where(p => p.Type.IsMaster).Select(p => p.PropertyName).FirstOrDefault();
+            var searchableProperty = ModalClassObject.Properties.Where(p => p.Type.IsSearchable).Select(p => p.PropertyName).FirstOrDefault();
+
 
 
             // Read the template file with UTF-8 encoding
@@ -97,7 +100,8 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             content = content.Replace("{mudTdHeaderDefinition}", mudTdHeaderDefinition);
             content = content.Replace("{mudFormFieldDefinition}", mudFormFieldDefinition);
             content = content.Replace("{fluentValidation}", fluentValidation);
-
+            content = content.Replace("{masterProperty}", masterProperty);
+            content = content.Replace("{searchableProperty}", searchableProperty);
             return content;
         }
     }
