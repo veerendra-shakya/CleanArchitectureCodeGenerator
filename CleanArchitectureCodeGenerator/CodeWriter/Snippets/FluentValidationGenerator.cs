@@ -109,7 +109,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                 .SelectMany(a => a.Attributes)
                 .FirstOrDefault(a => a.Name.ToString().Contains(attributeName));
 
-            if (attribute != null && attribute.ArgumentList?.Arguments.Count == 2)
+            if (attribute != null && attribute.ArgumentList?.Arguments.Count == 3)
             {
                 var minArg = attribute.ArgumentList.Arguments[0];
                 var maxArg = attribute.ArgumentList.Arguments[1];
@@ -153,7 +153,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             if (attribute != null)
             {
                 // Extract the regex pattern
-                var regexArgument = attribute.ArgumentList?.Arguments.FirstOrDefault(arg => arg.ToString().StartsWith("\""));
+                var regexArgument = attribute.ArgumentList?.Arguments.FirstOrDefault();
                 if (regexArgument != null)
                 {
                     regexPattern = regexArgument.ToString().Trim('"');
