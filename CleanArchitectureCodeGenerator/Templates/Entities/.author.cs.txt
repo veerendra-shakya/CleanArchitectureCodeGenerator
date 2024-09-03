@@ -1,0 +1,50 @@
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using {selectns};
+
+
+namespace {namespace}
+{
+    public class {itemname} : BaseAuditableEntity, IAuditTrial
+    {
+        
+        [Display(Name = "First Name")]
+        [Description("First name of the author")]
+        [Required]
+        [MaxLength(50)]
+        [RegularExpression(@"^[a-zA-Z]*$", ErrorMessage = "Only alphabetic characters are allowed.")]
+        [PropertyCategory(PropertyCategory.Master)]
+        public string FirstName { get; set; } FirstName
+
+        [Display(Name = "Last Name")]
+        [Description("Last name of the author")]
+        [Required]
+        [MaxLength(50)]
+        [RegularExpression(@"^[a-zA-Z]*$", ErrorMessage = "Only alphabetic characters are allowed.")]
+        [PropertyCategory(PropertyCategory.Searchable)]
+        public string LastName { get; set; } 
+
+        [Display(Name = "Age")]
+        [Description("Age of the author")]
+        [Range(0, 100, ErrorMessage = "Age must be between 0 and 100")]
+        public int Age { get; set; }
+
+        [Display(Name = "Biography")]
+        [Description("Short biography of the author")]
+        [MaxLength(1000)]
+        public string Biography { get; set; }
+
+        [Display(Name = "Email Address")]
+        [Description("Email address of the author")]
+        [Required]
+        [MaxLength(100)]
+        [RegularExpression(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", ErrorMessage = "Invalid email format.")]
+        public string EmailAddress { get; set; }
+
+        [Display(Name = "Mobile Number")]
+        [Description("10-digit mobile number of the author")]
+        [Required]
+        [RegularExpression(@"^\d{10}$", ErrorMessage = "Mobile number must be exactly 10 digits.")]
+        public string MobileNumber { get; set; }
+    }
+}

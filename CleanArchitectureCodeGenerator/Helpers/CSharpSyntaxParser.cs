@@ -133,7 +133,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 var prop = new ClassProperty
                 {
                     PropertyName = member.Identifier.Text,
-                    Type = GetType(member.Type),
+                    Type = GetType(member),
                     Summary = GetSummary(member),
                     propertyDeclarationSyntax = member
                 };
@@ -157,8 +157,10 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             return summaryMatch.Success ? summaryMatch.Groups[1].Value.Trim() : trivia.Trim();
         }
 
-        private PropertyType GetType(TypeSyntax typeSyntax)
+        private PropertyType GetType(PropertyDeclarationSyntax propertyDeclaration)
         {
+            TypeSyntax typeSyntax = propertyDeclaration.Type;
+            
 
             bool isNullable = typeSyntax is NullableTypeSyntax;
             bool isKnownType = Utility.IsKnownType(typeSyntax);
@@ -178,11 +180,36 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 IsKnownType = isKnownType,
                 // IsKnownBaseType = isKnownBaseType
             };
+
+
+            // Check for PropertyCategoryAttribute
+            if (propertyDeclaration != null)
+            {
+                var attributeList = propertyDeclaration.AttributeLists;
+                foreach (var attributeListSyntax in attributeList)
+                {
+                    foreach (var attribute in attributeListSyntax.Attributes)
+                    {
+                        if (attribute.Name.ToString().Contains("PropertyCategory"))
+                        {
+                            var argument = attribute.ArgumentList?.Arguments.FirstOrDefault();
+                            if (argument != null)
+                            {
+                                var value = argument.ToString();
+                                if (value.Contains("Master"))
+                                {
+                                    type.IsMaster = true;
+                                }
+                                else if (value.Contains("Searchable"))
+                                {
+                                    type.IsSearchable = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             return type;
         }
-
-
-
-
     }
 }

@@ -57,6 +57,7 @@ namespace {namespace};
             {
                 foreach (var dto in result.Data)
                 {
+                    #error TODO: Implement the checking for an existing default property before import.
                     var exists = await _context.{nameofPlural}.AnyAsync(x => x.Name == dto.Name, cancellationToken);
                     if (!exists)
                     {

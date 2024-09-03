@@ -22,7 +22,8 @@ namespace CleanArchitecture.CodeGenerator
                 Console.WriteLine("\n1. Check Configurations");
                 Console.WriteLine("\n2. Add New Scaffold Feature");
                 Console.WriteLine("\n3. Remove Feature (This will delete Feature files)");
-                Console.WriteLine("\n4. Test (For Developemnt Purpose Only!))");
+                Console.WriteLine("\n4. Add Master Demo Entity (This will Add Sample Demo Entity)");
+                Console.WriteLine("\n100. Test (For Developemnt Purpose Only!))");
                 Console.ResetColor();
 
                 Console.ForegroundColor = ConsoleColor.Red;
@@ -47,6 +48,12 @@ namespace CleanArchitecture.CodeGenerator
                         await DeleteFeature();
                         break;
                     case "4":
+                        DemoEntityScaffolder scaffolder = new DemoEntityScaffolder();
+                        scaffolder.AddMasterDemoEntity();
+                        Console.WriteLine("------- Demo Entity is Added to Entities folder of Domain Project !! ---------");
+                        Pause();
+                        break;
+                    case "100":
                         await Test();
                         break;
                     case "q":
@@ -123,8 +130,7 @@ namespace CleanArchitecture.CodeGenerator
             ////////Remove a property
             //////dbContextModifier.RemoveEntityProperty(paths, entityName);
 
-            DemoEntityScaffolder scaffolder = new DemoEntityScaffolder();
-            scaffolder.AddMasterDemoEntity();
+     
 
 
 

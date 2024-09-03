@@ -16,6 +16,7 @@ public class {itemname}AdvancedSpecification : Specification<{itemname}>
             today.AddDays(-30).ToString("yyyy-MM-dd", CultureInfo.CurrentCulture) + " 00:00:00",
             CultureInfo.CurrentCulture);
 
+            #error TODO: Implement the default properties for advance search.
        Query.Where(q => q.Name != null)
              .Where(q => q.Name!.Contains(filter.Keyword) || q.Description!.Contains(filter.Keyword), !string.IsNullOrEmpty(filter.Keyword))
              .Where(q => q.CreatedBy == filter.CurrentUser.UserId, filter.ListView == {itemname}ListView.My && filter.CurrentUser is not null)

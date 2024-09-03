@@ -12,8 +12,17 @@ Rules for Entity Creation
 
 
 Supported Property Data Annotations are:  [Display(Name = "")], [Description("")].
-Supported Property Validation Data Annotations are: [Required],  [MaxLength(100)], [Range(0, 100000)], [RegularExpression(@"^[a-zA-Z0-9]*$", ErrorMessage = "Only alphanumeric characters are allowed.")].
+Supported Property Validation Data Annotations are: [Required],  [MaxLength(100)], [Range(0, 10)], [RegularExpression(@"^[a-zA-Z0-9]*$", ErrorMessage = "Only alphanumeric characters are allowed.")].
 
 
 Recommendation:
 If your main goal is to streamline scaffolding, defining basic validation attributes on your entities could be beneficial. However, for more complex scenarios, consider a hybrid approach where basic validations are in attributes and more advanced logic is in dedicated validators.
+
+
+Name Property is required because
+Name Property is used to check already existing items in import process. \Application\Features\Authors\Commands\Import\ImportAuthorsCommand.cs 
+Name Property is used in Advance Search. Application\Features\Authors\Specifications\AuthorAdvancedSpecification.cs
+
+
+Description Property is required because
+Description Property is used in Advance Search. Application\Features\Authors\Specifications\AuthorAdvancedSpecification.cs

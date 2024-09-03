@@ -114,12 +114,20 @@ namespace CleanArchitecture.CodeGenerator.Models
         /// </summary>
         public bool IsNullable { get; set; }
 
- 
-
-
         /// <summary>
         /// Gets or sets a value indicating whether the type is a known type, such as a primitive type or a recognized base class.
         /// </summary>
         public bool IsKnownType { get; set; }
+
+        /// <summary>
+        /// Indicates that the property is the main identifier, used to check for existing items 
+        ///   during import processes and included in advanced search functionality.
+        /// </summary>
+        public bool IsMaster { get; set; }
+
+        /// <summary>
+        /// Marks the property as one that should be included in full-text advanced search operations.
+        /// </summary>
+        public bool IsSearchable { get; set; }
     }
 }
