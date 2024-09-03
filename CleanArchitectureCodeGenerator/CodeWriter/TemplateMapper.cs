@@ -1,4 +1,5 @@
-﻿using CleanArchitecture.CodeGenerator.Configuration;
+﻿using CleanArchitecture.CodeGenerator.CodeWriter.Snippets;
+using CleanArchitecture.CodeGenerator.Configuration;
 using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
 using System.Reflection;
@@ -73,6 +74,8 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             var mudTdHeaderDefinition = snippetsWriter.CreateMudTdHeaderDefinition(ModalClassObject);
             var mudFormFieldDefinition = snippetsWriter.CreateMudFormFieldDefinition(ModalClassObject);
             var fieldAssignmentDefinition = snippetsWriter.CreateFieldAssignmentDefinition(ModalClassObject);
+            var fluentValidation = FluentValidationGenerator.GenerateFluentValidation(ModalClassObject);
+
 
             // Read the template file with UTF-8 encoding
             string content = string.Empty;
@@ -93,7 +96,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             content = content.Replace("{mudTdDefinition}", mudTdDefinition);
             content = content.Replace("{mudTdHeaderDefinition}", mudTdHeaderDefinition);
             content = content.Replace("{mudFormFieldDefinition}", mudFormFieldDefinition);
-
+            content = content.Replace("{fluentValidation}", fluentValidation);
 
             return content;
         }

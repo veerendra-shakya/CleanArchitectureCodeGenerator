@@ -1,81 +1,109 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Numerics;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using {selectns};
 
 namespace {namespace}
 {
     public class {itemname} : BaseAuditableEntity
     {
-        public string? Name { get; set; }
+        [Required]
+        [MaxLength(100)]
+        [Description("Name of the entity, required and with a maximum length of 100 characters.")]
+        [Display(Name = "Entity Name")]
+        public string Name { get; set; }
+
+        [MaxLength(500)]
+        [Description("Description of the entity, optional and with a maximum length of 500 characters.")]
+        [Display(Name = "Entity Description")]
         public string? Description { get; set; }
-        public string? Address { get; set; }
-        public string? ContactNumber { get; set; }
+    
+        [Required]
+        [Range(0, 100000)]
+        [Description("Total value of the order, required and must be between 0 and 100000.")]
+        [Display(Name = "Total Order Value")]
         public decimal TotalOrderValue { get; set; }
 
-        // Additions for all supported types
-
-        // Represents a 32-bit signed integer.
+        [Range(0, 100)]
+        [Description("A 32-bit signed integer value, must be between 0 and 100.")]
+        [Display(Name = "Integer Value")]
         public int IntValue { get; set; }
+
+        [Display(Name = "Nullable Integer Value")]
         public int? NullableIntValue { get; set; }
 
-        // Represents a 64-bit signed integer.
+        // Additional properties with display names
+        [Display(Name = "Long Value")]
         public long LongValue { get; set; }
+
+        [Display(Name = "Nullable Long Value")]
         public long? NullableLongValue { get; set; }
 
-        // Represents a 16-bit signed integer.
+        [Display(Name = "Short Value")]
         public short ShortValue { get; set; }
+
+        [Display(Name = "Nullable Short Value")]
         public short? NullableShortValue { get; set; }
 
-        // Represents an 8-bit unsigned integer.
+        [Display(Name = "Byte Value")]
         public byte ByteValue { get; set; }
+
+        [Display(Name = "Nullable Byte Value")]
         public byte? NullableByteValue { get; set; }
 
-        // Represents a single-precision floating-point number.
+        [Display(Name = "Float Value")]
         public float FloatValue { get; set; }
+
+        [Display(Name = "Nullable Float Value")]
         public float? NullableFloatValue { get; set; }
 
-        // Represents a double-precision floating-point number.
+        [Display(Name = "Double Value")]
         public double DoubleValue { get; set; }
+
+        [Display(Name = "Nullable Double Value")]
         public double? NullableDoubleValue { get; set; }
 
-        // Represents a decimal number with higher precision.
+        [Range(0.0, 9999.99)]
+        [Display(Name = "Decimal Value")]
         public decimal DecimalValue { get; set; }
+
+        [Display(Name = "Nullable Decimal Value")]
         public decimal? NullableDecimalValue { get; set; }
 
-        // Represents a Boolean value (true or false).
+        [Display(Name = "Boolean Value")]
         public bool BoolValue { get; set; }
+
+        [Display(Name = "Nullable Boolean Value")]
         public bool? NullableBoolValue { get; set; }
 
-        // Represents a single Unicode character.
+        [Display(Name = "Character Value")]
         public char CharValue { get; set; }
+
+        [Display(Name = "Nullable Character Value")]
         public char? NullableCharValue { get; set; }
 
-        // Represents a sequence of Unicode characters (a string).
+        [StringLength(200, MinimumLength = 5)]
+        [Display(Name = "String Value")]
         public string StringValue { get; set; } = string.Empty;
+
+        [Display(Name = "Nullable String Value")]
         public string? NullableStringValue { get; set; }
 
-        // Represents a date and time.
+        [Required]
+        [Display(Name = "Date and Time")]
         public DateTime DateTimeValue { get; set; }
+
+        [Display(Name = "Nullable Date and Time")]
         public DateTime? NullableDateTimeValue { get; set; }
 
-        // Represents a globally unique identifier.
+        [Required]
+        [Display(Name = "GUID Value")]
         public Guid GuidValue { get; set; }
+
+        [Display(Name = "Nullable GUID Value")]
         public Guid? NullableGuidValue { get; set; }
+
+        [RegularExpression(@"^[a-zA-Z0-9]*$", ErrorMessage = "Only alphanumeric characters are allowed.")]
+        [Display(Name = "Custom Regex Field")]
+        public string CustomRegexField { get; set; } = string.Empty;
     }
 }
-
-
-
-
-//using System.Numerics;
-//using CleanArchitecture.Blazor.Domain.Common.Entities;
-
-//namespace CleanArchitecture.Blazor.Domain.Entities;
-
-//public class Customer : BaseAuditableEntity
-//{
-   
-//}

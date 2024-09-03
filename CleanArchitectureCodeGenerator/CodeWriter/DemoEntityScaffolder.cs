@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.CodeGenerator.CodeWriter
 {
-    public class Scaffolder
+    public class DemoEntityScaffolder
     {
         private readonly string _rootDirectory;
         private readonly string _rootNamespace;
@@ -25,7 +25,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
         private readonly string _applicationProjectDir;
 
       
-        public Scaffolder()
+        public DemoEntityScaffolder()
         {
             var configHandler = new ConfigurationHandler("appsettings.json");
             var configSettings = configHandler.GetConfiguration();

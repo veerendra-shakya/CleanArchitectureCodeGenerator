@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CleanArchitecture.CodeGenerator.CodeWriter
+namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
 {
     public class SnippetsWriter
     {

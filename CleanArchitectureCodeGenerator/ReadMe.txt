@@ -11,7 +11,8 @@ Rules for Entity Creation
 6. Known 
 
 
-
+Supported Property Data Annotations are:  [Display(Name = "")], [Description("")].
+Supported Property Validation Data Annotations are: [Required],  [MaxLength(100)], [Range(0, 100000)], [RegularExpression(@"^[a-zA-Z0-9]*$", ErrorMessage = "Only alphanumeric characters are allowed.")].
 
 
 Recommendation:
