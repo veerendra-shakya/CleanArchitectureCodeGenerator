@@ -19,7 +19,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             // foreach (var property in classObject.Properties.Where(x => x.Type.IsKnownType))
             foreach (var property in classObject.Properties.Where(x => x.Type.IsKnownType))
             {
-                output.AppendLine($"    [Description(\"{Utility.SplitCamelCase(property.PropertyName)}\")]");
+                output.AppendLine($"    [Description(\"{property.DisplayName}\")]");
                 if (property.PropertyName == PRIMARYKEY)
                 {
                     output.AppendLine($"    public {property.Type.TypeName} {property.PropertyName} {{get;set;}}");
@@ -288,6 +288,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             }
             return output.ToString();
         }
+
 
     }
 }

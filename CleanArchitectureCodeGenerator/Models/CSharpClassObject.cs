@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Xml.Linq;
 
 namespace CleanArchitecture.CodeGenerator.Models
 {
@@ -83,6 +84,10 @@ namespace CleanArchitecture.CodeGenerator.Models
         /// This property is used to analyze and manipulate the syntax of properties within the class.
         /// </summary>
         public PropertyDeclarationSyntax propertyDeclarationSyntax { get; set; }
+
+        public string DisplayName { get; set; }
+        public string Description { get; set; }
+        
     }
 
     /// <summary>

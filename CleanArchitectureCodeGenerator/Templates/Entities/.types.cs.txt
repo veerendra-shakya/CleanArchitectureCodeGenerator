@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using {selectns};
+using {selectns}.Common.Entities;
+using {selectns}.Common.Attributes;
 
 namespace {namespace}
 {
@@ -10,11 +11,13 @@ namespace {namespace}
         [MaxLength(100)]
         [Description("Name of the entity, required and with a maximum length of 100 characters.")]
         [Display(Name = "Entity Name")]
+        [PropertyCategory(PropertyCategory.Master)]
         public string Name { get; set; }
 
         [MaxLength(500)]
         [Description("Description of the entity, optional and with a maximum length of 500 characters.")]
         [Display(Name = "Entity Description")]
+        [PropertyCategory(PropertyCategory.Searchable)]
         public string? Description { get; set; }
     
         [Required]

@@ -22,7 +22,7 @@ namespace CleanArchitecture.CodeGenerator
                 Console.WriteLine("\n1. Check Configurations");
                 Console.WriteLine("\n2. Add New Scaffold Feature");
                 Console.WriteLine("\n3. Remove Feature (This will delete Feature files)");
-                Console.WriteLine("\n4. Add Master Demo Entity (This will Add Sample Demo Entity)");
+                Console.WriteLine("\n4. Add Supported Data Types Demo Entity (This will Add Sample Demo Entity)");
                 Console.WriteLine("\n5. Add Article Demo Entity (This will Add Sample Demo Entity)");
                 Console.WriteLine("\n100. Test (For Developemnt Purpose Only!))");
                 Console.ResetColor();
@@ -50,7 +50,7 @@ namespace CleanArchitecture.CodeGenerator
                         break;
                     case "4":
                         DemoEntityScaffolder scaffolder = new DemoEntityScaffolder();
-                        scaffolder.AddMasterDemoEntity();
+                        scaffolder.AddSupportedDataTypesDemoEntity();
                         Console.WriteLine("------- Demo Entity is Added to Entities folder of Domain Project !! ---------");
                         Pause();
                         break;

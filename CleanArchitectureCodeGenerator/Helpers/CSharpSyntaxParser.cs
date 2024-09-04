@@ -138,6 +138,39 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                     propertyDeclarationSyntax = member
                 };
 
+
+                // Assign DisplayName and Description based on attributes
+                foreach (var attributeListSyntax in member.AttributeLists)
+                {
+                    foreach (var attribute in attributeListSyntax.Attributes)
+                    {
+                   
+                        if (attribute.Name.ToString().Contains("Display"))
+                        {
+                            var argument = attribute.ArgumentList?.Arguments.FirstOrDefault();
+                            if (argument != null)
+                            {
+                                prop.DisplayName = argument.ToString().Replace("\"","").Replace("Name = ", ""); // Assign the DisplayName
+                            }
+                        }
+                      
+                        
+                        if (attribute.Name.ToString().Contains("Description"))
+                        {
+                            var argument = attribute.ArgumentList?.Arguments.FirstOrDefault();
+                            if (argument != null)
+                            {
+                                prop.Description = argument.ToString().Trim('"'); // Assign the Description
+                            }
+                        }
+                    }
+                }
+
+                if(string.IsNullOrWhiteSpace(prop.DisplayName))
+                {
+                    prop.DisplayName = Utility.SplitCamelCase(member.Identifier.Text);
+                }
+
                 data.Properties.Add(prop);
             }
 

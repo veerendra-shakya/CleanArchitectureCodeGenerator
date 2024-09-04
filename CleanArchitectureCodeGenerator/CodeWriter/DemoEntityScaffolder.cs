@@ -43,9 +43,9 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             _applicationProjectDir = Path.Combine(_rootDirectory, _applicationProject);
 
         }
-        public void AddMasterDemoEntity()
+        public void AddSupportedDataTypesDemoEntity()
         {
-            string Target = $"Entities\\{"Master"}Demo.cs";
+            string Target = $"Entities\\{"DemoData"}Types.cs";
             string TargerFilePath = Path.Combine(_domainProjectDir, Target);
             var RelativePath = Utility.MakeRelativePath(_rootDirectory, Path.GetDirectoryName(TargerFilePath) ?? "");
             string TemplateFilePath = Utility.GetTemplateFile(RelativePath, TargerFilePath);
@@ -60,20 +60,19 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
 
             // Replace tokens in the content
             content = content.Replace("{rootnamespace}", _rootNamespace);
-            content = content.Replace("{selectns}", $"{_rootNamespace}.{Utility.GetProjectNameFromPath(_domainProjectDir)}.Common.Entities");
+            content = content.Replace("{selectns}", $"{_rootNamespace}.{Utility.GetProjectNameFromPath(_domainProjectDir)}");
             content = content.Replace("{namespace}", ns);
-            content = content.Replace("{itemname}", "MasterDemo");
+            content = content.Replace("{itemname}", "DemoDataTypes");
             Utility.WriteToDiskAsync(TargerFilePath, content);
 
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("=============================================================");
-            Console.WriteLine("                    ADDED MASTER MODEL                       ");
+            Console.WriteLine("                ADDED DemoDataTypes MODEL                    ");
             Console.WriteLine("=============================================================");
             Console.WriteLine($"Created file: {TargerFilePath}");
             Console.WriteLine("=============================================================");
             Console.ResetColor();
         }
-
         public void AddArticleDemoEntity()
         {
             string Target = $"Entities\\{"Demo"}Author.cs";
