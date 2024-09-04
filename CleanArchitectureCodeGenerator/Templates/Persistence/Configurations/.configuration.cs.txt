@@ -11,6 +11,7 @@ public class {itemname}Configuration : IEntityTypeConfiguration<{itemname}>
     public void Configure(EntityTypeBuilder<{itemname}> builder)
     {
         //builder.Property(t => t.Name).HasMaxLength(50).IsRequired();
+        {efConfigurations}
         builder.Ignore(e => e.DomainEvents);
     }
 }

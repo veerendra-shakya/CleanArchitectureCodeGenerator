@@ -77,8 +77,8 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             var fluentValidation = FluentValidationGenerator.GenerateFluentValidation(ModalClassObject);
             var masterProperty = ModalClassObject.Properties.Where(p => p.Type.IsMaster).Select(p => p.PropertyName).FirstOrDefault();
             var searchableProperty = ModalClassObject.Properties.Where(p => p.Type.IsSearchable).Select(p => p.PropertyName).FirstOrDefault();
-
-
+            var efConfigurations = EfConfigurationsGenerator.GenerateConfigurations(ModalClassObject);
+            
 
             // Read the template file with UTF-8 encoding
             string content = string.Empty;
@@ -102,6 +102,8 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             content = content.Replace("{fluentValidation}", fluentValidation);
             content = content.Replace("{masterProperty}", masterProperty);
             content = content.Replace("{searchableProperty}", searchableProperty);
+            content = content.Replace("{efConfigurations}", efConfigurations);
+
             return content;
         }
     }

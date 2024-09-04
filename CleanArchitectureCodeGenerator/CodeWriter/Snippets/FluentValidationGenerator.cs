@@ -14,47 +14,28 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             foreach (var property in classObject.Properties)
             {
                 var propertyName = property.PropertyName;
-                bool hasValidation = false;
+                sb.Append($"RuleFor(v => v.{propertyName})");
 
                 if (HasAttribute(property, "Required"))
                 {
-                    sb.Append($"RuleFor(v => v.{propertyName})");
                     sb.Append(".NotEmpty()");
                     sb.Append(".WithMessage(\"This field is required and cannot be empty.\")");
-                    hasValidation = true;
                 }
 
                 if (HasAttribute(property, "MaxLength", out int maxLength))
                 {
-                    if (!hasValidation)
-                    {
-                        sb.Append($"RuleFor(v => v.{propertyName})");
-                        hasValidation = true;
-                    }
                     sb.Append($".MaximumLength({maxLength})");
                     sb.Append($".WithMessage(\"This field must not exceed {maxLength} characters.\")");
-
                 }
 
                 if (HasAttribute(property, "Range", out int minValue, out int maxValue))
                 {
-                    if (!hasValidation)
-                    {
-                        sb.Append($"RuleFor(v => v.{propertyName})");
-                        hasValidation = true;
-                    }
                     sb.Append($".InclusiveBetween({minValue}, {maxValue})");
                     sb.Append($".WithMessage(\"This field must be greater than {minValue} and less than {maxValue}.\")");
                 }
 
                 if (HasAttribute(property, "RegularExpression", out string regexPattern, out string errorMessage))
                 {
-                    if (!hasValidation)
-                    {
-                        sb.Append($"RuleFor(v => v.{propertyName})");
-                        hasValidation = true;
-                    }
-                    
                     if (regexPattern.StartsWith("@\""))
                     {
                         regexPattern = regexPattern.Replace("@\"", "");
@@ -64,13 +45,11 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                     sb.Append($".WithMessage(\"{errorMessage}\")");
                 }
 
-                if (hasValidation)
-                {
-                    sb.Append("; ");
-                    sb.AppendLine(); // Add a new line after each property validation rule set
-                }
+                sb.Append("; ");
+                sb.AppendLine(); // Add a new line after each property validation rule set
+
             }
-         
+
             return sb.ToString().Trim(); // Trim to remove unnecessary line breaks
         }
 
@@ -109,7 +88,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                 .SelectMany(a => a.Attributes)
                 .FirstOrDefault(a => a.Name.ToString().Contains(attributeName));
 
-            if (attribute != null && attribute.ArgumentList?.Arguments.Count == 3)
+            if (attribute != null && attribute.ArgumentList?.Arguments.Count >= 2)
             {
                 var minArg = attribute.ArgumentList.Arguments[0];
                 var maxArg = attribute.ArgumentList.Arguments[1];
