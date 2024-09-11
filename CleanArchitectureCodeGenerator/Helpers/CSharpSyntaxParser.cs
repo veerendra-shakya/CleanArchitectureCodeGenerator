@@ -223,15 +223,15 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 {
                     foreach (var attribute in attributeListSyntax.Attributes)
                     {
-                        if (attribute.Name.ToString().Contains("PropertyCategory"))
+                        if (attribute.Name.ToString().Contains("Scaffolding"))
                         {
                             var argument = attribute.ArgumentList?.Arguments.FirstOrDefault();
                             if (argument != null)
                             {
                                 var value = argument.ToString();
-                                if (value.Contains("Master"))
+                                if (value.Contains("Identifier"))
                                 {
-                                    type.IsMaster = true;
+                                    type.IsIdentifier = true;
                                 }
                                 else if (value.Contains("Searchable"))
                                 {

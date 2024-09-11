@@ -13,7 +13,7 @@ namespace {namespace}
         [Required]
         [MaxLength(50)]
         [RegularExpression(@"^[a-zA-Z]*$", ErrorMessage = "Only alphabetic characters are allowed.")]
-        [PropertyCategory(PropertyCategory.Master)]
+        [Scaffolding(PropRole.Identifier)]
         public string FirstName { get; set; } 
 
         [Display(Name = "Last Name")]
@@ -21,7 +21,7 @@ namespace {namespace}
         [Required]
         [MaxLength(50)]
         [RegularExpression(@"^[a-zA-Z]*$", ErrorMessage = "Only alphabetic characters are allowed.")]
-        [PropertyCategory(PropertyCategory.Searchable)]
+        [Scaffolding(PropRole.Searchable)]
         public string LastName { get; set; } 
 
         [Display(Name = "Age")]

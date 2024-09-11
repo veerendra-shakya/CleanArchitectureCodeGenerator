@@ -128,7 +128,7 @@ namespace CleanArchitecture.CodeGenerator.Models
         /// Indicates that the property is the main identifier, used to check for existing items 
         ///   during import processes and included in advanced search functionality.
         /// </summary>
-        public bool IsMaster { get; set; }
+        public bool IsIdentifier { get; set; }
 
         /// <summary>
         /// Marks the property as one that should be included in full-text advanced search operations.

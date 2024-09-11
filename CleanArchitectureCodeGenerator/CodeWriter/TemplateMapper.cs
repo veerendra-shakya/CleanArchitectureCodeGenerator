@@ -75,7 +75,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             var mudFormFieldDefinition = snippetsWriter.CreateMudFormFieldDefinition(ModalClassObject);
             var fieldAssignmentDefinition = snippetsWriter.CreateFieldAssignmentDefinition(ModalClassObject);
             var fluentValidation = FluentValidationGenerator.GenerateFluentValidation(ModalClassObject);
-            var masterProperty = ModalClassObject.Properties.Where(p => p.Type.IsMaster).Select(p => p.PropertyName).FirstOrDefault();
+            var masterProperty = ModalClassObject.Properties.Where(p => p.Type.IsIdentifier).Select(p => p.PropertyName).FirstOrDefault();
             var searchableProperty = ModalClassObject.Properties.Where(p => p.Type.IsSearchable).Select(p => p.PropertyName).FirstOrDefault();
             var efConfigurations = EfConfigurationsGenerator.GenerateConfigurations(ModalClassObject);
             

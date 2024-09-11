@@ -11,13 +11,13 @@ namespace {namespace}
         [MaxLength(100)]
         [Description("Name of the entity, required and with a maximum length of 100 characters.")]
         [Display(Name = "Entity Name")]
-        [PropertyCategory(PropertyCategory.Master)]
+        [Scaffolding(PropRole.Identifier)]
         public string Name { get; set; }
 
         [MaxLength(500)]
         [Description("Description of the entity, optional and with a maximum length of 500 characters.")]
         [Display(Name = "Entity Description")]
-        [PropertyCategory(PropertyCategory.Searchable)]
+        [Scaffolding(PropRole.Searchable)]
         public string? Description { get; set; }
     
         [Required]
