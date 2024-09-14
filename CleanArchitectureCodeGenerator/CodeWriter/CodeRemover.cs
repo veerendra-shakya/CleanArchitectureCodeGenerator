@@ -76,6 +76,9 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine($"Entity: {selectedEntity}".PadLeft(30).PadRight(40));
                     Console.ResetColor();
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"ALERT!! Have you removed all permissions for \"{selectedEntity}\" from the application?".PadLeft(10));
+                    Console.ResetColor();
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("Press 'Y' to confirm, or any other key to cancel.");
                     Console.WriteLine("=====================================");
