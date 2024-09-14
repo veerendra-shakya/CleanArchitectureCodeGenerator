@@ -1,6 +1,7 @@
 ﻿using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
 {
     public class SnippetsWriter
     {
+
         public const string PRIMARYKEY = "Id";
 
         public string CreateDtoFieldDefinition(CSharpClassObject classObject)
@@ -299,6 +301,49 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             return output.ToString();
         }
 
+        public string CreateAdvancedSpecificationQuery(CSharpClassObject classObject)
+        {
+            // Get the item name from classObject.Name
+            var itemName = classObject.Name;
+
+            // Get the master property for identifier role
+            var masterProperty = classObject.Properties.Where(p => p.ScaffoldingAtt.PropRole == "Identifier").Select(p => p.PropertyName).FirstOrDefault();
+            // Get the list of searchable properties
+            var searchableProperty = classObject.Properties.Where(p => p.ScaffoldingAtt.PropRole == "Searchable").Select(p => p.PropertyName).ToList();
+            if( masterProperty!=null)
+            {
+                searchableProperty.Add(masterProperty);
+            }
+            var output = new StringBuilder();
+
+            // Start building the query with {itemname} replaced
+            output.AppendLine($"Query.Where(q => q.{masterProperty} != null)");
+
+            // Build the search condition for searchable properties
+            if (searchableProperty.Any())
+            {
+                output.Append("         .Where(q => ");
+                for (int i = 0; i < searchableProperty.Count; i++)
+                {
+                    output.Append($"q.{searchableProperty[i]}!.Contains(filter.Keyword)");
+
+                    if (i < searchableProperty.Count - 1)
+                    {
+                        output.Append(" || ");
+                    }
+                }
+                output.AppendLine(", !string.IsNullOrEmpty(filter.Keyword))");
+            }
+
+            // Add the rest of the conditions with {itemname} replaced
+            output.AppendLine($"            .Where(q => q.CreatedBy == filter.CurrentUser.UserId, filter.ListView == {itemName}ListView.My && filter.CurrentUser is not null)");
+            output.AppendLine($"            .Where(q => q.Created >= start && q.Created <= end, filter.ListView == {itemName}ListView.CreatedToday)");
+            output.AppendLine($"            .Where(q => q.Created >= last30day, filter.ListView == {itemName}ListView.Created30Days);");
+
+            // Return the built query as a string
+            return output.ToString();
+        }
 
     }
 }
+

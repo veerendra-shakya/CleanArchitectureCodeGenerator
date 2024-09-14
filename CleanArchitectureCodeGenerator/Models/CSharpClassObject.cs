@@ -112,6 +112,9 @@ namespace CleanArchitecture.CodeGenerator.Models
         /// Gets or sets a value indicating whether the type is a known type, such as a primitive type or a recognized base class.
         /// </summary>
         public bool IsKnownType { get; set; }
+        
+        public bool IsKnownBaseType { get; set; }
+        
 
     }
 }

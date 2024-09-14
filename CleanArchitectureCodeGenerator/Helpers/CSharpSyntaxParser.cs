@@ -317,6 +317,8 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 isIEnumerable = genericTypeName == "IEnumerable";
             }
 
+
+            // Create and populate the PropertyType instance
             var type = new PropertyType();
             type.TypeName = typeSyntax.ToString();
             type.IsArray = typeSyntax is ArrayTypeSyntax;
@@ -326,36 +328,13 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             type.IsKnownType = isKnownType;
             type.IsICollection = isICollection;
             type.IsIEnumerable = isIEnumerable;
-           // type.IsKnownBaseType = isKnownBaseType
+            type.IsKnownBaseType = isKnownBaseType;
 
-            // Check for PropertyCategoryAttribute
-            //if (propertyDeclaration != null)
-            //{
-            //    var attributeList = propertyDeclaration.AttributeLists;
-            //    foreach (var attributeListSyntax in attributeList)
-            //    {
-            //        foreach (var attribute in attributeListSyntax.Attributes)
-            //        {
-            //            if (attribute.Name.ToString().Contains("Scaffolding"))
-            //            {
-            //                var argument = attribute.ArgumentList?.Arguments.FirstOrDefault();
-            //                if (argument != null)
-            //                {
-            //                    var value = argument.ToString();
-            //                    if (value.Contains("Identifier"))
-            //                    {
-            //                        type.IsIdentifier = true;
-            //                    }
-            //                    else if (value.Contains("Searchable"))
-            //                    {
-            //                        type.IsSearchable = true;
-            //                    }
-            //                }
-            //            }
-            //        }
-            //    }
-            //}
+     
             return type;
         }
+
+
+
     }
 }
