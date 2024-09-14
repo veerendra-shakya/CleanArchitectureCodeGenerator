@@ -324,9 +324,13 @@ namespace CleanArchitecture.CodeGenerator.Helpers
 
                     // Nullable globally unique identifier.
                     "Guid?", // Maps to `uniqueidentifier` in the database with nullability.
-                };
 
-            return knownPrimitiveTypes.Contains(typeSyntax.ToString());
+
+                };
+            string Type = typeSyntax.ToString();
+            bool isKnownType = knownPrimitiveTypes.Contains(Type);
+           
+            return isKnownType;
         }
 
         // This method checks if the type is a known base type, similar to the base classes check in the original class
@@ -422,10 +426,15 @@ namespace CleanArchitecture.CodeGenerator.Helpers
         }
 
         public static bool ValidateClassProperties(CSharpClassObject classObject)
-        { 
+        {
             foreach (var property in classObject.Properties)
             {
                 var typeSyntax = property.propertyDeclarationSyntax.Type;
+
+                if (property.Type.IsList || property.Type.IsDictionary || property.Type.IsICollection || property.Type.IsIEnumerable)
+                {
+                    return true;
+                }
 
                 if (!IsKnownType(typeSyntax))
                 {
@@ -443,7 +452,6 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                     return false;
                 }
             }
-
             return true;
         }
 

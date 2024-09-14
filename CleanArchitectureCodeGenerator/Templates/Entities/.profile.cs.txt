@@ -1,0 +1,22 @@
+﻿using {selectns}.Common.Entities;
+using {selectns}.Common.Attributes;
+
+namespace {namespace};
+
+public class {itemname} : BaseAuditableEntity
+{
+    [Scaffolding(PropRole.Identifier)]
+    public string ProfileName { get; set; }
+
+    [Scaffolding(PropRole.Searchable)]
+    public string SkinColor { get; set; }
+
+    [Scaffolding(PropRole.Searchable)]
+    public string BloodGroup { get; set; }
+
+    public int Height { get; set; }
+
+    [Scaffolding(PropRole.Relationship, RelationshipType.OneToOne, inverseProperty: "Profile", foreignKeyProperty: "StudentId", DeleteBehavior.Cascade)]
+    public int StudentId { get; set; } 
+    public virtual DemoStudent Student { get; set; } 
+}

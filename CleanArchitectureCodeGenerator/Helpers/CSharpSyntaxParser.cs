@@ -92,7 +92,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 {
                     PropertyName = member.Identifier.Text,
                     Summary = GetSummary(member),
-                    InitExpression = member.EqualsValue?.Value.ToString()
+                   // InitExpression = member.EqualsValue?.Value.ToString()
                 };
                 data.Properties.Add(prop);
             }
@@ -138,23 +138,23 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                     propertyDeclarationSyntax = member
                 };
 
-
+                   
                 // Assign DisplayName and Description based on attributes
                 foreach (var attributeListSyntax in member.AttributeLists)
                 {
                     foreach (var attribute in attributeListSyntax.Attributes)
                     {
-                   
+
                         if (attribute.Name.ToString().Contains("Display"))
                         {
                             var argument = attribute.ArgumentList?.Arguments.FirstOrDefault();
                             if (argument != null)
                             {
-                                prop.DisplayName = argument.ToString().Replace("\"","").Replace("Name = ", ""); // Assign the DisplayName
+                                prop.DisplayName = argument.ToString().Replace("\"", "").Replace("Name = ", ""); // Assign the DisplayName
                             }
                         }
-                      
-                        
+
+
                         if (attribute.Name.ToString().Contains("Description"))
                         {
                             var argument = attribute.ArgumentList?.Arguments.FirstOrDefault();
@@ -163,10 +163,90 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                                 prop.Description = argument.ToString().Trim('"'); // Assign the Description
                             }
                         }
+
+                        // Handle Scaffolding attributes
+                        if (attribute.Name.ToString().Contains("Scaffolding"))
+                        {
+                            foreach (var argument in attribute.ArgumentList.Arguments)
+                            {
+                                var argumentName = argument.Expression.ToString();
+                                if (argumentName.Contains("PropRole.Identifier"))
+                                {
+                                    prop.PropRole = "Identifier";
+                                }
+                                else if (argumentName.Contains("PropRole.Searchable"))
+                                {
+                                    prop.PropRole = "Searchable";
+                                }
+                                else if (argumentName.Contains("PropRole.Relationship"))
+                                {
+                                    prop.PropRole = "Relationship";
+                                }
+
+                                if (argumentName.Contains("RelationshipType.OneToOne"))
+                                {
+                                    prop.RelationshipType = "OneToOne";
+                                }
+                                else if (argumentName.Contains("RelationshipType.OneToMany"))
+                                {
+                                    prop.RelationshipType = "OneToMany";
+                                }
+                                else if (argumentName.Contains("RelationshipType.ManyToOne"))
+                                {
+                                    prop.RelationshipType = "ManyToOne";
+                                }
+                                else if (argumentName.Contains("RelationshipType.ManyToMany"))
+                                {
+                                    prop.RelationshipType = "ManyToMany";
+                                }
+
+                                if (argumentName.Contains("DeleteBehavior.Cascade"))
+                                {
+                                    prop.DeleteBehavior = "Cascade";
+                                }
+                                else if (argumentName.Contains("DeleteBehavior.Restrict"))
+                                {
+                                    prop.DeleteBehavior = "Restrict";
+                                }
+                                else if (argumentName.Contains("DeleteBehavior.SetNull"))
+                                {
+                                    prop.DeleteBehavior = "SetNull";
+                                }
+                                else if (argumentName.Contains("DeleteBehavior.NoAction"))
+                                {
+                                    prop.DeleteBehavior = "NoAction";
+                                }
+                            }
+
+                            // Assign InverseProperty and ForeignKeyProperty values
+                            var navPropertyArgument = attribute.ArgumentList.Arguments
+                                .FirstOrDefault(arg => arg.ToString().Contains("inverseProperty"));
+                            string _temp = "";
+                            if (navPropertyArgument != null)
+                            {
+                                _temp = navPropertyArgument.ToString();
+                                _temp = _temp.Replace("inverseProperty: \"", "");
+                                _temp = _temp.Replace("\"", "");
+                                prop.InverseProperty = _temp;
+                            }
+
+                            var foreignKeyArgument = attribute.ArgumentList.Arguments
+                                .FirstOrDefault(arg => arg.ToString().Contains("foreignKeyProperty"));
+
+                            if (foreignKeyArgument != null)
+                            {
+                                _temp = foreignKeyArgument.ToString();
+                                _temp = _temp.Replace("foreignKeyProperty: \"", "");
+                                _temp = _temp.Replace("\"", "");
+                                prop.ForeignKeyProperty = _temp;
+                            }
+                        }
+
+                       
                     }
                 }
 
-                if(string.IsNullOrWhiteSpace(prop.DisplayName))
+                if (string.IsNullOrWhiteSpace(prop.DisplayName))
                 {
                     prop.DisplayName = Utility.SplitCamelCase(member.Identifier.Text);
                 }
@@ -193,55 +273,74 @@ namespace CleanArchitecture.CodeGenerator.Helpers
         private PropertyType GetType(PropertyDeclarationSyntax propertyDeclaration)
         {
             TypeSyntax typeSyntax = propertyDeclaration.Type;
-            
 
-            bool isNullable = typeSyntax is NullableTypeSyntax;
+            bool isNullable = false;
             bool isKnownType = Utility.IsKnownType(typeSyntax);
             bool isKnownBaseType = Utility.IsKnownBaseType(typeSyntax);
+            bool isDictionary = false;
+            bool isList = false;
+            bool isICollection = false;
+            bool isIEnumerable = false;
 
-            var type = new PropertyType
+            TypeSyntax actualTypeSyntax;
+            // Check if it's a nullable type and get the underlying type if needed
+            if (typeSyntax is NullableTypeSyntax nullableTypeSyntax)
             {
-                TypeName = typeSyntax.ToString(),
-                IsArray = typeSyntax is ArrayTypeSyntax,
-                IsList = typeSyntax is GenericNameSyntax genericName &&
-                                (genericName.Identifier.Text == "List" || genericName.Identifier.Text == "IList"),
-                IsDictionary = typeSyntax is GenericNameSyntax genericNameDict &&
-                                (genericNameDict.Identifier.Text == "Dictionary" || genericNameDict.Identifier.Text == "IDictionary"),
-                IsNullable = isNullable,
-                // The IsKnown property is true if both IsKnownType and IsKnownBaseType are true.
-                // IsKnown = isKnownType && isKnownBaseType,
-                IsKnownType = isKnownType,
-                // IsKnownBaseType = isKnownBaseType
-            };
+                actualTypeSyntax = nullableTypeSyntax.ElementType;
+                isNullable = true;
+            }
+            else
+            {
+                actualTypeSyntax = typeSyntax;
+            }
 
+            if (actualTypeSyntax is GenericNameSyntax genericName)
+            {
+                var genericTypeName = genericName.Identifier.Text;
+                isDictionary = (genericTypeName == "Dictionary" || genericTypeName == "IDictionary");
+                isList = (genericTypeName == "List" || genericTypeName == "IList");
+                isICollection = genericTypeName == "ICollection";
+                isIEnumerable = genericTypeName == "IEnumerable";
+            }
+
+            var type = new PropertyType();
+            type.TypeName = typeSyntax.ToString();
+            type.IsArray = typeSyntax is ArrayTypeSyntax;
+            type.IsList = isList;
+            type.IsDictionary = isDictionary;
+            type.IsNullable = isNullable;
+            type.IsKnownType = isKnownType;
+            type.IsICollection = isICollection;
+            type.IsIEnumerable = isIEnumerable;
+           // type.IsKnownBaseType = isKnownBaseType
 
             // Check for PropertyCategoryAttribute
-            if (propertyDeclaration != null)
-            {
-                var attributeList = propertyDeclaration.AttributeLists;
-                foreach (var attributeListSyntax in attributeList)
-                {
-                    foreach (var attribute in attributeListSyntax.Attributes)
-                    {
-                        if (attribute.Name.ToString().Contains("Scaffolding"))
-                        {
-                            var argument = attribute.ArgumentList?.Arguments.FirstOrDefault();
-                            if (argument != null)
-                            {
-                                var value = argument.ToString();
-                                if (value.Contains("Identifier"))
-                                {
-                                    type.IsIdentifier = true;
-                                }
-                                else if (value.Contains("Searchable"))
-                                {
-                                    type.IsSearchable = true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            //if (propertyDeclaration != null)
+            //{
+            //    var attributeList = propertyDeclaration.AttributeLists;
+            //    foreach (var attributeListSyntax in attributeList)
+            //    {
+            //        foreach (var attribute in attributeListSyntax.Attributes)
+            //        {
+            //            if (attribute.Name.ToString().Contains("Scaffolding"))
+            //            {
+            //                var argument = attribute.ArgumentList?.Arguments.FirstOrDefault();
+            //                if (argument != null)
+            //                {
+            //                    var value = argument.ToString();
+            //                    if (value.Contains("Identifier"))
+            //                    {
+            //                        type.IsIdentifier = true;
+            //                    }
+            //                    else if (value.Contains("Searchable"))
+            //                    {
+            //                        type.IsSearchable = true;
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
             return type;
         }
     }

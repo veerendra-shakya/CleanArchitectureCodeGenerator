@@ -1,0 +1,16 @@
+﻿using {selectns}.Common.Entities;
+using {selectns}.Common.Attributes;
+
+namespace {namespace};
+
+public class {itemname} : BaseAuditableEntity
+{
+    [Scaffolding(PropRole.Identifier)]
+    public string CourseName { get; set; }
+    public string CourseDescription { get; set; }
+    public int CourseDuration { get; set; }
+
+    // Many-to-Many Relationship with DemoStudent
+    [Scaffolding(PropRole.Relationship, RelationshipType.ManyToMany, inverseProperty: "Courses")]
+    public virtual ICollection<DemoStudent> Students { get; set; } = new HashSet<DemoStudent>(); // Initialized to avoid null reference
+}

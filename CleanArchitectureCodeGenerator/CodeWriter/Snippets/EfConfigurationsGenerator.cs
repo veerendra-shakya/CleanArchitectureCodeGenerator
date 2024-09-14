@@ -19,58 +19,172 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                 var propertyType = property.Type;
 
                 // Start the builder for the property configuration
-                sb.Append($"builder.Property(x => x.{propertyName})");
-
-                // Check for data type (HasColumnType)
-                if (HasAttribute(property, "HasColumnType", out string columnType))
+                if (property.PropRole == "Relationship")
                 {
-                    sb.Append($".HasColumnType(\"{columnType}\")");
-                }
-
-                // Check for MaxLength attribute
-                if (HasAttribute(property, "MaxLength", out int maxLength))
-                {
-                    sb.Append($".HasMaxLength({maxLength})");
-                }
-
-                if (HasAttribute(property, "Required"))
-                {
-                    sb.Append(".IsRequired()");
+                    // Handle relationships
+                    GenerateRelationshipFluentApi(sb, classObject.Name, property);
+                    sb.AppendLine(); // Newline between properties
                 }
                 else
                 {
-                    // Check if the property is nullable or not, and add IsRequired() accordingly
-                    if (!propertyType.IsNullable)
+
+                    // Start the builder for the property configuration
+                    sb.Append($"builder.Property(x => x.{propertyName})");
+
+                    // Check for data type (HasColumnType)
+                    if (HasAttribute(property, "HasColumnType", out string columnType))
+                    {
+                        sb.Append($".HasColumnType(\"{columnType}\")");
+                    }
+
+                    // Check for MaxLength attribute
+                    if (HasAttribute(property, "MaxLength", out int maxLength))
+                    {
+                        sb.Append($".HasMaxLength({maxLength})");
+                    }
+
+                    if (HasAttribute(property, "Required"))
                     {
                         sb.Append(".IsRequired()");
                     }
+                    else
+                    {
+                        // Check if the property is nullable or not, and add IsRequired() accordingly
+                        if (!propertyType.IsNullable)
+                        {
+                            sb.Append(".IsRequired()");
+                        }
+                    }
+
+                    // Check for HasPrecision (for decimal types)
+                    if (HasAttribute(property, "Precision", out int precision, out int scale))
+                    {
+                        sb.Append($".HasPrecision({precision}, {scale})");
+                    }
+
+                    // Check for Default Value
+                    if (HasAttribute(property, "HasDefaultValue", out string defaultValue))
+                    {
+                        sb.Append($".HasDefaultValue({defaultValue})");
+                    }
+
+                    // Check for Default SQL Value
+                    if (HasAttribute(property, "HasDefaultValueSql", out string defaultSqlValue))
+                    {
+                        sb.Append($".HasDefaultValueSql(\"{defaultSqlValue}\")");
+                    }
+
+                    sb.Append($"; ");
+                    // Finalize the property configuration
+                    sb.AppendLine(); // Newline between properties
                 }
 
-                // Check for HasPrecision (for decimal types)
-                if (HasAttribute(property, "Precision", out int precision, out int scale))
-                {
-                    sb.Append($".HasPrecision({precision}, {scale})");
-                }
-
-                // Check for Default Value
-                if (HasAttribute(property, "HasDefaultValue", out string defaultValue))
-                {
-                    sb.Append($".HasDefaultValue({defaultValue})");
-                }
-
-                // Check for Default SQL Value
-                if (HasAttribute(property, "HasDefaultValueSql", out string defaultSqlValue))
-                {
-                    sb.Append($".HasDefaultValueSql(\"{defaultSqlValue}\")");
-                }
-
-                sb.Append($"; ");
-                // Finalize the property configuration
-                sb.AppendLine(); // Newline between properties
             }
             
             return sb.ToString().Trim(); // Trim to remove excess whitespace
         }
+
+        private static void GenerateRelationshipFluentApi(StringBuilder sb, string className, ClassProperty property)
+        {
+            var relatedEntity = property.Type.TypeName; // The type name of the related entity
+            var relationshipType = property.RelationshipType;
+            var deleteBehavior = property.DeleteBehavior; // No default behavior, check if it's null
+
+            switch (relationshipType)
+            {
+                case "OneToOne":
+                    // Generate One-to-One relationship configuration
+                    sb.AppendLine($"builder.HasOne(x => x.{property.PropertyName})")
+                      .AppendLine($".WithOne(x => x.{className})")
+                      .AppendLine($".HasForeignKey<{relatedEntity}>(x => x.{property.PropertyName}Id)");
+
+                    // Conditionally add OnDelete if deleteBehavior is not null
+                    if (!string.IsNullOrEmpty(deleteBehavior))
+                    {
+                        sb.AppendLine($".OnDelete(DeleteBehavior.{deleteBehavior})");
+                    }
+                    sb.Append("; ");
+
+                    // Add AutoInclude() for the navigation property
+                    sb.AppendLine($"builder.Navigation(e => e.{property.PropertyName}).AutoInclude();");
+                    break;
+
+                case "OneToMany":
+                    // Generate One-to-Many relationship configuration
+                    sb.AppendLine($"// One-to-Many relationship with {property.PropertyName}");
+                    sb.AppendLine($"builder.HasMany(x => x.{property.PropertyName})")
+                      .AppendLine($".WithOne(st => st.{property.InverseProperty})")
+                      .AppendLine($".HasForeignKey(st => st.{property.ForeignKeyProperty})");
+
+                    // Conditionally add OnDelete if deleteBehavior is not null
+                    if (!string.IsNullOrEmpty(deleteBehavior))
+                    {
+                        sb.AppendLine($".OnDelete(DeleteBehavior.{deleteBehavior})");
+                    }
+                    
+                    sb.Length -= Environment.NewLine.Length;  // Removes the last newline
+                    sb.Append(";\n");
+
+                    // Add AutoInclude() for the navigation property
+                    sb.AppendLine($"builder.Navigation(e => e.{property.PropertyName}).AutoInclude();");
+                    break;
+
+                case "ManyToOne":
+                    // Generate Many-to-One relationship configuration
+                    sb.AppendLine($"// Many-to-One relationship with {property.PropertyName}");
+                    sb.AppendLine($"builder.HasOne(st  => st.{property.PropertyName})")
+                      .AppendLine($".WithMany(s => s.{property.InverseProperty})") 
+                      .AppendLine($".HasForeignKey(st => st.{property.ForeignKeyProperty})");
+
+                    // Conditionally add OnDelete if deleteBehavior is not null
+                    if (!string.IsNullOrEmpty(deleteBehavior))
+                    {
+                        sb.AppendLine($".OnDelete(DeleteBehavior.{deleteBehavior})");
+                    }
+                    sb.Length -= Environment.NewLine.Length;  // Removes the last newline
+                    sb.Append(";\n");
+
+                    // Add AutoInclude() for the navigation property
+                    sb.AppendLine($"builder.Navigation(e => e.{property.PropertyName}).AutoInclude();");
+                    break;
+
+                case "ManyToMany":
+                    // Generate Many-to-Many relationship configuration
+                    sb.AppendLine($"builder.HasMany(x => x.{property.PropertyName})")
+                      .AppendLine($".WithMany(x => x.{className}s)")
+                      .AppendLine($".UsingEntity<{className}{relatedEntity}>( // Join entity")
+                      .AppendLine($"j => j.HasOne(x => x.{relatedEntity})")
+                      .AppendLine($".WithMany()")
+                      .AppendLine($".HasForeignKey(x => x.{relatedEntity}Id)");
+
+                    // Conditionally add OnDelete if deleteBehavior is not null
+                    if (!string.IsNullOrEmpty(deleteBehavior))
+                    {
+                        sb.AppendLine($".OnDelete(DeleteBehavior.{deleteBehavior});");
+                    }
+                    sb.AppendLine($","); // Continue for the second relationship part
+
+                    sb.AppendLine($"j => j.HasOne(x => x.{className})")
+                      .AppendLine($".WithMany()")
+                      .AppendLine($".HasForeignKey(x => x.{className}Id)");
+
+                    // Conditionally add OnDelete if deleteBehavior is not null
+                    if (!string.IsNullOrEmpty(deleteBehavior))
+                    {
+                        sb.AppendLine($".OnDelete(DeleteBehavior.{deleteBehavior});");
+                    }
+                    sb.AppendLine($");");
+
+                    // Add AutoInclude() for the navigation property
+                    sb.AppendLine($"builder.Navigation(e => e.{property.PropertyName}).AutoInclude();");
+                    break;
+
+                default:
+                    sb.AppendLine("// Relationship type not recognized.");
+                    break;
+            }
+        }
+
 
         private static bool HasAttribute(ClassProperty property, string attributeName, out string attributeValue)
         {
