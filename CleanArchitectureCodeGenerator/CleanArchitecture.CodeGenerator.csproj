@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="CodeWriter\Snippets\FluentApiGenerator.cs" />
     <Compile Remove="NewItemTarget.cs" />
   </ItemGroup>
 

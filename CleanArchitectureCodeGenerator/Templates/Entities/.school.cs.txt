@@ -10,6 +10,6 @@ public class {itemname} : BaseAuditableEntity
     public string SchoolAddress { get; set; }
 
     // One-to-Many Relationship with DemoStudent
-    [Scaffolding(PropRole.Relationship, RelationshipType.OneToMany, inverseProperty: "School", foreignKeyProperty: "SchoolId", DeleteBehavior.Restrict)]
+    [Scaffolding(PropRole.Relationship, RelationshipType.OneToMany, inverseProperty: "School", foreignKeyProperty: "SchoolId", deleteAction: DeleteBehavior.Restrict)]
     public virtual ICollection<DemoStudent> Students { get; set; } = new HashSet<DemoStudent>(); // Initialized to avoid null reference
 }

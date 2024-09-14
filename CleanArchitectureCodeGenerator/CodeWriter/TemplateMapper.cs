@@ -75,9 +75,9 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             var mudFormFieldDefinition = snippetsWriter.CreateMudFormFieldDefinition(ModalClassObject);
             var fieldAssignmentDefinition = snippetsWriter.CreateFieldAssignmentDefinition(ModalClassObject);
             var fluentValidation = FluentValidationGenerator.GenerateFluentValidation(ModalClassObject);
-            var masterProperty = ModalClassObject.Properties.Where(p => p.PropRole== "Identifier").Select(p => p.PropertyName).FirstOrDefault();
-            var searchableProperty = ModalClassObject.Properties.Where(p => p.PropRole == "Searchable").Select(p => p.PropertyName).FirstOrDefault();
-            var efConfigurations = EfConfigurationsGenerator.GenerateConfigurations(ModalClassObject);
+            var masterProperty = ModalClassObject.Properties.Where(p => p.ScaffoldingAtt.PropRole == "Identifier").Select(p => p.PropertyName).FirstOrDefault();
+            var searchableProperty = ModalClassObject.Properties.Where(p => p.ScaffoldingAtt.PropRole == "Searchable").Select(p => p.PropertyName).FirstOrDefault();
+            var efConfigurations = Ef_FluentConfigurationsGenerator.GenerateConfigurations(ModalClassObject);
             
 
             // Read the template file with UTF-8 encoding

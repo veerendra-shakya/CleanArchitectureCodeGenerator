@@ -1,4 +1,5 @@
-﻿using CleanArchitecture.CodeGenerator.Configuration;
+﻿using CleanArchitecture.CodeGenerator.CodeWriter.Snippets;
+using CleanArchitecture.CodeGenerator.Configuration;
 using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
 using System.Collections.Generic;
@@ -200,10 +201,10 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             };
 
 
-            ProcessFiles(eventPaths, domainProjectDir);
-            ProcessFiles(configPaths, infrastructureProjectDir);
-            ProcessFiles(featurePaths, applicationProjectDir);
-            ProcessFiles(pagePaths, uiProjectDir);
+            ProcessFiles(modalClassObject, eventPaths, domainProjectDir);
+            ProcessFiles(modalClassObject, configPaths, infrastructureProjectDir);
+            ProcessFiles(modalClassObject, featurePaths, applicationProjectDir);
+            ProcessFiles(modalClassObject, pagePaths, uiProjectDir);
 
             Console.WriteLine($"\n--------------------- {modalClassName} Update DbContext Started...  --------------------");
             Update_DbContext dbContextModifier = new Update_DbContext();
@@ -211,9 +212,14 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             dbContextModifier.RemoveEntityProperty(paths, modalClassName);
             Console.WriteLine($"---------------------  Update DbContext Completed...  --------------------\n");
 
+            //check if any property having many to many relationship then create linking table configurations
+            Ef_LinkingTableConfigurationsGenerator.RemoveConfigurations(modalClassObject);
+
+
+
         }
 
-        private void ProcessFiles(IEnumerable<string> targetPaths, string targetProjectDirectory)
+        private void ProcessFiles(CSharpClassObject modalClassObject, IEnumerable<string> targetPaths, string targetProjectDirectory)
         {
             Console.WriteLine($"\n---------------------  {Utility.GetProjectNameFromPath(targetProjectDirectory)} Started...  --------------------");
             int count = 1;
@@ -221,9 +227,11 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             {
                 Console.Write($" {count} of {targetPaths.Count()}  ");
                 DeleteFileIfExists(Path.Combine(targetProjectDirectory, targetPath));
-                Thread.Sleep(500);
+                Thread.Sleep(100);
                 count++;
             }
+
+
             Console.WriteLine($"---------------------  {Utility.GetProjectNameFromPath(targetProjectDirectory)} Completed...  --------------------\n");
 
         }

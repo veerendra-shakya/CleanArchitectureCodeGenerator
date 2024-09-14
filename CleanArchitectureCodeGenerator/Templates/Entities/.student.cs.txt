@@ -15,15 +15,15 @@ public class {itemname} : BaseAuditableEntity
     public string ContactNumber { get; set; }
 
     // One-to-One Relationship with DemoProfile
-    [Scaffolding(PropRole.Relationship, RelationshipType.OneToOne, inverseProperty: "Student",  foreignKeyProperty: "StudentId",  DeleteBehavior.Cascade)]
+    [Scaffolding(role: PropRole.Relationship, relationship: RelationshipType.OneToOne, inverseProperty: "Student", foreignKeyProperty: "StudentId", deleteAction: DeleteBehavior.Cascade)]
     public virtual DemoProfile Profile { get; set; }
 
     // Foreign Key for Many-to-One Relationship with DemoSchool
-    [Scaffolding(PropRole.Relationship, RelationshipType.ManyToOne, inverseProperty: "Students", foreignKeyProperty: "SchoolId", DeleteBehavior.Restrict)]
     public int SchoolId { get; set; }
+    [Scaffolding(role: PropRole.Relationship, relationship: RelationshipType.ManyToOne, inverseProperty: "Students", foreignKeyProperty: "SchoolId",deleteAction: DeleteBehavior.Restrict)]
     public virtual DemoSchool School { get; set; }
 
     // Many-to-Many Relationship with DemoCourse
-    [Scaffolding(PropRole.Relationship, RelationshipType.ManyToMany, inverseProperty: "Students")]
+    [Scaffolding(role: PropRole.Relationship, relationship: RelationshipType.ManyToMany, inverseProperty: "Students", linkingTable: "DemoStudentCourse")]
     public virtual ICollection<DemoCourse> Courses { get; set; } = new HashSet<DemoCourse>(); // Initialized to avoid null reference
 }

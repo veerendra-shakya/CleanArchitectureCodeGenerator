@@ -11,6 +11,6 @@ public class {itemname} : BaseAuditableEntity
     public int CourseDuration { get; set; }
 
     // Many-to-Many Relationship with DemoStudent
-    [Scaffolding(PropRole.Relationship, RelationshipType.ManyToMany, inverseProperty: "Courses")]
+    [Scaffolding(role: PropRole.Relationship, relationship: RelationshipType.ManyToMany, inverseProperty: "Courses", linkingTable: "DemoStudentCourse")]
     public virtual ICollection<DemoStudent> Students { get; set; } = new HashSet<DemoStudent>(); // Initialized to avoid null reference
 }

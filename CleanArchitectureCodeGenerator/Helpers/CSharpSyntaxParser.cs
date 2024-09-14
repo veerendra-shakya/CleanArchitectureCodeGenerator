@@ -172,53 +172,53 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                                 var argumentName = argument.Expression.ToString();
                                 if (argumentName.Contains("PropRole.Identifier"))
                                 {
-                                    prop.PropRole = "Identifier";
+                                    prop.ScaffoldingAtt.PropRole = "Identifier";
                                 }
                                 else if (argumentName.Contains("PropRole.Searchable"))
                                 {
-                                    prop.PropRole = "Searchable";
+                                    prop.ScaffoldingAtt.PropRole = "Searchable";
                                 }
                                 else if (argumentName.Contains("PropRole.Relationship"))
                                 {
-                                    prop.PropRole = "Relationship";
+                                    prop.ScaffoldingAtt.PropRole = "Relationship";
                                 }
 
                                 if (argumentName.Contains("RelationshipType.OneToOne"))
                                 {
-                                    prop.RelationshipType = "OneToOne";
+                                    prop.ScaffoldingAtt.RelationshipType = "OneToOne";
                                 }
                                 else if (argumentName.Contains("RelationshipType.OneToMany"))
                                 {
-                                    prop.RelationshipType = "OneToMany";
+                                    prop.ScaffoldingAtt.RelationshipType = "OneToMany";
                                 }
                                 else if (argumentName.Contains("RelationshipType.ManyToOne"))
                                 {
-                                    prop.RelationshipType = "ManyToOne";
+                                    prop.ScaffoldingAtt.RelationshipType = "ManyToOne";
                                 }
                                 else if (argumentName.Contains("RelationshipType.ManyToMany"))
                                 {
-                                    prop.RelationshipType = "ManyToMany";
+                                    prop.ScaffoldingAtt.RelationshipType = "ManyToMany";
                                 }
 
                                 if (argumentName.Contains("DeleteBehavior.Cascade"))
                                 {
-                                    prop.DeleteBehavior = "Cascade";
+                                    prop.ScaffoldingAtt.DeleteBehavior = "Cascade";
                                 }
                                 else if (argumentName.Contains("DeleteBehavior.Restrict"))
                                 {
-                                    prop.DeleteBehavior = "Restrict";
+                                    prop.ScaffoldingAtt.DeleteBehavior = "Restrict";
                                 }
                                 else if (argumentName.Contains("DeleteBehavior.SetNull"))
                                 {
-                                    prop.DeleteBehavior = "SetNull";
+                                    prop.ScaffoldingAtt.DeleteBehavior = "SetNull";
                                 }
                                 else if (argumentName.Contains("DeleteBehavior.NoAction"))
                                 {
-                                    prop.DeleteBehavior = "NoAction";
+                                    prop.ScaffoldingAtt.DeleteBehavior = "NoAction";
                                 }
                             }
 
-                            // Assign InverseProperty and ForeignKeyProperty values
+                            // Assign InverseProperty value
                             var navPropertyArgument = attribute.ArgumentList.Arguments
                                 .FirstOrDefault(arg => arg.ToString().Contains("inverseProperty"));
                             string _temp = "";
@@ -227,9 +227,10 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                                 _temp = navPropertyArgument.ToString();
                                 _temp = _temp.Replace("inverseProperty: \"", "");
                                 _temp = _temp.Replace("\"", "");
-                                prop.InverseProperty = _temp;
+                                prop.ScaffoldingAtt.InverseProperty = _temp;
                             }
 
+                            //Assign ForeignKeyProperty value
                             var foreignKeyArgument = attribute.ArgumentList.Arguments
                                 .FirstOrDefault(arg => arg.ToString().Contains("foreignKeyProperty"));
 
@@ -238,11 +239,24 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                                 _temp = foreignKeyArgument.ToString();
                                 _temp = _temp.Replace("foreignKeyProperty: \"", "");
                                 _temp = _temp.Replace("\"", "");
-                                prop.ForeignKeyProperty = _temp;
+                                prop.ScaffoldingAtt.ForeignKeyProperty = _temp;
                             }
+
+                            //Assign LinkingTable value
+                            var linkingArgument = attribute.ArgumentList.Arguments
+                            .FirstOrDefault(arg => arg.ToString().Contains("linkingTable"));
+
+                            if (linkingArgument != null)
+                            {
+                                _temp = linkingArgument.ToString();
+                                _temp = _temp.Replace("linkingTable: \"", "");
+                                _temp = _temp.Replace("\"", "");
+                                prop.ScaffoldingAtt.LinkingTable = _temp;
+                            }
+
                         }
 
-                       
+
                     }
                 }
 

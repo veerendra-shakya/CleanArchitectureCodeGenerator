@@ -1,4 +1,5 @@
-﻿using CleanArchitecture.CodeGenerator.Configuration;
+﻿using CleanArchitecture.CodeGenerator.CodeWriter.Snippets;
+using CleanArchitecture.CodeGenerator.Configuration;
 using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
 using System.Collections.Generic;
@@ -123,11 +124,11 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                         Console.WriteLine("File generation aborted due to validation errors.");
                         return;
                     }
-                    if (!Utility.ValidateClassProperties(modalClassObject))
-                    {
-                        Console.WriteLine("File generation aborted due to validation errors.");
-                        return;
-                    }
+                    //if (!Utility.ValidateClassProperties(modalClassObject))
+                    //{
+                    //    Console.WriteLine("File generation aborted due to validation errors.");
+                    //    return;
+                    //}
 
 
                     GenerateFiles(modalClassObject, modalClassName, modalClassNamePlural, domainProjectDir, infrastructureProjectDir, applicationProjectDir, uiProjectDir);
@@ -200,6 +201,9 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             dbContextModifier.AddEntityProperty(paths, modalClassName);
             Console.WriteLine($"---------------------  Update DbContext Completed...  --------------------\n");
 
+            //check if any property having many to many relationship then create linking table configurations
+            Ef_LinkingTableConfigurationsGenerator.GenerateConfigurations(modalClassObject);
+
         }
 
         private void ProcessFiles(CSharpClassObject modalClassObject, IEnumerable<string> targetPaths, string modalClassName, string targetProjectDirectory)
@@ -211,9 +215,10 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                 Console.Write($" {count} of {targetPaths.Count()}  ");
                 AddFile(modalClassObject, targetPath, modalClassName, targetProjectDirectory);
                 // Add a 0.5-second delay
-                Thread.Sleep(500);
+                Thread.Sleep(200);
                 count++;
             }
+
             Console.WriteLine($"---------------------  {Utility.GetProjectNameFromPath(targetProjectDirectory)} Completed...  --------------------\n");
         }
 
@@ -242,6 +247,8 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                     Utility.WriteToDiskAsync(file.FullName, template);
                     Console.WriteLine($"Created file: {file.FullName}");
                 }
+                
+
             }
             catch (Exception ex)
             {

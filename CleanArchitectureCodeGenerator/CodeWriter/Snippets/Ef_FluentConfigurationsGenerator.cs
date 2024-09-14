@@ -1,4 +1,6 @@
-﻿using CleanArchitecture.CodeGenerator.Models;
+﻿using CleanArchitecture.CodeGenerator.Configuration;
+using CleanArchitecture.CodeGenerator.Helpers;
+using CleanArchitecture.CodeGenerator.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
 {
-    public static class EfConfigurationsGenerator
+    public static class Ef_FluentConfigurationsGenerator
     {
         public static string GenerateConfigurations(CSharpClassObject classObject)
         {
@@ -19,11 +21,11 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                 var propertyType = property.Type;
 
                 // Start the builder for the property configuration
-                if (property.PropRole == "Relationship")
+                if (property.ScaffoldingAtt.PropRole == "Relationship")
                 {
                     // Handle relationships
-                    GenerateRelationshipFluentApi(sb, classObject.Name, property);
-                    sb.AppendLine(); // Newline between properties
+                    GenerateRelationshipFluentApi(sb, property);
+                    sb.AppendLine("\n"); // Newline between properties
                 }
                 else
                 {
@@ -76,7 +78,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
 
                     sb.Append($"; ");
                     // Finalize the property configuration
-                    sb.AppendLine(); // Newline between properties
+                    sb.AppendLine("\n"); // Newline between properties
                 }
 
             }
@@ -84,27 +86,30 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             return sb.ToString().Trim(); // Trim to remove excess whitespace
         }
 
-        private static void GenerateRelationshipFluentApi(StringBuilder sb, string className, ClassProperty property)
+        private static void GenerateRelationshipFluentApi(StringBuilder sb, ClassProperty property)
         {
             var relatedEntity = property.Type.TypeName; // The type name of the related entity
-            var relationshipType = property.RelationshipType;
-            var deleteBehavior = property.DeleteBehavior; // No default behavior, check if it's null
+            var relationshipType = property.ScaffoldingAtt.RelationshipType;
+            var deleteBehavior = property.ScaffoldingAtt.DeleteBehavior; // No default behavior, check if it's null
 
             switch (relationshipType)
             {
                 case "OneToOne":
                     // Generate One-to-One relationship configuration
-                    sb.AppendLine($"builder.HasOne(x => x.{property.PropertyName})")
-                      .AppendLine($".WithOne(x => x.{className})")
-                      .AppendLine($".HasForeignKey<{relatedEntity}>(x => x.{property.PropertyName}Id)");
+                    sb.AppendLine($"// One-to-One relationship with {property.PropertyName}");
+                    sb.AppendLine($"builder.HasOne(e => e.{property.PropertyName})")
+                      .AppendLine($"    .WithOne(p => p.{property.ScaffoldingAtt.InverseProperty})")
+                      .AppendLine($"    .HasForeignKey<{property.Type.TypeName}>(p => p.{property.ScaffoldingAtt.ForeignKeyProperty})");
 
                     // Conditionally add OnDelete if deleteBehavior is not null
                     if (!string.IsNullOrEmpty(deleteBehavior))
                     {
-                        sb.AppendLine($".OnDelete(DeleteBehavior.{deleteBehavior})");
+                        sb.AppendLine($"    .OnDelete(DeleteBehavior.{deleteBehavior})");
                     }
+                    sb.Length -= Environment.NewLine.Length;  // Removes the last newline
                     sb.Append("; ");
-
+                    sb.AppendLine("\n");
+                    
                     // Add AutoInclude() for the navigation property
                     sb.AppendLine($"builder.Navigation(e => e.{property.PropertyName}).AutoInclude();");
                     break;
@@ -112,19 +117,19 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                 case "OneToMany":
                     // Generate One-to-Many relationship configuration
                     sb.AppendLine($"// One-to-Many relationship with {property.PropertyName}");
-                    sb.AppendLine($"builder.HasMany(x => x.{property.PropertyName})")
-                      .AppendLine($".WithOne(st => st.{property.InverseProperty})")
-                      .AppendLine($".HasForeignKey(st => st.{property.ForeignKeyProperty})");
+                    sb.AppendLine($"builder.HasMany(e => e.{property.PropertyName})")
+                      .AppendLine($"    .WithOne(p => p.{property.ScaffoldingAtt.InverseProperty})")
+                      .AppendLine($"    .HasForeignKey(p => p.{property.ScaffoldingAtt.ForeignKeyProperty})");
 
                     // Conditionally add OnDelete if deleteBehavior is not null
                     if (!string.IsNullOrEmpty(deleteBehavior))
                     {
-                        sb.AppendLine($".OnDelete(DeleteBehavior.{deleteBehavior})");
+                        sb.AppendLine($"    .OnDelete(DeleteBehavior.{deleteBehavior})");
                     }
                     
                     sb.Length -= Environment.NewLine.Length;  // Removes the last newline
-                    sb.Append(";\n");
-
+                    sb.Append("; ");
+                    sb.AppendLine("\n");
                     // Add AutoInclude() for the navigation property
                     sb.AppendLine($"builder.Navigation(e => e.{property.PropertyName}).AutoInclude();");
                     break;
@@ -132,49 +137,38 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                 case "ManyToOne":
                     // Generate Many-to-One relationship configuration
                     sb.AppendLine($"// Many-to-One relationship with {property.PropertyName}");
-                    sb.AppendLine($"builder.HasOne(st  => st.{property.PropertyName})")
-                      .AppendLine($".WithMany(s => s.{property.InverseProperty})") 
-                      .AppendLine($".HasForeignKey(st => st.{property.ForeignKeyProperty})");
+                    sb.AppendLine($"builder.HasOne(e  => e.{property.PropertyName})")
+                      .AppendLine($"    .WithMany(p => p.{property.ScaffoldingAtt.InverseProperty})") 
+                      .AppendLine($"    .HasForeignKey(p => p.{property.ScaffoldingAtt.ForeignKeyProperty})");
 
                     // Conditionally add OnDelete if deleteBehavior is not null
                     if (!string.IsNullOrEmpty(deleteBehavior))
                     {
-                        sb.AppendLine($".OnDelete(DeleteBehavior.{deleteBehavior})");
+                        sb.AppendLine($"    .OnDelete(DeleteBehavior.{deleteBehavior})");
                     }
                     sb.Length -= Environment.NewLine.Length;  // Removes the last newline
-                    sb.Append(";\n");
-
+                    sb.Append("; ");
+                    sb.AppendLine("\n");
                     // Add AutoInclude() for the navigation property
                     sb.AppendLine($"builder.Navigation(e => e.{property.PropertyName}).AutoInclude();");
                     break;
 
                 case "ManyToMany":
                     // Generate Many-to-Many relationship configuration
-                    sb.AppendLine($"builder.HasMany(x => x.{property.PropertyName})")
-                      .AppendLine($".WithMany(x => x.{className}s)")
-                      .AppendLine($".UsingEntity<{className}{relatedEntity}>( // Join entity")
-                      .AppendLine($"j => j.HasOne(x => x.{relatedEntity})")
-                      .AppendLine($".WithMany()")
-                      .AppendLine($".HasForeignKey(x => x.{relatedEntity}Id)");
+                    sb.AppendLine($"// Many-to-Many relationship with {property.PropertyName}");
+                    sb.AppendLine($"builder.HasMany(e => e.{property.PropertyName})")
+                      .AppendLine($"    .WithMany(p => p.{property.ScaffoldingAtt.InverseProperty})")
+                      .AppendLine($"    .UsingEntity<{property.ScaffoldingAtt.LinkingTable}>(")
+                      .AppendLine($"        j => j.HasOne(y => y.{property.PropertyName.Singularize()})")
+                      .AppendLine($"              .WithMany()")
+                      .AppendLine($"              .HasForeignKey(x => x.{property.PropertyName.Singularize()}Id),")
+                      .AppendLine($"        j => j.HasOne(y => y.{property.ScaffoldingAtt.InverseProperty.Singularize()})")
+                      .AppendLine($"              .WithMany()")
+                      .AppendLine($"              .HasForeignKey(x => x.{property.ScaffoldingAtt.InverseProperty.Singularize()}Id))");
 
-                    // Conditionally add OnDelete if deleteBehavior is not null
-                    if (!string.IsNullOrEmpty(deleteBehavior))
-                    {
-                        sb.AppendLine($".OnDelete(DeleteBehavior.{deleteBehavior});");
-                    }
-                    sb.AppendLine($","); // Continue for the second relationship part
-
-                    sb.AppendLine($"j => j.HasOne(x => x.{className})")
-                      .AppendLine($".WithMany()")
-                      .AppendLine($".HasForeignKey(x => x.{className}Id)");
-
-                    // Conditionally add OnDelete if deleteBehavior is not null
-                    if (!string.IsNullOrEmpty(deleteBehavior))
-                    {
-                        sb.AppendLine($".OnDelete(DeleteBehavior.{deleteBehavior});");
-                    }
-                    sb.AppendLine($");");
-
+                    sb.Length -= Environment.NewLine.Length;  // Removes the last newline
+                    sb.AppendLine($"; ");
+                    sb.AppendLine("\n");
                     // Add AutoInclude() for the navigation property
                     sb.AppendLine($"builder.Navigation(e => e.{property.PropertyName}).AutoInclude();");
                     break;
@@ -184,7 +178,6 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                     break;
             }
         }
-
 
         private static bool HasAttribute(ClassProperty property, string attributeName, out string attributeValue)
         {
@@ -252,5 +245,6 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             var hasAttribute = attributeNames.Any(name => name.Contains(attributeName));
             return hasAttribute;
         }
+
     }
 }

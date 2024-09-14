@@ -72,7 +72,8 @@ namespace CleanArchitecture.CodeGenerator.Models
         /// </summary>
         public string Summary { get; set; }
 
- 
+        public ScaffoldingAttribute ScaffoldingAtt { get; set; } = new();
+
         /// <summary>
         /// Gets or sets the syntax representation of a property declaration in a C# class.
         /// This is an instance of <see cref="PropertyDeclarationSyntax"/>, which represents
@@ -84,14 +85,19 @@ namespace CleanArchitecture.CodeGenerator.Models
         public string DisplayName { get; set; }
         public string Description { get; set; }
 
-        public string PropRole { get; set; }
-        public string RelationshipType { get; set; }
-        public string DeleteBehavior { get; set;}
-        public string InverseProperty { get; set; }
-        public string ForeignKeyProperty { get; set; }
+
     }
 
- 
+    public class ScaffoldingAttribute
+    {
+        public string PropRole { get; set; }
+        public string RelationshipType { get; set; }
+        public string InverseProperty { get; set; }
+        public string ForeignKeyProperty { get; set; }
+        public string LinkingTable { get; set; }
+        public string DeleteBehavior { get; set; }
+    }
+
     public class PropertyType
     {
         public string TypeName { get; set; }
