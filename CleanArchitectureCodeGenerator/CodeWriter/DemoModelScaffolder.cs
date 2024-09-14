@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.CodeGenerator.CodeWriter
 {
-    public class DemoEntityScaffolder
+    public class DemoModelScaffolder
     {
         private readonly string _rootDirectory;
         private readonly string _rootNamespace;
@@ -25,7 +25,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
         private readonly string _applicationProjectDir;
 
       
-        public DemoEntityScaffolder()
+        public DemoModelScaffolder()
         {
             var configHandler = new ConfigurationHandler("appsettings.json");
             var configSettings = configHandler.GetConfiguration();
@@ -43,76 +43,54 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             _applicationProjectDir = Path.Combine(_rootDirectory, _applicationProject);
 
         }
+        
         public void AddSupportedDataTypesDemoEntity()
         {
-            string Target = $"Entities\\{"DemoData"}Types.cs";
-            string TargerFilePath = Path.Combine(_domainProjectDir, Target);
-            var RelativePath = Utility.MakeRelativePath(_rootDirectory, Path.GetDirectoryName(TargerFilePath) ?? "");
-            string TemplateFilePath = Utility.GetTemplateFile(RelativePath, TargerFilePath);
-            string content = File.ReadAllText(TemplateFilePath, Encoding.UTF8);
-
-            var ns = _rootNamespace;
-            if (!string.IsNullOrEmpty(RelativePath))
-            {
-                ns += "." + Utility.RelativePath_To_Namespace(RelativePath);
-            }
-            ns = ns.TrimEnd('.');
-
-            // Replace tokens in the content
-            content = content.Replace("{rootnamespace}", _rootNamespace);
-            content = content.Replace("{selectns}", $"{_rootNamespace}.{Utility.GetProjectNameFromPath(_domainProjectDir)}");
-            content = content.Replace("{namespace}", ns);
-            content = content.Replace("{itemname}", "DemoDataTypes");
-            Utility.WriteToDiskAsync(TargerFilePath, content);
-
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("=============================================================");
-            Console.WriteLine("                ADDED DemoDataTypes MODEL                    ");
-            Console.WriteLine("=============================================================");
-            Console.WriteLine($"Created file: {TargerFilePath}");
-            Console.WriteLine("=============================================================");
-            Console.ResetColor();
+            AddDemoEntity("DemoDataType", "Entities\\DemoDataType.cs");
         }
-        public void AddArticleDemoEntity()
+        
+        public void AddValidationsDemoEntity()
         {
-            string Target = $"Entities\\{"Demo"}Author.cs";
-            string TargerFilePath = Path.Combine(_domainProjectDir, Target);
-            var RelativePath = Utility.MakeRelativePath(_rootDirectory, Path.GetDirectoryName(TargerFilePath) ?? "");
-            string TemplateFilePath = Utility.GetTemplateFile(RelativePath, TargerFilePath);
-            string content = File.ReadAllText(TemplateFilePath, Encoding.UTF8);
-
-            var ns = _rootNamespace;
-            if (!string.IsNullOrEmpty(RelativePath))
-            {
-                ns += "." + Utility.RelativePath_To_Namespace(RelativePath);
-            }
-            ns = ns.TrimEnd('.');
-
-            // Replace tokens in the content
-            content = content.Replace("{rootnamespace}", _rootNamespace);
-            content = content.Replace("{selectns}", $"{_rootNamespace}.{Utility.GetProjectNameFromPath(_domainProjectDir)}");
-            content = content.Replace("{namespace}", ns);
-            content = content.Replace("{itemname}", "DemoAuthor");
-            Utility.WriteToDiskAsync(TargerFilePath, content);
-
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("=============================================================");
-            Console.WriteLine("                    ADDED AUTHOR MODEL                       ");
-            Console.WriteLine("=============================================================");
-            Console.WriteLine($"Created file: {TargerFilePath}");
-            Console.WriteLine("=============================================================");
-            Console.ResetColor();
+            AddDemoEntity("DemoValidation", "Entities\\DemoValidation.cs");
         }
 
         public void AddRelationshipDemoEntity()
         {
-            //(\"DemoStudent.cs\", \"DemoProfile.cs\", \"DemoSchool.cs\", \"DemoCourse.cs\")
+            AddDemoEntity("DemoStudent", "Entities\\DemoStudent.cs");
+            AddDemoEntity("DemoProfile", "Entities\\DemoProfile.cs");
+            AddDemoEntity("DemoSchool", "Entities\\DemoSchool.cs");
+            AddDemoEntity("DemoCourse", "Entities\\DemoCourse.cs");
+            AddDemoEntity("DemoStudentCourse", "Entities\\DemoStudentCourse.cs");
+        }
 
-            AddDemoEntity("DemoStudent");
-            AddDemoEntity("DemoProfile");
-            AddDemoEntity("DemoSchool");
-            AddDemoEntity("DemoCourse");
-            AddDemoEntity("DemoStudentCourse");
+
+        private void AddDemoEntity(string entityName, string relativePath)
+        {
+            string targetFilePath = Path.Combine(_domainProjectDir, relativePath);
+            var relativeDirectoryPath = Utility.MakeRelativePath(_rootDirectory, Path.GetDirectoryName(targetFilePath) ?? "");
+            string templateFilePath = Utility.GetTemplateFile(relativeDirectoryPath, targetFilePath);
+            string content = File.ReadAllText(templateFilePath, Encoding.UTF8);
+
+            var ns = _rootNamespace;
+            if (!string.IsNullOrEmpty(relativeDirectoryPath))
+            {
+                ns += "." + Utility.RelativePath_To_Namespace(relativeDirectoryPath);
+            }
+            ns = ns.TrimEnd('.');
+
+            // Replace tokens in the content
+            content = content.Replace("{rootnamespace}", _rootNamespace);
+            content = content.Replace("{selectns}", $"{_rootNamespace}.{Utility.GetProjectNameFromPath(_domainProjectDir)}");
+            content = content.Replace("{namespace}", ns);
+            content = content.Replace("{itemname}", entityName);
+
+            Utility.WriteToDiskAsync(targetFilePath, content);
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("\n=============================================================");
+            Console.WriteLine($"Created file: {targetFilePath}");
+            Console.WriteLine("=============================================================\n");
+            Console.ResetColor();
         }
 
         private void AddDemoEntity(string EntityName)
