@@ -1,0 +1,4 @@
+Copy this ScaffoldingAttribute class to  
+
+Domain Project ==> /Common/Attributes/ScaffoldingAttribute.cs
+
