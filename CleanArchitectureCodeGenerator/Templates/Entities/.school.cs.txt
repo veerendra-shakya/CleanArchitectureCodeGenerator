@@ -1,0 +1,15 @@
+﻿using {selectns}.Common.Entities;
+using {selectns}.Common.Attributes;
+
+namespace {namespace};
+
+public class {itemname} : BaseAuditableEntity
+{
+    [Scaffolding(PropRole.Identifier)]
+    public string SchoolName { get; set; }
+    public string SchoolAddress { get; set; }
+
+    // One-to-Many Relationship with DemoStudent
+    [Scaffolding(PropRole.Relationship, RelationshipType.OneToMany, inverseProperty: "School", foreignKeyProperty: "SchoolId", DeleteBehavior.Restrict)]
+    public virtual ICollection<DemoStudent> Students { get; set; } = new HashSet<DemoStudent>(); // Initialized to avoid null reference
+}

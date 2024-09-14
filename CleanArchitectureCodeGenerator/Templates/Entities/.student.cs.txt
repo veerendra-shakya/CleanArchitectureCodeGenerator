@@ -1,0 +1,29 @@
+﻿using System.Collections.Generic;
+using {selectns}.Common.Entities;
+using {selectns}.Common.Attributes;
+
+namespace {namespace};
+
+public class {itemname} : BaseAuditableEntity
+{
+    [Scaffolding(PropRole.Identifier)]
+    public string FirstName { get; set; }
+
+    [Scaffolding(PropRole.Searchable)]
+    public string LastName { get; set; }
+
+    public string ContactNumber { get; set; }
+
+    // One-to-One Relationship with DemoProfile
+    [Scaffolding(PropRole.Relationship, RelationshipType.OneToOne, inverseProperty: "Student",  foreignKeyProperty: "StudentId",  DeleteBehavior.Cascade)]
+    public virtual DemoProfile Profile { get; set; }
+
+    // Foreign Key for Many-to-One Relationship with DemoSchool
+    [Scaffolding(PropRole.Relationship, RelationshipType.ManyToOne, inverseProperty: "Students", foreignKeyProperty: "SchoolId", DeleteBehavior.Restrict)]
+    public int SchoolId { get; set; }
+    public virtual DemoSchool School { get; set; }
+
+    // Many-to-Many Relationship with DemoCourse
+    [Scaffolding(PropRole.Relationship, RelationshipType.ManyToMany, inverseProperty: "Students")]
+    public virtual ICollection<DemoCourse> Courses { get; set; } = new HashSet<DemoCourse>(); // Initialized to avoid null reference
+}

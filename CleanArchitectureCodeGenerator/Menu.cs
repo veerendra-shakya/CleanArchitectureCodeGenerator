@@ -24,6 +24,7 @@ namespace CleanArchitecture.CodeGenerator
                 Console.WriteLine("\n3. Remove Feature (This will delete Feature files)");
                 Console.WriteLine("\n4. Add Supported Data Types Demo Entity (This will Add Sample Demo Entity)");
                 Console.WriteLine("\n5. Add Article Demo Entity (This will Add Sample Demo Entity)");
+                Console.WriteLine("\n6. Add Demo Entities for Relationship  (\"DemoStudent.cs\", \"DemoProfile.cs\", \"DemoSchool.cs\", \"DemoCourse.cs\")");
                 Console.WriteLine("\n100. Test (For Developemnt Purpose Only!))");
                 Console.ResetColor();
 
@@ -36,6 +37,7 @@ namespace CleanArchitecture.CodeGenerator
                 Console.ResetColor();
 
                 string choice = Console.ReadLine();
+                DemoEntityScaffolder _demo_scaffolder = new DemoEntityScaffolder();
 
                 switch (choice)
                 {
@@ -49,15 +51,18 @@ namespace CleanArchitecture.CodeGenerator
                         await DeleteFeature();
                         break;
                     case "4":
-                        DemoEntityScaffolder scaffolder = new DemoEntityScaffolder();
-                        scaffolder.AddSupportedDataTypesDemoEntity();
+                        _demo_scaffolder.AddSupportedDataTypesDemoEntity();
                         Console.WriteLine("------- Demo Entity is Added to Entities folder of Domain Project !! ---------");
                         Pause();
                         break;
                     case "5":
-                        DemoEntityScaffolder scaffolder1 = new DemoEntityScaffolder();
-                        scaffolder1.AddArticleDemoEntity();
+                        _demo_scaffolder.AddArticleDemoEntity();
                         Console.WriteLine("------- Demo Entity is Added to Entities folder of Domain Project !! ---------");
+                        Pause();
+                        break;
+                    case "6":
+                        _demo_scaffolder.AddRelationshipDemoEntity();
+                        Console.WriteLine("------- Relationship Demo Entities (\"DemoStudent.cs\", \"DemoProfile.cs\", \"DemoSchool.cs\", \"DemoCourse.cs\") are Added to Entities folder of Domain Project !! ---------");
                         Pause();
                         break;
                     case "100":

@@ -15,14 +15,20 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
         public string CreateDtoFieldDefinition(CSharpClassObject classObject)
         {
             var output = new StringBuilder();
-            //List<ClassProperty> temp = classObject.Properties.ToList();
-            // foreach (var property in classObject.Properties.Where(x => x.Type.IsKnownType))
-            foreach (var property in classObject.Properties.Where(x => x.Type.IsKnownType))
+
+            foreach (var property in classObject.Properties)
             {
                 output.AppendLine($"    [Description(\"{property.DisplayName}\")]");
                 if (property.PropertyName == PRIMARYKEY)
                 {
                     output.AppendLine($"    public {property.Type.TypeName} {property.PropertyName} {{get;set;}}");
+                }
+                else if (property.Type.IsList || property.Type.IsICollection)
+                {
+                    string _proptype = property.Type.TypeName;
+                    _proptype = _proptype.Replace("IList", "List");
+                    _proptype = _proptype.Replace("ICollection", "List");
+                    output.AppendLine($"    public {_proptype} {property.PropertyName} {{get;set;}} = new();");
                 }
                 else
                 {
@@ -36,6 +42,9 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                             break;
                         case "string" when !property.PropertyName.Equals("Name", StringComparison.OrdinalIgnoreCase) && property.Type.IsArray:
                             output.AppendLine($"    public HashSet<{property.Type.TypeName}>? {property.PropertyName} {{get;set;}}");
+                            break;
+                        case "string":
+                            output.AppendLine($"    public {property.Type.TypeName} {property.PropertyName} {{get;set;}} = string.Empty;");
                             break;
                         case "System.DateTime?":
                         case "System.DateTime":
@@ -51,6 +60,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                             output.AppendLine($"    public {property.Type.TypeName} {property.PropertyName} {{get;set;}}");
                             break;
                     }
+
                 }
             }
             return output.ToString();

@@ -72,11 +72,7 @@ namespace CleanArchitecture.CodeGenerator.Models
         /// </summary>
         public string Summary { get; set; }
 
-        /// <summary>
-        /// Gets or sets the initialization expression for the property, if any.
-        /// </summary>
-        public string InitExpression { get; set; }
-
+ 
         /// <summary>
         /// Gets or sets the syntax representation of a property declaration in a C# class.
         /// This is an instance of <see cref="PropertyDeclarationSyntax"/>, which represents
@@ -87,36 +83,23 @@ namespace CleanArchitecture.CodeGenerator.Models
 
         public string DisplayName { get; set; }
         public string Description { get; set; }
-        
+
+        public string PropRole { get; set; }
+        public string RelationshipType { get; set; }
+        public string DeleteBehavior { get; set;}
+        public string InverseProperty { get; set; }
+        public string ForeignKeyProperty { get; set; }
     }
 
-    /// <summary>
-    /// Represents the type of a property within a C# class, including details such as whether it's an array,
-    /// a dictionary, or nullable, and whether it's a known type (e.g., a primitive or well-known base class).
-    /// This class is crucial for generating accurate and context-sensitive intellisense.
-    /// </summary>
+ 
     public class PropertyType
     {
-        /// <summary>
-        /// Gets or sets the code name of the property type, typically the full type name.
-        /// </summary>
         public string TypeName { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether the type represents an array.
-        /// </summary>
         public bool IsArray { get; set; }
-
         public bool IsList { get; set; }
-        
-        /// <summary>
-        /// Gets or sets a value indicating whether the type represents a dictionary.
-        /// </summary>
+        public bool IsICollection { get; set; }
+        public bool IsIEnumerable { get; set; }
         public bool IsDictionary { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether the type is nullable.
-        /// </summary>
         public bool IsNullable { get; set; }
 
         /// <summary>
@@ -124,15 +107,5 @@ namespace CleanArchitecture.CodeGenerator.Models
         /// </summary>
         public bool IsKnownType { get; set; }
 
-        /// <summary>
-        /// Indicates that the property is the main identifier, used to check for existing items 
-        ///   during import processes and included in advanced search functionality.
-        /// </summary>
-        public bool IsIdentifier { get; set; }
-
-        /// <summary>
-        /// Marks the property as one that should be included in full-text advanced search operations.
-        /// </summary>
-        public bool IsSearchable { get; set; }
     }
 }
