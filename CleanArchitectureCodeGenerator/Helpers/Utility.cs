@@ -563,6 +563,23 @@ namespace CleanArchitecture.CodeGenerator.Helpers
 
             return extension;
         }
+
+        /// Extracts the class name from a type (handles generic types like List<MyClass> and direct references like MyClass)
+        public static string ExtractClassNameFromType(string typeName)
+        {
+            // Check if the type is a generic (contains <>)
+            if (typeName.Contains("<") && typeName.Contains(">"))
+            {
+                // Extract the type inside <>
+                var start = typeName.IndexOf('<') + 1;
+                var end = typeName.IndexOf('>');
+                return typeName.Substring(start, end - start);
+            }
+
+            // If it's not a generic type, return the type name as is
+            typeName = typeName.Replace("?", "");
+            return typeName;
+        }
     }
 
 }

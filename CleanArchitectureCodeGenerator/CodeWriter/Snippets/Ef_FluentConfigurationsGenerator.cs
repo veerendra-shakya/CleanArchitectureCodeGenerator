@@ -170,6 +170,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                     sb.AppendLine($"; ");
                     sb.AppendLine("\n");
                     // Add AutoInclude() for the navigation property
+                    sb.AppendLine($"#warning Disable auto-inclusion on one side of a many-to-many relationship to avoid cyclic references with 'AutoInclude(false)'.");
                     sb.AppendLine($"builder.Navigation(e => e.{property.PropertyName}).AutoInclude();");
                     break;
 

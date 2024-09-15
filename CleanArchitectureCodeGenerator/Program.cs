@@ -1,5 +1,6 @@
 ﻿using CleanArchitecture.CodeGenerator.Models;
 using CleanArchitecture.CodeGenerator;
+using CleanArchitecture.CodeGenerator.Helpers;
 
 namespace CleanArchitectureCodeGenerator
 {
@@ -57,7 +58,7 @@ namespace CleanArchitectureCodeGenerator
             Console.ForegroundColor = ConsoleColor.Magenta;
             Console.WriteLine("Press any key to go to the menu...");
             Console.ResetColor();
-
+           
             // Wait for the user to press any key
             Console.ReadKey();
 

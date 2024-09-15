@@ -5,12 +5,6 @@ VisualStudioVersion = 17.9.34622.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CleanArchitecture.CodeGenerator", "CleanArchitectureCodeGenerator\CleanArchitecture.CodeGenerator.csproj", "{AFEE288B-2380-4B1E-8034-783DE44D60C0}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ToDo", "ToDo", "{26856C2A-808C-48E5-A5DA-A2C55F516293}"
-	ProjectSection(SolutionItems) = preProject
-		Instructions.txt = Instructions.txt
-		..\..\CleanArchitectureWithBlazorServer-main\src\Domain\Common\Attributes\ScaffoldingAttribute.cs = ..\..\CleanArchitectureWithBlazorServer-main\src\Domain\Common\Attributes\ScaffoldingAttribute.cs
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

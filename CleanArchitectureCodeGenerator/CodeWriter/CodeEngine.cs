@@ -43,8 +43,9 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
 
             string[] includes = { "IEntity", "BaseEntity", "BaseAuditableEntity", "BaseAuditableSoftDeleteEntity", "AuditTrail", "OwnerPropertyEntity", "KeyValue" };
 
-            var objectList = Utility.GetEntities(domainProjectDir)
-                .Where(x => includes.Contains(x.BaseName) && !includes.Contains(x.Name));
+            //var objectList = Utility.GetEntities(domainProjectDir)
+            //    .Where(x => includes.Contains(x.BaseName) && !includes.Contains(x.Name));
+            var objectList = AppCache.ClassObjectList.Where(x => includes.Contains(x.BaseName) && !includes.Contains(x.Name)); 
 
             var entities = objectList
                   .Where(x => x.Name != "Contact" && x.Name != "Document" && x.Name != "Product")
