@@ -14,45 +14,20 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
     /// </summary>
     public class CodeEngine
     {
-        private readonly string _rootDirectory;
-        private readonly string _rootNamespace;
-        private readonly string _domainProject;
-        private readonly string _uiProject;
-        private readonly string _infrastructureProject;
-        private readonly string _applicationProject;
-
+        private readonly List<CSharpClassObject> KnownModelsList = new List<CSharpClassObject>();
         public CodeEngine()
         {
-            var configHandler = new ConfigurationHandler("appsettings.json");
-            var configSettings = configHandler.GetConfiguration();
-
-            _rootDirectory = configSettings.RootDirectory;
-            _rootNamespace = configSettings.RootNamespace;
-            _domainProject = configSettings.DomainProject;
-            _uiProject = configSettings.UiProject;
-            _infrastructureProject = configSettings.InfrastructureProject;
-            _applicationProject = configSettings.ApplicationProject;
+            string[] includes = { "IEntity", "BaseEntity", "BaseAuditableEntity", "BaseAuditableSoftDeleteEntity", "AuditTrail", "OwnerPropertyEntity", "KeyValue" };
+            KnownModelsList = ApplicationHelper.ClassObjectList.Where(x => includes.Contains(x.BaseName) && !includes.Contains(x.Name)).ToList();
         }
 
         public void Run()
         {
-            string domainProjectDir = Path.Combine(_rootDirectory, _domainProject);
-            string infrastructureProjectDir = Path.Combine(_rootDirectory, _infrastructureProject);
-            string uiProjectDir = Path.Combine(_rootDirectory, _uiProject);
-            string applicationProjectDir = Path.Combine(_rootDirectory, _applicationProject);
-
-            string[] includes = { "IEntity", "BaseEntity", "BaseAuditableEntity", "BaseAuditableSoftDeleteEntity", "AuditTrail", "OwnerPropertyEntity", "KeyValue" };
-
-            //var objectList = Utility.GetEntities(domainProjectDir)
-            //    .Where(x => includes.Contains(x.BaseName) && !includes.Contains(x.Name));
-            var objectList = AppCache.ClassObjectList.Where(x => includes.Contains(x.BaseName) && !includes.Contains(x.Name)); 
-
-            var entities = objectList
+            var entities = KnownModelsList
                   .Where(x => x.Name != "Contact" && x.Name != "Document" && x.Name != "Product")
                   .Select(x => x.Name)
                   .Distinct()
                   .ToArray();
-
 
             Console.Clear();
             while (true)
@@ -72,7 +47,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                     string selectedEntity = entities[selectedIndex - 1];
                     Console.WriteLine($"You selected: {selectedEntity}");
 
-                    ProcessEntity(objectList, selectedEntity, domainProjectDir, infrastructureProjectDir, applicationProjectDir, uiProjectDir);
+                    ProcessEntity(selectedEntity);
                 }
                 else
                 {
@@ -106,9 +81,9 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             Console.ResetColor();
         }
 
-        private void ProcessEntity(IEnumerable<CSharpClassObject> objectList, string selectedEntity, string domainProjectDir, string infrastructureProjectDir, string applicationProjectDir, string uiProjectDir)
+        private void ProcessEntity(string selectedModel)
         {
-            string[] parsedInputs = Utility.GetParsedInput(selectedEntity);
+            string[] parsedInputs = Utility.GetParsedInput(selectedModel);
 
             foreach (string inputName in parsedInputs)
             {
@@ -116,7 +91,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                 {
                     string modalClassName = Path.GetFileNameWithoutExtension(inputName);
                     string modalClassNamePlural = Utility.Pluralize(modalClassName);
-                    var modalClassObject = objectList.First(x => x.Name == modalClassName);
+                    var modalClassObject = KnownModelsList.First(x => x.Name == modalClassName);
 
                     // Validate the class & properties before generating files
 
@@ -125,14 +100,8 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                         Console.WriteLine("File generation aborted due to validation errors.");
                         return;
                     }
-                    //if (!Utility.ValidateClassProperties(modalClassObject))
-                    //{
-                    //    Console.WriteLine("File generation aborted due to validation errors.");
-                    //    return;
-                    //}
 
-
-                    GenerateFiles(modalClassObject, modalClassName, modalClassNamePlural, domainProjectDir, infrastructureProjectDir, applicationProjectDir, uiProjectDir);
+                    GenerateTargetPaths(modalClassObject, modalClassName, modalClassNamePlural);
                     Console.WriteLine($"Successfully generated files for {modalClassName}.");
                 }
                 catch (Exception ex)
@@ -142,10 +111,11 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             }
         }
 
-        private void GenerateFiles(CSharpClassObject modalClassObject, string modalClassName, string modalClassNamePlural, string domainProjectDir, string infrastructureProjectDir, string applicationProjectDir, string uiProjectDir)
+        private void GenerateTargetPaths(CSharpClassObject modalClassObject, string modalClassName, string modalClassNamePlural)
         {
+            #region Setup Basic Application Paths
             var eventPaths = new[]
-            {
+{
                 $"Events/{modalClassName}CreatedEvent.cs",
                 $"Events/{modalClassName}DeletedEvent.cs",
                 $"Events/{modalClassName}UpdatedEvent.cs"
@@ -189,32 +159,44 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                 $"Pages/{modalClassNamePlural}/Components/{modalClassName}FormDialog.razor",
                 $"Pages/{modalClassNamePlural}/Components/{modalClassNamePlural}AdvancedSearchComponent.razor"
             };
+            #endregion
 
 
-            ProcessFiles(modalClassObject, eventPaths, modalClassName, domainProjectDir);
-            ProcessFiles(modalClassObject, configPaths, modalClassName, infrastructureProjectDir);
-            ProcessFiles(modalClassObject, featurePaths, modalClassName, applicationProjectDir);
-            ProcessFiles(modalClassObject, pagePaths, modalClassName, uiProjectDir);
+            ProcessFiles(modalClassObject, eventPaths, ApplicationHelper.DomainProjectDirectory);
+            ProcessFiles(modalClassObject, configPaths, ApplicationHelper.InfrastructureProjectDirectory);
+            ProcessFiles(modalClassObject, featurePaths, ApplicationHelper.ApplicationProjectDirectory);
+            ProcessFiles(modalClassObject, pagePaths, ApplicationHelper.UiProjectDirectory);
 
-            Console.WriteLine($"\n--------------------- {modalClassName} Update DbContext Started...  --------------------");
-            Update_DbContext dbContextModifier = new Update_DbContext();
-            var paths = dbContextModifier.SearchDbContextFiles(_rootDirectory);
-            dbContextModifier.AddEntityProperty(paths, modalClassName);
-            Console.WriteLine($"---------------------  Update DbContext Completed...  --------------------\n");
+            #region Generate Services for Data Access
+            GenerateCodeFile(modalClassObject, $"Common/Interfaces/I{modalClassName}Service.cs", ApplicationHelper.ApplicationProjectDirectory);
+            GenerateCodeFile(modalClassObject, $"Services/{modalClassName}Service.cs", ApplicationHelper.InfrastructureProjectDirectory);
+            #endregion
 
-            //check if any property having many to many relationship then create linking table configurations
-            Ef_LinkingTableConfigurationsGenerator.GenerateConfigurations(modalClassObject);
+            #region Update DbContext
+            Console.WriteLine($"\n--------------------- {modalClassObject} Update DbContext Started...  --------------------");
+                Update_DbContext dbContextModifier = new Update_DbContext();
+                var paths = dbContextModifier.SearchDbContextFiles(ApplicationHelper.RootDirectory);
+                dbContextModifier.AddEntityProperty(paths, modalClassName);
+                Console.WriteLine($"---------------------  Update DbContext Completed...  --------------------\n");
+            #endregion
+
+            #region Generate Additional Requirments
+
+                //check if any property having many to many relationship then create linking table configurations
+                Ef_LinkingTableConfigurationsGenerator.GenerateConfigurations(modalClassObject);
+
+            #endregion
 
         }
 
-        private void ProcessFiles(CSharpClassObject modalClassObject, IEnumerable<string> targetPaths, string modalClassName, string targetProjectDirectory)
+        private void ProcessFiles(CSharpClassObject modalClassObject, IEnumerable<string> relativeTargetPaths, string targetProjectDirectory)
         {
             Console.WriteLine($"\n---------------------  {Utility.GetProjectNameFromPath(targetProjectDirectory)} Started...  --------------------");
             int count = 1;
-            foreach (var targetPath in targetPaths)
+            foreach (var targetPath in relativeTargetPaths)
             {
-                Console.Write($" {count} of {targetPaths.Count()}  ");
-                AddFile(modalClassObject, targetPath, modalClassName, targetProjectDirectory);
+                Console.Write($" {count} of {relativeTargetPaths.Count()}  ");
+                GenerateCodeFile(modalClassObject, targetPath, targetProjectDirectory);
                 // Add a 0.5-second delay
                 Thread.Sleep(200);
                 count++;
@@ -223,37 +205,37 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             Console.WriteLine($"---------------------  {Utility.GetProjectNameFromPath(targetProjectDirectory)} Completed...  --------------------\n");
         }
 
-        private void AddFile(CSharpClassObject modalClassObject, string targetPath, string modalClassName, string targetProjectDirectory)
+        public void GenerateCodeFile(CSharpClassObject modalClassObject, string relativeTargetPath, string targetProjectDirectory)
         {
-            if (!Utility.ValidatePath(targetPath, targetProjectDirectory))
+            if (!Utility.ValidatePath(relativeTargetPath, targetProjectDirectory))
             {
                 return;
             }
 
-            FileInfo file = new FileInfo(Path.Combine(targetProjectDirectory, targetPath));
+            FileInfo targetFile = new FileInfo(Path.Combine(targetProjectDirectory, relativeTargetPath));
 
-            if (file.Exists)
+            if (targetFile.Exists)
             {
-                Console.WriteLine($"The file '{file.FullName}' already exists.");
+                Console.WriteLine($"The file '{targetFile.FullName}' already exists.");
                 return;
             }
 
             try
             {
                 TemplateMapper templateMapper = new TemplateMapper();
-                string template = templateMapper.GenerateClass(modalClassObject, file.FullName, modalClassName, targetProjectDirectory);
+                string template = templateMapper.GenerateClass(modalClassObject, targetFile.FullName, targetProjectDirectory);
 
                 if (!string.IsNullOrEmpty(template))
                 {
-                    Utility.WriteToDiskAsync(file.FullName, template);
-                    Console.WriteLine($"Created file: {file.FullName}");
+                    Utility.WriteToDiskAsync(targetFile.FullName, template);
+                    Console.WriteLine($"Created file: {targetFile.FullName}");
                 }
-                
+
 
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error generating file '{file.FullName}': {ex.Message}");
+                Console.WriteLine($"Error generating file '{targetFile.FullName}': {ex.Message}");
             }
         }
 

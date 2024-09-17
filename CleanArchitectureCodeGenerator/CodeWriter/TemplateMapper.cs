@@ -10,45 +10,26 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
 {
     public class TemplateMapper
     {
-      
         internal const string PRIMARYKEY = "Id";
-
-        private string RootDirectory { get; set; }
-        private string RootNamespace { get; set; }
-        private string DomainProject { get; set; }
-        private string UiProject { get; set; }
-        private string InfrastructureProject { get; set; }
-        private string ApplicationProject { get; set; }
-
 
         public TemplateMapper()
         {
-            //get config
-            string configFilePath = "appsettings.json";
-            var configHandler = new ConfigurationHandler(configFilePath);
-            var configSettings = configHandler.GetConfiguration();
 
-            RootDirectory = configSettings.RootDirectory;
-            RootNamespace = configSettings.RootNamespace;
-            DomainProject = configSettings.DomainProject;
-            UiProject = configSettings.UiProject;
-            InfrastructureProject = configSettings.InfrastructureProject;
-            ApplicationProject = configSettings.ApplicationProject;
         }
 
-        public string GenerateClass(CSharpClassObject ModalClassObject, string FileFullName, string ModalClassName, string TargetProjectDirectory)
+        public string GenerateClass(CSharpClassObject ModalClassObject, string targetFilePath, string targetProjectDirectory)
         {
-            var relativePath = Utility.MakeRelativePath(RootDirectory, Path.GetDirectoryName(FileFullName) ?? "");
+            var relativePath = Utility.MakeRelativePath(ApplicationHelper.RootDirectory, Path.GetDirectoryName(targetFilePath) ?? "");
 
-            string templateFile = Utility.GetTemplateFile(relativePath, FileFullName);
+            string templateFile = Utility.GetTemplateFile(relativePath, targetFilePath);
 
-            var template = ReplaceTokens(ModalClassObject, ModalClassName, relativePath, templateFile, TargetProjectDirectory);
+            var template = ReplaceTokens(ModalClassObject, relativePath, templateFile, targetProjectDirectory);
             return Utility.NormalizeLineEndings(template);
         }
 
-       
 
-        private string ReplaceTokens(CSharpClassObject ModalClassObject, string ModalClassName, string relativePath, string templateFile, string TargetProjectDirectory)
+
+        private string ReplaceTokens(CSharpClassObject ModalClassObject, string relativePath, string templateFile, string targetProjectDirectory)
         {
 
             //using CleanArchitecture.Blazor.Application.Features.Customers.DTOs;
@@ -57,7 +38,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                 return templateFile;
             }
 
-            var ns = RootNamespace;
+            var ns = ApplicationHelper.RootNamespace;
             if (!string.IsNullOrEmpty(relativePath))
             {
                 ns += "." + Utility.RelativePath_To_Namespace(relativePath);
@@ -65,7 +46,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             ns = ns.TrimEnd('.');
 
             SnippetsWriter snippetsWriter = new SnippetsWriter();
-            var nameofPlural = Utility.Pluralize(ModalClassName);
+            var nameofPlural = Utility.Pluralize(ModalClassObject.Name);
             var dtoFieldDefinition = snippetsWriter.CreateDtoFieldDefinition(ModalClassObject);
             var importFuncExpression = snippetsWriter.CreateImportFuncExpression(ModalClassObject);
             var templateFieldDefinition = snippetsWriter.CreateTemplateFieldDefinition(ModalClassObject);
@@ -85,10 +66,15 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             content = File.ReadAllText(templateFile, Encoding.UTF8);
 
             // Replace tokens in the content
-            content = content.Replace("{rootnamespace}", RootNamespace);
-            content = content.Replace("{selectns}", $"{RootNamespace}.{Utility.GetProjectNameFromPath(TargetProjectDirectory)}.Features");
+            content = content.Replace("{rootnamespace}", ApplicationHelper.RootNamespace);
+            content = content.Replace("{domainprojectname}", ApplicationHelper.DomainProjectName);
+            content = content.Replace("{uiprojectname}", ApplicationHelper.UiProjectName);
+            content = content.Replace("{infrastructureprojectname}", ApplicationHelper.InfrastructureProjectName);
+            content = content.Replace("{applicationprojectname}", ApplicationHelper.ApplicationProjectName);
+            
+            content = content.Replace("{selectns}", $"{ApplicationHelper.RootNamespace}.{Utility.GetProjectNameFromPath(targetProjectDirectory)}.Features");
             content = content.Replace("{namespace}", ns);
-            content = content.Replace("{itemname}", ModalClassName);
+            content = content.Replace("{itemname}", ModalClassObject.Name);
             content = content.Replace("{nameofPlural}", nameofPlural);
             content = content.Replace("{dtoFieldDefinition}", dtoFieldDefinition);
             content = content.Replace("{fieldAssignmentDefinition}", fieldAssignmentDefinition);

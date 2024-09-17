@@ -442,35 +442,35 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             return true;
         }
 
-        public static bool ValidateClassProperties(CSharpClassObject classObject)
-        {
-            foreach (var property in classObject.Properties)
-            {
-                var typeSyntax = property.propertyDeclarationSyntax.Type;
+        //public static bool ValidateClassProperties(CSharpClassObject classObject)
+        //{
+        //    foreach (var property in classObject.Properties)
+        //    {
+        //        var typeSyntax = property.propertyDeclarationSyntax.Type;
 
-                if (property.Type.IsList || property.Type.IsDictionary || property.Type.IsICollection || property.Type.IsIEnumerable)
-                {
-                    return true;
-                }
+        //        if (property.Type.IsList || property.Type.IsDictionary || property.Type.IsICollection || property.Type.IsIEnumerable)
+        //        {
+        //            return true;
+        //        }
 
-                if (!IsKnownType(typeSyntax))
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine($"Error: The type '{typeSyntax}' of property '{property.PropertyName}' is not a known type.");
-                    Console.ResetColor();
-                    return false;
-                }
+        //        if (!IsKnownType(typeSyntax))
+        //        {
+        //            Console.ForegroundColor = ConsoleColor.Red;
+        //            Console.WriteLine($"Error: The type '{typeSyntax}' of property '{property.PropertyName}' is not a known type.");
+        //            Console.ResetColor();
+        //            return false;
+        //        }
 
-                if (!IsPropertyNameValid(property.PropertyName))
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine($"Error: The property name '{property.PropertyName}' is not valid.");
-                    Console.ResetColor();
-                    return false;
-                }
-            }
-            return true;
-        }
+        //        if (!IsPropertyNameValid(property.PropertyName))
+        //        {
+        //            Console.ForegroundColor = ConsoleColor.Red;
+        //            Console.WriteLine($"Error: The property name '{property.PropertyName}' is not valid.");
+        //            Console.ResetColor();
+        //            return false;
+        //        }
+        //    }
+        //    return true;
+        //}
 
         public static List<string> GetTemplateFiles()
         {
@@ -485,9 +485,9 @@ namespace CleanArchitecture.CodeGenerator.Helpers
         /// Search and Returns Template File Path
         /// </summary>
         /// <param name="relative">Domain\Events\</param>
-        /// <param name="file">D:\CleanArchitectureWithBlazorServer-main\src\Domain\Events\CustomerCreatedEvent.cs</param>
+        /// <param name="targetFilePath">D:\CleanArchitectureWithBlazorServer-main\src\Domain\Events\CustomerCreatedEvent.cs</param>
         /// <returns></returns>
-        public static string GetTemplateFile(string relative, string file)
+        public static string GetTemplateFile(string relative, string targetFilePath)
         {
             string _defaultExt = ".txt";
             var list = GetTemplateFiles();
@@ -513,11 +513,13 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 "Persistence\\Configurations",
                 "PermissionSet",
                 "Entities",
+                "Common\\Interfaces",
+                "Services"
             };
 
-            var extension = Path.GetExtension(file).ToLowerInvariant();
-            var name = Path.GetFileName(file);
-            var safeName = name.StartsWith(".") ? name : Path.GetFileNameWithoutExtension(file);
+            var extension = Path.GetExtension(targetFilePath).ToLowerInvariant();
+            var name = Path.GetFileName(targetFilePath);
+            var safeName = name.StartsWith(".") ? name : Path.GetFileNameWithoutExtension(targetFilePath);
 
             // Determine the folder pattern based on the relative path
             var folderPattern = templateFolders

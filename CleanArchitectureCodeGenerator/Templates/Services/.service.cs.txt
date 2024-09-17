@@ -1,0 +1,50 @@
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using {rootnamespace}.{applicationprojectname}.Features.{nameofPlural}.Caching;
+using {rootnamespace}.{applicationprojectname}.Features.{nameofPlural}.DTOs;
+using ZiggyCreatures.Caching.Fusion;
+
+namespace {namespace};
+
+public class {itemname}Service : I{itemname}Service
+{
+    private readonly IApplicationDbContext _context;
+    private readonly IFusionCache _fusionCache;
+    private readonly IMapper _mapper;
+
+    public {itemname}Service(
+        IFusionCache fusionCache,
+        IServiceScopeFactory scopeFactory,
+        IMapper mapper)
+    {
+        var scope = scopeFactory.CreateScope();
+        _context = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
+        _fusionCache = fusionCache;
+        _mapper = mapper;
+    }
+
+    public event Action? OnChange;
+    public List<{itemname}Dto> DataSource { get; private set; } = new();
+
+
+    public void Initialize()
+    {
+        DataSource = _fusionCache.GetOrSet("All-{itemname}ListCacheKey",
+            _ => _context.{nameofPlural}//.OrderBy(x => x.Name).ThenBy(x => x.Value)
+                .ProjectTo<{itemname}Dto>(_mapper.ConfigurationProvider)
+                .ToList()
+        ) ?? new List<{itemname}Dto>();
+    }
+
+    public void Refresh()
+    {
+        _fusionCache.Remove("All-{itemname}ListCacheKey");
+        DataSource = _fusionCache.GetOrSet("All-{itemname}ListCacheKey",
+            _ => _context.{nameofPlural}//.OrderBy(x => x.Name).ThenBy(x => x.Value)
+                .ProjectTo<{itemname}Dto>(_mapper.ConfigurationProvider)
+                .ToList()
+        ) ?? new List<{itemname}Dto>();
+        OnChange?.Invoke();
+    }
+}
+

@@ -195,7 +195,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                     var relatedClassName = Utility.ExtractClassNameFromType(property.Type.TypeName);
 
                     // Get the related class from the cache
-                    var relatedClass = AppCache.ClassObjectList.FirstOrDefault(c => c.Name == relatedClassName);
+                    var relatedClass = ApplicationHelper.ClassObjectList.FirstOrDefault(c => c.Name == relatedClassName);
                     if (relatedClass != null)
                     {
                         if (property.Type.IsList || property.Type.IsICollection)

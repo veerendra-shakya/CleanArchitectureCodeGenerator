@@ -1,0 +1,12 @@
+﻿using {selectns}.{nameofPlural}.DTOs;
+
+namespace {namespace};
+
+public interface I{itemname}Service
+{
+    List<{itemname}Dto> DataSource { get; }
+    event Action? OnChange;
+    void Initialize();
+    void Refresh();
+}
+
