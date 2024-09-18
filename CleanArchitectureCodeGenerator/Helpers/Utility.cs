@@ -361,14 +361,16 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             return knownBaseTypes.Contains(typeSyntax.ToString());
         }
 
-        public static bool IsKnownBaseType(string typeName)
+        public static bool IsKnownBaseType(List<string> baseNames)
         {
             var knownBaseTypes = new HashSet<string>
                 {
                     "BaseAuditableSoftDeleteEntity", "BaseAuditableEntity", "BaseEntity", "IEntity", "ISoftDelete"
                 };
 
-            return knownBaseTypes.Contains(typeName);
+            // Check if any of the baseNames are in the knownBaseTypes
+            return baseNames.Any(baseName => knownBaseTypes.Contains(baseName));
+           // return knownBaseTypes.Contains(typeName);
         }
 
 
@@ -514,7 +516,8 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 "PermissionSet",
                 "Entities",
                 "Common\\Interfaces",
-                "Services"
+                "Services",
+                "Components\\Autocompletes"
             };
 
             var extension = Path.GetExtension(targetFilePath).ToLowerInvariant();

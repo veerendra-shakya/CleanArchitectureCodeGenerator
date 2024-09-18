@@ -1,0 +1,65 @@
+using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.DTOs;
+using {{ rootnamespace }}.{{ infrastructureprojectname }}.Services.DataServices;
+
+namespace {{ namespacename }};
+
+public class Pick{{ modelname }}Autocomplete : MudAutocomplete<int?>
+{
+    
+    [Inject]
+    private I{{ modelname }}Service DataProvider { get; set; } = default!;
+
+    private List<{{ modelname }}Dto>? _{{ modelname }}List;
+    
+    public Pick{{ modelname }}Autocomplete()
+    {
+        SearchFunc = SearchKeyValues;
+        ToStringFunc = ToString;
+        Clearable = true;
+        Dense = true;
+        ResetValueOnEmptyText = true;
+        ShowProgressIndicator = true;
+    }
+    
+    protected override void OnInitialized()
+    {
+        DataProvider.OnChange += {{ modelname }}Service_OnChange;
+    }
+
+    private void {{ modelname }}Service_OnChange()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+   
+    protected override void Dispose(bool disposing)
+    {
+        DataProvider.OnChange -= {{ modelname }}Service_OnChange;
+        base.Dispose(disposing);
+    }
+
+    private Task<IEnumerable<int?>> SearchKeyValues(string value, CancellationToken cancellation)
+    {
+        _{{ modelname }}List = DataProvider.DataSource.ToList();
+        var result = new List<int?>();
+        if (_{{ modelname }}List is not null && string.IsNullOrEmpty(value))
+        {
+            result = _{{ modelname }}List.Select(x => x.Id as int?).ToList();
+        }
+        else if(_{{ modelname }}List is not null)
+        {
+            {{ querystring }}
+        }
+        return Task.FromResult(result.AsEnumerable());
+    }
+
+    private string ToString(int? str)
+    {
+        if (str > 0)
+        {
+            var userDto = DataProvider.DataSource.Find(x => x.Id == str);
+            return ${{ returnstring }}
+        }
+        return string.Empty;
+    }
+
+}

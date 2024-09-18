@@ -1,0 +1,5 @@
+﻿
+
+// Make Scriban template for Razor page generation
+
+// Make Scriban template for C# class generation

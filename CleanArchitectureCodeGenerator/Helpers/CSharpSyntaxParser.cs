@@ -104,7 +104,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
         {
             var list = new List<CSharpClassObject>();
 
-            string baseName = null;
+            List<string> baseName = new List<string>();
             string baseNamespace = null;
 
             if (classDecl.BaseList != null && classDecl.BaseList.Types.Count > 0)
@@ -113,7 +113,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 if (baseTypeSyntax != null)
                 {
                     var baseTypeName = baseTypeSyntax.Type.ToString();
-                    baseName = baseTypeName.Split('.').Last();
+                    baseName = baseTypeName.Split('.').ToList();
                     baseNamespace = string.Join('.', baseTypeName.Split('.').Reverse().Skip(1).Reverse());
                 }
             }

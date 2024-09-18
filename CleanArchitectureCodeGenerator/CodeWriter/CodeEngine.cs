@@ -2,6 +2,7 @@
 using CleanArchitecture.CodeGenerator.Configuration;
 using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
+using CleanArchitecture.CodeGenerator.ScribanCoder;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.CodeGenerator.CodeWriter
 {
+
     /// <summary>
     /// Main class responsible for generating code files based on user input and templates.
     /// </summary>
@@ -18,7 +20,13 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
         public CodeEngine()
         {
             string[] includes = { "IEntity", "BaseEntity", "BaseAuditableEntity", "BaseAuditableSoftDeleteEntity", "AuditTrail", "OwnerPropertyEntity", "KeyValue" };
-            KnownModelsList = ApplicationHelper.ClassObjectList.Where(x => includes.Contains(x.BaseName) && !includes.Contains(x.Name)).ToList();
+
+            // KnownModelsList = ApplicationHelper.ClassObjectList.Where(x => includes.Contains(x.BaseName) && !includes.Contains(x.Name)).ToList();
+
+            KnownModelsList = ApplicationHelper.ClassObjectList?
+             .Where(x => x.BaseName != null && includes != null && includes.Any(baseName => x.BaseName.Contains(baseName)) && !includes.Contains(x.Name))
+             .ToList();
+
         }
 
         public void Run()
@@ -84,7 +92,6 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
         private void ProcessEntity(string selectedModel)
         {
             string[] parsedInputs = Utility.GetParsedInput(selectedModel);
-
             foreach (string inputName in parsedInputs)
             {
                 try
@@ -94,7 +101,6 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                     var modalClassObject = KnownModelsList.First(x => x.Name == modalClassName);
 
                     // Validate the class & properties before generating files
-
                     if (!Utility.IsModelClassValid(modalClassObject))
                     {
                         Console.WriteLine("File generation aborted due to validation errors.");
@@ -161,15 +167,21 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             };
             #endregion
 
-
             ProcessFiles(modalClassObject, eventPaths, ApplicationHelper.DomainProjectDirectory);
             ProcessFiles(modalClassObject, configPaths, ApplicationHelper.InfrastructureProjectDirectory);
             ProcessFiles(modalClassObject, featurePaths, ApplicationHelper.ApplicationProjectDirectory);
             ProcessFiles(modalClassObject, pagePaths, ApplicationHelper.UiProjectDirectory);
 
             #region Generate Services for Data Access
+            Console.WriteLine($"\n--------------------- Generating Services...  --------------------");
             GenerateCodeFile(modalClassObject, $"Common/Interfaces/I{modalClassName}Service.cs", ApplicationHelper.ApplicationProjectDirectory);
-            GenerateCodeFile(modalClassObject, $"Services/{modalClassName}Service.cs", ApplicationHelper.InfrastructureProjectDirectory);
+            GenerateCodeFile(modalClassObject, $"Services/DataServices/{modalClassName}Service.cs", ApplicationHelper.InfrastructureProjectDirectory);
+           // GenerateCodeFile(modalClassObject, $"Components/Autocompletes/{modalClassName}Autocomplete.razor.cs", ApplicationHelper.UiProjectDirectory);
+            
+            AutocompleteRazorComponent.Generate(modalClassObject, $"Components/Autocompletes/{modalClassName}Autocomplete.razor.cs", ApplicationHelper.UiProjectDirectory);
+            
+            Console.WriteLine($"\n--------------------- Services Generated  --------------------");
+
             #endregion
 
             #region Update DbContext
@@ -213,7 +225,6 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             }
 
             FileInfo targetFile = new FileInfo(Path.Combine(targetProjectDirectory, relativeTargetPath));
-
             if (targetFile.Exists)
             {
                 Console.WriteLine($"The file '{targetFile.FullName}' already exists.");
@@ -230,8 +241,6 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                     Utility.WriteToDiskAsync(targetFile.FullName, template);
                     Console.WriteLine($"Created file: {targetFile.FullName}");
                 }
-
-
             }
             catch (Exception ex)
             {

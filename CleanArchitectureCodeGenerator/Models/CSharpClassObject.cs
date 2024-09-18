@@ -28,7 +28,7 @@ namespace CleanArchitecture.CodeGenerator.Models
         /// <summary>
         /// Gets or sets the name of the base class, if any.
         /// </summary>
-        public string BaseName { get; set; }
+        public List<string> BaseName { get; set; }
 
         /// <summary>
         /// Gets or sets the full name of the C# class, including its namespace.

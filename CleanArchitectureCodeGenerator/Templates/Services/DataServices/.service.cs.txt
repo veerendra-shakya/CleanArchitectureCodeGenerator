@@ -29,7 +29,7 @@ public class {itemname}Service : I{itemname}Service
 
     public void Initialize()
     {
-        DataSource = _fusionCache.GetOrSet("All-{itemname}ListCacheKey",
+        DataSource = _fusionCache.GetOrSet("{itemname}DataServicesCacheKey",
             _ => _context.{nameofPlural}//.OrderBy(x => x.Name).ThenBy(x => x.Value)
                 .ProjectTo<{itemname}Dto>(_mapper.ConfigurationProvider)
                 .ToList()
@@ -38,8 +38,8 @@ public class {itemname}Service : I{itemname}Service
 
     public void Refresh()
     {
-        _fusionCache.Remove("All-{itemname}ListCacheKey");
-        DataSource = _fusionCache.GetOrSet("All-{itemname}ListCacheKey",
+        _fusionCache.Remove("{itemname}DataServicesCacheKey");
+        DataSource = _fusionCache.GetOrSet("{itemname}DataServicesCacheKey",
             _ => _context.{nameofPlural}//.OrderBy(x => x.Name).ThenBy(x => x.Value)
                 .ProjectTo<{itemname}Dto>(_mapper.ConfigurationProvider)
                 .ToList()
