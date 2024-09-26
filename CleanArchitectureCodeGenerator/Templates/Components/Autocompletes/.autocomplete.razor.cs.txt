@@ -3,7 +3,7 @@ using {{ rootnamespace }}.{{ infrastructureprojectname }}.Services.DataServices;
 
 namespace {{ namespacename }};
 
-public class Pick{{ modelname }}Autocomplete : MudAutocomplete<int?>
+public class {{ modelname }}Autocomplete : MudAutocomplete<int?>
 {
     
     [Inject]
@@ -11,7 +11,7 @@ public class Pick{{ modelname }}Autocomplete : MudAutocomplete<int?>
 
     private List<{{ modelname }}Dto>? _{{ modelname }}List;
     
-    public Pick{{ modelname }}Autocomplete()
+    public {{ modelname }}Autocomplete()
     {
         SearchFunc = SearchKeyValues;
         ToStringFunc = ToString;

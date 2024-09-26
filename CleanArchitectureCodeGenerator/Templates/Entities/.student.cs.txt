@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using {selectns}.Common.Entities;
 using {selectns}.Common.Attributes;
 
