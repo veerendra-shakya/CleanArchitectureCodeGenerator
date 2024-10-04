@@ -1,4 +1,5 @@
 namespace {namespace};
+
 #nullable disable warnings
 /// <summary>
 /// Specification class for advanced filtering of {nameofPlural}.

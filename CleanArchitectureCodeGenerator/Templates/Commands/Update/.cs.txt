@@ -1,15 +1,13 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using {selectns}.{nameofPlural}.DTOs;
 using {selectns}.{nameofPlural}.Caching;
 
 namespace {namespace};
 
-public class Update{itemname}Command: ICacheInvalidatorRequest<Result<int>>
+public class Update{itemname}Command: ICacheInvalidatorRequest<Result<Guid>>
 {
       [Description("Id")]
-      public int Id { get; set; }
+      public Guid Id { get; set; }
         {dtoFieldDefinition}
         public string CacheKey => {itemname}CacheKey.GetAllCacheKey;
         public CancellationTokenSource? SharedExpiryTokenSource => {itemname}CacheKey.GetOrCreateTokenSource();
@@ -23,7 +21,7 @@ public class Update{itemname}Command: ICacheInvalidatorRequest<Result<int>>
     }
 }
 
-    public class Update{itemname}CommandHandler : IRequestHandler<Update{itemname}Command, Result<int>>
+    public class Update{itemname}CommandHandler : IRequestHandler<Update{itemname}Command, Result<Guid>>
     {
         private readonly IApplicationDbContext _context;
         private readonly IMapper _mapper;
@@ -38,7 +36,7 @@ public class Update{itemname}Command: ICacheInvalidatorRequest<Result<int>>
             _localizer = localizer;
             _mapper = mapper;
         }
-        public async Task<Result<int>> Handle(Update{itemname}Command request, CancellationToken cancellationToken)
+        public async Task<Result<Guid>> Handle(Update{itemname}Command request, CancellationToken cancellationToken)
         {
 
            var item =await _context.{nameofPlural}.FindAsync( new object[] { request.Id }, cancellationToken)?? throw new NotFoundException($"{itemname} with id: [{request.Id}] not found.");
@@ -46,7 +44,7 @@ public class Update{itemname}Command: ICacheInvalidatorRequest<Result<int>>
 		    // raise a update domain event
 		   item.AddDomainEvent(new {itemname}UpdatedEvent(item));
            await _context.SaveChangesAsync(cancellationToken);
-           return await Result<int>.SuccessAsync(item.Id);
+           return await Result<Guid>.SuccessAsync(item.Id);
         }
     }
 

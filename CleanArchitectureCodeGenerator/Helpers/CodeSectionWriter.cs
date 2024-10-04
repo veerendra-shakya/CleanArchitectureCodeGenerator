@@ -5,6 +5,27 @@ namespace CleanArchitecture.CodeGenerator.Helpers;
 
 public class CodeSectionWriter
 {
+    // Reads code from the specified section by sectionId
+    public static string ReadCodeFromSection(string filePath, string sectionId)
+    {
+        string fileContent = File.ReadAllText(filePath);
+
+        // Define the regex pattern to find the section with the given ID
+        string sectionPattern = $@"(/\* <generated-section:{sectionId}>)(.*?)(/\* </generated-section:{sectionId}>\s*\*/)";
+        var regex = new Regex(sectionPattern, RegexOptions.Singleline);
+        var match = regex.Match(fileContent);
+
+        if (match.Success)
+        {
+            // Return the code inside the section (excluding the section markers)
+            return match.Groups[2].Value.Trim();
+        }
+
+        // Return null if section is not found
+        return null;
+    }
+    
+    // Appends new code to the specified section
     public static void AppendCodeToSection(string filePath, string sectionId, string newCode)
     {
         // Read the file contents
@@ -50,4 +71,6 @@ public class CodeSectionWriter
             File.WriteAllText(filePath, sb.ToString());
         }
     }
+
+
 }

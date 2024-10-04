@@ -1,11 +1,12 @@
 ﻿namespace {namespace};
+
 #nullable disable warnings
 /// <summary>
 /// Specification class for filtering {nameofPlural} by their ID.
 /// </summary>
 public class {itemname}ByIdSpecification : Specification<{itemname}>
 {
-    public {itemname}ByIdSpecification(int id)
+    public {itemname}ByIdSpecification(Guid id)
     {
        Query.Where(q => q.Id == id);
     }

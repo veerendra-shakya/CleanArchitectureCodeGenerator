@@ -1,12 +1,9 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-
-using {selectns}.{nameofPlural}.DTOs;
+﻿using {selectns}.{nameofPlural}.DTOs;
 using {selectns}.{nameofPlural}.Caching;
 
 namespace {namespace};
 
-    public class Import{nameofPlural}Command: ICacheInvalidatorRequest<Result<int>>
+    public class Import{nameofPlural}Command: ICacheInvalidatorRequest<Result<Guid>>
     {
         public string FileName { get; set; }
         public byte[] Data { get; set; }
@@ -25,7 +22,7 @@ namespace {namespace};
 
     public class Import{nameofPlural}CommandHandler : 
                  IRequestHandler<Create{nameofPlural}TemplateCommand, Result<byte[]>>,
-                 IRequestHandler<Import{nameofPlural}Command, Result<int>>
+                 IRequestHandler<Import{nameofPlural}Command, Result<Guid>>
     {
         private readonly IApplicationDbContext _context;
         private readonly IMapper _mapper;
@@ -46,7 +43,7 @@ namespace {namespace};
             _mapper = mapper;
         }
         #nullable disable warnings
-        public async Task<Result<int>> Handle(Import{nameofPlural}Command request, CancellationToken cancellationToken)
+        public async Task<Result<Guid>> Handle(Import{nameofPlural}Command request, CancellationToken cancellationToken)
         {
 
            var result = await _excelService.ImportAsync(request.Data, mappers: new Dictionary<string, Func<DataRow, {itemname}Dto, object?>>
@@ -67,11 +64,11 @@ namespace {namespace};
                     }
                  }
                  await _context.SaveChangesAsync(cancellationToken);
-                 return await Result<int>.SuccessAsync(result.Data.Count());
+                 return await Result<Guid>.SuccessAsync(result.Data.Count());
            }
            else
            {
-               return await Result<int>.FailureAsync(result.Errors);
+               return await Result<Guid>.FailureAsync(result.Errors);
            }
         }
         public async Task<Result<byte[]>> Handle(Create{nameofPlural}TemplateCommand request, CancellationToken cancellationToken)

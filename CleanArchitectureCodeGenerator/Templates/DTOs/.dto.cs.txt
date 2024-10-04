@@ -1,13 +1,10 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-
-namespace {namespace};
+﻿namespace {namespace};
 
 [Description("{nameofPlural}")]
 public class {itemname}Dto
 {
     [Description("Id")]
-    public int Id { get; set; }
+    public Guid Id { get; set; }
     {dtoFieldDefinition}
 
     private class Mapping : Profile

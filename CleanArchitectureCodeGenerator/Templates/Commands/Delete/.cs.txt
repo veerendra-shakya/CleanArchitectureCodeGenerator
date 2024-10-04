@@ -1,24 +1,21 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-
-using {selectns}.{nameofPlural}.Caching;
+﻿using {selectns}.{nameofPlural}.Caching;
 
 
 namespace {namespace};
 
-    public class Delete{itemname}Command:  ICacheInvalidatorRequest<Result<int>>
+    public class Delete{itemname}Command:  ICacheInvalidatorRequest<Result<Guid>>
     {
-      public int[] Id {  get; }
+      public Guid[] Id {  get; }
       public string CacheKey => {itemname}CacheKey.GetAllCacheKey;
       public CancellationTokenSource? SharedExpiryTokenSource => {itemname}CacheKey.GetOrCreateTokenSource();
-      public Delete{itemname}Command(int[] id)
+      public Delete{itemname}Command(Guid[] id)
       {
         Id = id;
       }
     }
 
     public class Delete{itemname}CommandHandler : 
-                 IRequestHandler<Delete{itemname}Command, Result<int>>
+                 IRequestHandler<Delete{itemname}Command, Result<Guid>>
 
     {
         private readonly IApplicationDbContext _context;
@@ -34,7 +31,7 @@ namespace {namespace};
             _localizer = localizer;
             _mapper = mapper;
         }
-        public async Task<Result<int>> Handle(Delete{itemname}Command request, CancellationToken cancellationToken)
+        public async Task<Result<Guid>> Handle(Delete{itemname}Command request, CancellationToken cancellationToken)
         {
             var items = await _context.{nameofPlural}.Where(x=>request.Id.Contains(x.Id)).ToListAsync(cancellationToken);
             foreach (var item in items)
@@ -44,7 +41,7 @@ namespace {namespace};
                 _context.{nameofPlural}.Remove(item);
             }
             var result = await _context.SaveChangesAsync(cancellationToken);
-            return await Result<int>.SuccessAsync(result);
+            return await Result<Guid>.SuccessAsync(result);
         }
 
     }

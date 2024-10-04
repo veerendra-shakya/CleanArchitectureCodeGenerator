@@ -159,6 +159,51 @@ namespace CleanArchitecture.CodeGenerator
         }
 
 
+        private async Task AddingMenuItem()
+        {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("You selected: Scaffold Feature");
+            Console.ResetColor();
+
+            var generator = new MenuGenerator();
+            string existingCode = "..."; // existing menu code as a string
+
+            var newItem = new MenuSectionItemModel
+            {
+                Title = "New Item",
+                Icon = "Icons.New",
+                Href = "/new-item",
+                PageStatus = PageStatus.Completed,
+                IsParent = true,
+                MenuItems = new List<MenuSectionSubItemModel>
+                {
+                    new MenuSectionSubItemModel { Title = "Sub Item 1", Href = "/new-item/sub1", PageStatus = PageStatus.Completed },
+                    new MenuSectionSubItemModel { Title = "Sub Item 2", Href = "/new-item/sub2", PageStatus = PageStatus.Completed }
+                }
+            };
+
+            string updatedCode = generator.AddMenuItem(existingCode, "MANAGEMENT", newItem);
+            Console.WriteLine(updatedCode);
+
+            Pause();
+        }
+
+        private async Task RemovingMenuItem()
+        {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("You selected: Scaffold Feature");
+            Console.ResetColor();
+
+            var generator = new MenuGenerator();
+            string existingCode = "..."; // existing menu code as a string
+
+            string updatedCode = generator.RemoveMenuItem(existingCode, "MANAGEMENT", "Users");
+            Console.WriteLine(updatedCode);
+
+            Pause();
+        }
 
     }
 }
