@@ -56,9 +56,11 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             var mudFormFieldDefinition = snippetsWriter.CreateMudFormFieldDefinition(ModalClassObject);
             var fieldAssignmentDefinition = snippetsWriter.CreateFieldAssignmentDefinition(ModalClassObject);
             var fluentValidation = FluentValidationGenerator.GenerateFluentValidation(ModalClassObject);
-            var masterProperty = ModalClassObject.Properties.Where(p => p.ScaffoldingAtt.PropRole == "Identifier").Select(p => p.PropertyName).FirstOrDefault();
+            var masterProperty = ModalClassObject.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Identifier").Select(p => p.PropertyName).FirstOrDefault();
             var efConfigurations = Ef_FluentConfigurationsGenerator.GenerateConfigurations(ModalClassObject);
             var advancedSpecificationQuery = snippetsWriter.CreateAdvancedSpecificationQuery(ModalClassObject);
+            var searchableproperties = snippetsWriter.CreateSearchableProperties(ModalClassObject);
+
 
             // Read the template file with UTF-8 encoding
             string content = string.Empty;
@@ -86,6 +88,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             content = content.Replace("{mudFormFieldDefinition}", mudFormFieldDefinition);
             content = content.Replace("{fluentValidation}", fluentValidation);
             content = content.Replace("{advancedSpecificationQuery}", advancedSpecificationQuery);
+            content = content.Replace("{searchableproperties}", searchableproperties);
             content = content.Replace("{masterProperty}", masterProperty);
             content = content.Replace("{efConfigurations}", efConfigurations);
 

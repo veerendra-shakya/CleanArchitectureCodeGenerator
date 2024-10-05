@@ -24,7 +24,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             // KnownModelsList = ApplicationHelper.ClassObjectList.Where(x => includes.Contains(x.BaseName) && !includes.Contains(x.Name)).ToList();
 
             KnownModelsList = ApplicationHelper.ClassObjectList?
-             .Where(x => x.BaseName != null && includes != null && includes.Any(baseName => x.BaseName.Contains(baseName)) && !includes.Contains(x.Name))
+             .Where(x => x.BaseClassNames != null && includes != null && includes.Any(baseName => x.BaseClassNames.Contains(baseName)) && !includes.Contains(x.Name))
              .ToList();
 
         }
@@ -179,7 +179,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
            // GenerateCodeFile(modalClassObject, $"Components/Autocompletes/{modalClassName}Autocomplete.razor.cs", ApplicationHelper.UiProjectDirectory);
             
             AutocompleteRazorComponent.Generate(modalClassObject, $"Components/Autocompletes/{modalClassName}Autocomplete.razor.cs", ApplicationHelper.UiProjectDirectory);
-            
+            API_Controller.Generate(modalClassObject, $"Controllers/{modalClassName}Controller.cs", ApplicationHelper.UiProjectDirectory);
             Console.WriteLine($"\n--------------------- Services Generated  --------------------");
 
             #endregion

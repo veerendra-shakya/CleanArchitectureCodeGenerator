@@ -1,5 +1,7 @@
 ﻿using CleanArchitecture.CodeGenerator.CodeWriter;
 using CleanArchitecture.CodeGenerator.Configuration;
+using CleanArchitecture.CodeGenerator.Helpers;
+using CleanArchitecture.CodeGenerator.Models;
 
 namespace CleanArchitecture.CodeGenerator
 {
@@ -130,8 +132,8 @@ namespace CleanArchitecture.CodeGenerator
             Console.WriteLine("You selected: Test Feature");
             Console.ResetColor();
 
-            var rootDirectory = @"D:\CleanArchitectureWithBlazorServer-main\src";
-            var entityName = "NewEntity";
+            //var rootDirectory = @"D:\CleanArchitectureWithBlazorServer-main\src";
+            //var entityName = "NewEntity";
 
             //////Update_DbContext dbContextModifier = new Update_DbContext();
             //////var paths = dbContextModifier.SearchDbContextFiles(rootDirectory);
@@ -142,9 +144,9 @@ namespace CleanArchitecture.CodeGenerator
             ////////Remove a property
             //////dbContextModifier.RemoveEntityProperty(paths, entityName);
 
-     
 
-
+            CSharpSyntaxParser parser = new CSharpSyntaxParser();
+            IEnumerable<CSharpClassObject> classes = parser.ParseFile("D:\\CleanArchitectureWithBlazorServer-main\\src\\Domain\\Entities\\DemoValidation.cs");
 
 
             Pause();

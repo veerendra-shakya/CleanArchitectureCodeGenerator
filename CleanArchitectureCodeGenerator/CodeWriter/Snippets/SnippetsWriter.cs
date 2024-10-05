@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
         {
             var output = new StringBuilder();
 
-            foreach (var property in classObject.Properties)
+            foreach (var property in classObject.ClassProperties)
             {
                 output.AppendLine($"    [Description(\"{property.DisplayName}\")]");
                 if (property.PropertyName == PRIMARYKEY)
@@ -74,7 +75,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
         public string CreateImportFuncExpression(CSharpClassObject classObject)
         {
             var output = new StringBuilder();
-            foreach (var property in classObject.Properties.Where(x => x.Type.IsKnownType))
+            foreach (var property in classObject.ClassProperties.Where(x => x.Type.IsKnownType))
             {
                 if (property.PropertyName == PRIMARYKEY) continue;
 
@@ -140,7 +141,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
         public string CreateTemplateFieldDefinition(CSharpClassObject classObject)
         {
             var output = new StringBuilder();
-            foreach (var property in classObject.Properties.Where(x => x.Type.IsKnownType))
+            foreach (var property in classObject.ClassProperties.Where(x => x.Type.IsKnownType))
             {
                 if (property.PropertyName == PRIMARYKEY) continue;
                 output.AppendLine($"_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})],");
@@ -151,7 +152,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
         public string CreateExportFuncExpression(CSharpClassObject classObject)
         {
             var output = new StringBuilder();
-            foreach (var property in classObject.Properties.Where(x => x.Type.IsKnownType))
+            foreach (var property in classObject.ClassProperties.Where(x => x.Type.IsKnownType))
             {
                 output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], item => item.{property.PropertyName} }},");
             }
@@ -164,17 +165,17 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             var defaultFieldNames = new string[] { "Name", "Description" };
 
             // Handling the default "Name" and "Description" properties
-            if (classObject.Properties.Any(x => x.Type.IsKnownType && defaultFieldNames.Contains(x.PropertyName)))
+            if (classObject.ClassProperties.Any(x => x.Type.IsKnownType && defaultFieldNames.Contains(x.PropertyName)))
             {
                 output.AppendLine("<PropertyColumn Property=\"x => x.Name\" Title=\"@L[_currentDto.GetMemberDescription(x=>x.Name)]\">");
                 output.AppendLine("   <CellTemplate>");
                 output.AppendLine("      <div class=\"d-flex flex-column\">");
 
-                if (classObject.Properties.Any(x => x.Type.IsKnownType && x.PropertyName == defaultFieldNames.First()))
+                if (classObject.ClassProperties.Any(x => x.Type.IsKnownType && x.PropertyName == defaultFieldNames.First()))
                 {
                     output.AppendLine("        <MudText Typo=\"Typo.body2\">@context.Item.Name</MudText>");
                 }
-                if (classObject.Properties.Any(x => x.Type.IsKnownType && x.PropertyName == defaultFieldNames.Last()))
+                if (classObject.ClassProperties.Any(x => x.Type.IsKnownType && x.PropertyName == defaultFieldNames.Last()))
                 {
                     output.AppendLine("        <MudText Typo=\"Typo.body2\" Class=\"mud-text-secondary\">@context.Item.Description</MudText>");
                 }
@@ -184,7 +185,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             }
 
             // Loop through other properties
-            foreach (var property in classObject.Properties.Where(x => !defaultFieldNames.Contains(x.PropertyName)))
+            foreach (var property in classObject.ClassProperties.Where(x => !defaultFieldNames.Contains(x.PropertyName)))
             {
                 if (property.PropertyName == PRIMARYKEY || property.PropertyName.EndsWith("Id")) continue;
 
@@ -225,16 +226,16 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             var output = new StringBuilder();
             var defaultFieldNames = new string[] { "Name", "Description" };
 
-            if (classObject.Properties.Any(x => x.Type.IsKnownType && defaultFieldNames.Contains(x.PropertyName)))
+            if (classObject.ClassProperties.Any(x => x.Type.IsKnownType && defaultFieldNames.Contains(x.PropertyName)))
             {
                 output.AppendLine("<MudTd HideSmall=\"false\" DataLabel=\"@L[_currentDto.GetMemberDescription(x=>x.Name)]\">");
                 output.AppendLine("    <div class=\"d-flex flex-column\">");
 
-                if (classObject.Properties.Any(x => x.Type.IsKnownType && x.PropertyName == defaultFieldNames.First()))
+                if (classObject.ClassProperties.Any(x => x.Type.IsKnownType && x.PropertyName == defaultFieldNames.First()))
                 {
                     output.AppendLine("        <MudText>@context.Name</MudText>");
                 }
-                if (classObject.Properties.Any(x => x.Type.IsKnownType && x.PropertyName == defaultFieldNames.Last()))
+                if (classObject.ClassProperties.Any(x => x.Type.IsKnownType && x.PropertyName == defaultFieldNames.Last()))
                 {
                     output.AppendLine("        <MudText Typo=\"Typo.body2\" Class=\"mud-text-secondary\">@context.Description</MudText>");
                 }
@@ -243,7 +244,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                 output.AppendLine("</MudTd>");
             }
 
-            foreach (var property in classObject.Properties.Where(x => x.Type.IsKnownType && !defaultFieldNames.Contains(x.PropertyName)))
+            foreach (var property in classObject.ClassProperties.Where(x => x.Type.IsKnownType && !defaultFieldNames.Contains(x.PropertyName)))
             {
                 if (property.PropertyName == PRIMARYKEY) continue;
 
@@ -270,7 +271,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
         public string CreateMudFormFieldDefinition(CSharpClassObject classObject)
         {
             var output = new StringBuilder();
-            foreach (var property in classObject.Properties.Where(x => x.Type.IsKnownType))
+            foreach (var property in classObject.ClassProperties.Where(x => x.Type.IsKnownType))
             {
                 if (property.PropertyName == PRIMARYKEY) continue;
                 switch (property.Type.TypeName.ToLower())
@@ -327,7 +328,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
         public string CreateFieldAssignmentDefinition(CSharpClassObject classObject)
         {
             var output = new StringBuilder();
-            foreach (var property in classObject.Properties.Where(x => x.Type.IsKnownType && x.PropertyName != PRIMARYKEY))
+            foreach (var property in classObject.ClassProperties.Where(x => x.Type.IsKnownType && x.PropertyName != PRIMARYKEY))
             {
                 output.AppendLine($"        {property.PropertyName} = dto.{property.PropertyName},");
             }
@@ -340,9 +341,9 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             var itemName = classObject.Name;
 
             // Get the master property for identifier role
-            var masterProperty = classObject.Properties.Where(p => p.ScaffoldingAtt.PropRole == "Identifier").Select(p => p.PropertyName).FirstOrDefault();
+            var masterProperty = classObject.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Identifier").Select(p => p.PropertyName).FirstOrDefault();
             // Get the list of searchable properties
-            var searchableProperty = classObject.Properties.Where(p => p.ScaffoldingAtt.PropRole == "Searchable").Select(p => p.PropertyName).ToList();
+            var searchableProperty = classObject.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Searchable").Select(p => p.PropertyName).ToList();
             if( masterProperty!=null)
             {
                 searchableProperty.Add(masterProperty);
@@ -377,12 +378,32 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             return output.ToString();
         }
 
+        public string CreateSearchableProperties(CSharpClassObject model)
+        {
+            var masterProperty = model.ClassProperties.FirstOrDefault(p => p.ScaffoldingAtt.PropRole == "Identifier");
+            var searchableProperties = model.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Searchable").ToList();
+
+            if (masterProperty != null)
+            {
+                // Insert masterProperty at the beginning of the list
+                searchableProperties.Insert(0, masterProperty);
+            }
+
+            var sb = new StringBuilder();
+
+            foreach (var property in searchableProperties)
+            {
+                sb.AppendLine($"    public {property.Type.TypeName} {property.PropertyName} {{get;set;}}");
+            }
+
+            return sb.ToString();
+        }
 
         // Generates a TemplateColumn for OneToOne relationships using StringBuilder
         private string GenerateTemplateColumnForOneToOne(ClassProperty property, CSharpClassObject relatedClass)
         {
-            var masterProperty = relatedClass.Properties.Where(p => p.ScaffoldingAtt.PropRole == "Identifier").FirstOrDefault();
-            var displayProperties = relatedClass.Properties.Where(p => p.ScaffoldingAtt.PropRole == "Searchable").ToList();
+            var masterProperty = relatedClass.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Identifier").FirstOrDefault();
+            var displayProperties = relatedClass.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Searchable").ToList();
             if (masterProperty != null){ displayProperties.Add(masterProperty);}
 
             var sb = new StringBuilder();
@@ -419,8 +440,8 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
         // Generates a TemplateColumn for relationships that have collections (OneToMany, ManyToMany) using StringBuilder
         private string GenerateTemplateColumnForOtherRelationships(ClassProperty property, CSharpClassObject relatedClass)
         {
-            var masterProperty = relatedClass.Properties.FirstOrDefault(p => p.ScaffoldingAtt.PropRole == "Identifier");
-            var displayProperties = relatedClass.Properties.Where(p => p.ScaffoldingAtt.PropRole == "Searchable").ToList();
+            var masterProperty = relatedClass.ClassProperties.FirstOrDefault(p => p.ScaffoldingAtt.PropRole == "Identifier");
+            var displayProperties = relatedClass.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Searchable").ToList();
             if (masterProperty != null)
             {
                 displayProperties.Add(masterProperty);

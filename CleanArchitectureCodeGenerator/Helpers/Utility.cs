@@ -254,7 +254,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             var _files = Directory.EnumerateFiles(projectDirectory, "*.cs", SearchOption.AllDirectories);
             foreach (var filePath in _files)
             {
-                var objects = IntellisenseParser.ProcessFile(filePath);
+                var objects = IntellisenseParser.ParseFile(filePath);
                 if (objects != null)
                 {
                     list.AddRange(objects);
@@ -433,7 +433,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             }
 
             // Rule 4: Check if the base type is known
-            if (!IsKnownBaseType(classObject.BaseName))
+            if (!IsKnownBaseType(classObject.BaseClassNames))
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Error: The Entity/Model class base type is invalid. It should be one of the following: \"BaseAuditableSoftDeleteEntity\", \"BaseAuditableEntity\", \"BaseEntity\", \"IEntity\", \"ISoftDelete\".");
@@ -517,7 +517,8 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 "Entities",
                 "Common\\Interfaces",
                 "Services",
-                "Components\\Autocompletes"
+                "Components\\Autocompletes",
+                "Controllers"
             };
 
             var extension = Path.GetExtension(targetFilePath).ToLowerInvariant();
@@ -584,6 +585,17 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             // If it's not a generic type, return the type name as is
             typeName = typeName.Replace("?", "");
             return typeName;
+        }
+
+        public static string GetNameSpace(string relativePath)
+        {
+            var NamespaceName = ApplicationHelper.RootNamespace;
+            if (!string.IsNullOrEmpty(relativePath))
+            {
+                NamespaceName += "." + Utility.RelativePath_To_Namespace(relativePath);
+            }
+            NamespaceName = NamespaceName.TrimEnd('.');
+            return NamespaceName;
         }
     }
 

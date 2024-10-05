@@ -1,0 +1,102 @@
+﻿using AutoMapper;
+using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Commands.AddEdit;
+using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Commands.Delete;
+using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.DTOs;
+using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Queries.GetById;
+using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Queries.Pagination;
+using {{ rootnamespace }}.{{ infrastructureprojectname }}.PermissionSet;
+using {{ rootnamespace }}.{{ uiprojectname }}.Extensions;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
+
+namespace {{ namespacename }};
+
+[Route("api/[controller]")]
+[ApiController]
+public class {{ modelname }}Controller : Controller
+{
+    private readonly IMediator _mediator;
+    private readonly IMapper _mapper;
+
+    public {{ modelname }}Controller(IMediator mediator, IMapper mapper)
+    {
+        _mediator = mediator;
+        _mapper = mapper;
+    }
+
+    //GET: api/{{ modelnamelower }}/
+    [HttpGet()]
+    [ApiAuthorize(Policy = Permissions.{{ modelnameplural }}.View)]
+    {{ codeofgetfunction }}
+
+
+    // GET: api/{{ modelnamelower }}/{id}
+    [HttpGet("{id}")]
+    [ApiAuthorize(Policy = Permissions.{{ modelnameplural }}.View)]
+    public async Task<IActionResult> Get{{ modelname }}ById(Guid id)
+    {
+        var query = new Get{{ modelname }}ByIdQuery { Id = id };
+        var result = await _mediator.Send(query);
+        if (result == null)
+        {
+            return NotFound(new { Message = $"{{ modelname }} with id {id} not found." });
+        }
+        return Ok(result);
+    }
+
+    // POST: api/{{ modelnamelower }}
+    [HttpPost]
+    [ApiAuthorize(Policy = Permissions.{{ modelnameplural }}.Create)]
+    public async Task<IActionResult> Create{{ modelname }}([FromBody] {{ modelname }}Dto {{ modelnamelower }}Dto)
+    {
+        // Use AutoMapper to map {{ modelname }}Dto to AddEdit{{ modelname }}Command
+        var command = _mapper.Map<AddEdit{{ modelname }}Command>({{ modelnamelower }}Dto);
+
+        var result = await _mediator.Send(command);
+        if (result.Succeeded)
+        {
+            return CreatedAtAction(nameof(Get{{ modelname }}ById), new { id = result.Data }, new { id = result.Data });
+        }
+
+        return BadRequest(new { Error = result.ErrorMessage });
+    }
+
+    // PUT: api/{{ modelnamelower }}/{id}
+    [HttpPut("{id}")]
+    [ApiAuthorize(Policy = Permissions.{{ modelnameplural }}.Edit)]
+    public async Task<IActionResult> Update{{ modelname }}(Guid id, [FromBody] {{ modelname }}Dto {{ modelnamelower }}Dto)
+    {
+        // Ensure the ID in the route matches the one in the DTO
+        if (id != {{ modelnamelower }}Dto.Id)
+        {
+            return BadRequest("{{ modelname }} ID mismatch.");
+        }
+
+         // Use AutoMapper to map {{ modelname }}Dto to AddEdit{{ modelname }}Command
+        var command = _mapper.Map<AddEdit{{ modelname }}Command>({{ modelnamelower }}Dto);
+
+        var result = await _mediator.Send(command);
+        if (result.Succeeded)
+        {
+            return NoContent();
+        }
+
+        return BadRequest(result.ErrorMessage);
+    }
+
+    // DELETE: api/{{ modelnamelower }}/{id}
+    [HttpDelete("{id}")]
+    [ApiAuthorize(Policy = Permissions.{{ modelnameplural }}.Delete)]
+    public async Task<IActionResult> Delete{{ modelname }}(Guid id)
+    {
+        var command = new Delete{{ modelname }}Command(new[] { id });
+        var result = await _mediator.Send(command);
+        if (result.Succeeded)
+        {
+            return NoContent();
+        }
+        return BadRequest(new { Error = result.ErrorMessage });
+    }
+ 
+}

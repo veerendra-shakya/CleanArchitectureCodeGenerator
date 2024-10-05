@@ -11,7 +11,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
         {
             var sb = new StringBuilder();
 
-            foreach (var property in classObject.Properties)
+            foreach (var property in classObject.ClassProperties)
             {
                 var propertyName = property.PropertyName;
                 sb.Append($"RuleFor(v => v.{propertyName})");

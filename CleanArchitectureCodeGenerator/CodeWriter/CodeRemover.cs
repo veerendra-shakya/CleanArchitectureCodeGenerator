@@ -44,7 +44,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             //    .Where(x => includes.Contains(x.BaseName) && !includes.Contains(x.Name));
 
             var objectList = ApplicationHelper.ClassObjectList
-                .Where(x => x.BaseName != null && includes != null && includes.Any(baseName => x.BaseName.Contains(baseName)) && !includes.Contains(x.Name))
+                .Where(x => x.BaseClassNames != null && includes != null && includes.Any(baseName => x.BaseClassNames.Contains(baseName)) && !includes.Contains(x.Name))
                 .ToList();
 
             var entities = objectList

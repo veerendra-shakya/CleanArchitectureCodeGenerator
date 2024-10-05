@@ -1,6 +1,7 @@
 namespace {namespace};
 
 #nullable disable warnings
+
 /// <summary>
 /// Specifies the different views available for the {itemname} list.
 /// </summary>
@@ -15,11 +16,14 @@ public enum {itemname}ListView
     [Description("Created within the last 30 days")]
     Created30Days
 }
+
 /// <summary>
 /// A class for applying advanced filtering options to {itemname} lists.
 /// </summary>
 public class {itemname}AdvancedFilter: PaginationFilter
 {
+    {searchableproperties}
+
     public {itemname}ListView ListView { get; set; } = {itemname}ListView.All;
     public UserProfile? CurrentUser { get; set; }
 }

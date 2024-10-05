@@ -13,7 +13,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
     {
         public static void GenerateConfigurations(CSharpClassObject classObject)
         {
-            foreach (var property in classObject.Properties)
+            foreach (var property in classObject.ClassProperties)
             {
                 if (property.ScaffoldingAtt.PropRole == "Relationship")
                 {
@@ -106,7 +106,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
 
         public static void RemoveConfigurations(CSharpClassObject classObject)
         {
-            foreach (var property in classObject.Properties)
+            foreach (var property in classObject.ClassProperties)
             {
                 if (property.ScaffoldingAtt.PropRole == "Relationship")
                 {

@@ -13,32 +13,36 @@ namespace CleanArchitecture.CodeGenerator.Models
         /// <summary>
         /// Gets or sets the namespace of the C# class.
         /// </summary>
-        public string Namespace { get; set; }
+        public string ClassNamespace { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the C# class.
         /// </summary>
         public string Name { get; set; }
 
+        public string DisplayName { get; set; }
+
+        public string Description { get; set; }
+
         /// <summary>
         /// Gets or sets the namespace of the base class, if any.
         /// </summary>
-        public string BaseNamespace { get; set; }
+        public string BaseClassNamespace { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the base class, if any.
         /// </summary>
-        public List<string> BaseName { get; set; }
+        public List<string> BaseClassNames { get; set; }
 
         /// <summary>
         /// Gets or sets the full name of the C# class, including its namespace.
         /// </summary>
-        public string FullName { get; set; }
+        public string FullyQualifiedName { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether this object represents an enum.
         /// </summary>
-        public bool IsEnum { get; set; }
+        public bool IsEnumType { get; set; }
 
         /// <summary>
         /// Gets or sets a summary description of the C# class, typically extracted from XML comments.
@@ -48,7 +52,7 @@ namespace CleanArchitecture.CodeGenerator.Models
         /// <summary>
         /// Gets or sets the list of properties defined in the C# class.
         /// </summary>
-        public List<ClassProperty> Properties { get; set; } = new List<ClassProperty>();
+        public List<ClassProperty> ClassProperties { get; set; } = new List<ClassProperty>();
     }
 
     /// <summary>

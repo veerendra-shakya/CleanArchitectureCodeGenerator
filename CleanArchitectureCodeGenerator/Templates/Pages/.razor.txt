@@ -291,7 +291,7 @@
         {
            opts.AfterMap((src, dest) =>
            {
-               dest.Id = 0;
+               dest.Id = Guid.Empty;
            });
         });
         await ShowEditFormDialog(string.Format(ConstantString.CreateAnItem, L["{itemname}"]), command);
@@ -305,7 +305,7 @@
     private async Task OnDelete({itemname}Dto dto)
     {
         var contentText = string.Format(ConstantString.DeleteConfirmation, dto.{masterProperty});
-        var command = new Delete{itemname}Command(new int[] { dto.Id });
+        var command = new Delete{itemname}Command(new Guid[] { dto.Id });
         await DialogServiceHelper.ShowDeleteConfirmationDialog(command, ConstantString.DeleteConfirmationTitle, contentText,
             async () =>
             {

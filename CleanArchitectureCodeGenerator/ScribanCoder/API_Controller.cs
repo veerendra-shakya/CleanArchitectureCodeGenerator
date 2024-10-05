@@ -5,7 +5,7 @@ using System.Text;
 
 namespace CleanArchitecture.CodeGenerator.ScribanCoder;
 
-public static class AutocompleteRazorComponent
+public static class API_Controller
 {
     public static void Generate(CSharpClassObject modalClassObject, string relativeTargetPath, string targetProjectDirectory)
     {
@@ -27,18 +27,13 @@ public static class AutocompleteRazorComponent
             var relativePath = Utility.MakeRelativePath(ApplicationHelper.RootDirectory, Path.GetDirectoryName(targetFile.FullName) ?? "");
             string templateFilePath = Utility.GetTemplateFile(relativePath, targetFile.FullName);
             string templateContent = File.ReadAllText(templateFilePath, Encoding.UTF8);
+            string NamespaceName = Utility.GetNameSpace(relativePath);
 
-            var NamespaceName = ApplicationHelper.RootNamespace;
-            if (!string.IsNullOrEmpty(relativePath))
-            {
-                NamespaceName += "." + Utility.RelativePath_To_Namespace(relativePath);
-            }
-            NamespaceName = NamespaceName.TrimEnd('.');
-
-            string querystring = ComposeQueryString(modalClassObject);
+            string codeofgetfunction = ComposeGetFunction(modalClassObject);
             string returnstring = ComposeReturnString(modalClassObject);
+            
             // Initialize MasterData object
-            var masterdata = new 
+            var masterdata = new
             {
                 rootdirectory = ApplicationHelper.RootDirectory,
                 rootnamespace = ApplicationHelper.RootNamespace,
@@ -52,8 +47,10 @@ public static class AutocompleteRazorComponent
                 uiprojectdirectory = ApplicationHelper.UiProjectDirectory,
                 applicationprojectdirectory = ApplicationHelper.ApplicationProjectDirectory,
                 modelnameplural = modalClassObject.Name.Pluralize(),
+               // modelnameplurallower = modalClassObject.Name.Pluralize().ToLower(),
                 modelname = modalClassObject.Name,
-                querystring = querystring,
+                modelnamelower = modalClassObject.Name.ToLower(),
+                codeofgetfunction = codeofgetfunction,
                 returnstring = returnstring,
             };
 
@@ -66,8 +63,6 @@ public static class AutocompleteRazorComponent
                 Utility.WriteToDiskAsync(targetFile.FullName, generatedClass);
                 Console.WriteLine($"Created file: {targetFile.FullName}");
             }
-
-
         }
         catch (Exception ex)
         {
@@ -77,40 +72,60 @@ public static class AutocompleteRazorComponent
         }
     }
 
-    private static string ComposeQueryString(CSharpClassObject model)
+  
+
+    private static string ComposeGetFunction(CSharpClassObject model)
     {
         var masterProperty = model.ClassProperties.FirstOrDefault(p => p.ScaffoldingAtt.PropRole == "Identifier");
-        var displayProperties = model.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Searchable").ToList();
+        var searchableProperties = model.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Searchable").ToList();
 
         if (masterProperty != null)
         {
             // Insert masterProperty at the beginning of the list
-            displayProperties.Insert(0, masterProperty);
+            searchableProperties.Insert(0, masterProperty);
         }
-
+   
         var sb = new StringBuilder();
 
-        // Start composing the query string dynamically
-        sb.Append($"result = _{model.Name}List")
-          .AppendLine()
-          .Append("    .Where(x => $\"");
+        // Start the method definition
+        sb.AppendLine($"public async Task<IActionResult> Get{model.Name}(");
 
-        for (int i = 0; i < displayProperties.Count; i++)
+        // Generate [FromQuery] parameters
+        for (int i = 0; i < searchableProperties.Count; i++)
         {
-            var property = displayProperties[i];
-            sb.Append($"{{x.{property.PropertyName}}}");
+            var prop = searchableProperties[i];
+            sb.AppendLine($"       [FromQuery] {prop.Type.TypeName} {prop.PropertyName.ToLower()},");
+        }
+        // Add pagination parameters
+        sb.AppendLine("       [FromQuery] int pageNumber = 1,");
+        sb.AppendLine("       [FromQuery] int pageSize = 10)");
 
-            // Append a " - " separator, but not after the last property
-            if (i < displayProperties.Count - 1)
-            {
-                sb.Append(" - ");
-            }
+        // Begin method body
+        sb.AppendLine("    {");
+        sb.AppendLine($"        var query = new {model.Name.Pluralize()}WithPaginationQuery");
+        sb.AppendLine("        {");
+
+        // Assign parameters to the query object
+        foreach (var prop in searchableProperties)
+        {
+            sb.AppendLine($"            {prop.PropertyName} = {prop.PropertyName.ToLower()},");
         }
 
-        sb.AppendLine("\"")
-          .Append("    .Contains(value, StringComparison.OrdinalIgnoreCase))")
-          .AppendLine()
-          .Append("    .Select(x => (Guid?)x.Id).ToList();");
+        // Add pagination parameters
+        sb.AppendLine("            PageNumber = pageNumber,");
+        sb.AppendLine("            PageSize = pageSize");
+        sb.AppendLine("        };");
+
+        // Send query to the mediator
+        sb.AppendLine("        var result = await _mediator.Send(query);");
+        sb.AppendLine("        if (result != null && result.Items.Any())");
+        sb.AppendLine("        {");
+        sb.AppendLine($"            return Ok(result.Items);");
+        sb.AppendLine("        }");
+
+        // Return not found if no results
+        sb.AppendLine($"        return NotFound(new {{ Message = \"No {model.Name.ToLower()} found.\" }});");
+        sb.AppendLine("    }");
 
         return sb.ToString();
     }
@@ -147,7 +162,6 @@ public static class AutocompleteRazorComponent
 
         return sb.ToString();
     }
-
 
 }
 

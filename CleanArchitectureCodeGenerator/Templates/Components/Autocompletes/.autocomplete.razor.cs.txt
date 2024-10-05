@@ -3,7 +3,7 @@ using {{ rootnamespace }}.{{ infrastructureprojectname }}.Services.DataServices;
 
 namespace {{ namespacename }};
 
-public class {{ modelname }}Autocomplete : MudAutocomplete<int?>
+public class {{ modelname }}Autocomplete : MudAutocomplete<Guid?>
 {
     
     [Inject]
@@ -37,13 +37,13 @@ public class {{ modelname }}Autocomplete : MudAutocomplete<int?>
         base.Dispose(disposing);
     }
 
-    private Task<IEnumerable<int?>> SearchKeyValues(string value, CancellationToken cancellation)
+    private Task<IEnumerable<Guid?>> SearchKeyValues(string value, CancellationToken cancellation)
     {
         _{{ modelname }}List = DataProvider.DataSource.ToList();
-        var result = new List<int?>();
+        var result = new List<Guid?>();
         if (_{{ modelname }}List is not null && string.IsNullOrEmpty(value))
         {
-            result = _{{ modelname }}List.Select(x => x.Id as int?).ToList();
+            result = _{{ modelname }}List.Select(x => (Guid?)x.Id).ToList();
         }
         else if(_{{ modelname }}List is not null)
         {
@@ -52,11 +52,11 @@ public class {{ modelname }}Autocomplete : MudAutocomplete<int?>
         return Task.FromResult(result.AsEnumerable());
     }
 
-    private string ToString(int? str)
+    private string ToString(Guid? id)
     {
-        if (str > 0)
+        if (id.HasValue)
         {
-            var userDto = DataProvider.DataSource.Find(x => x.Id == str);
+            var userDto = DataProvider.DataSource.Find(x => x.Id == id);
             return ${{ returnstring }}
         }
         return string.Empty;

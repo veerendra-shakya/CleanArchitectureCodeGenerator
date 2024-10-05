@@ -5,7 +5,12 @@ public class Delete{itemname}CommandValidator : AbstractValidator<Delete{itemnam
         public Delete{itemname}CommandValidator()
         {
           
-            RuleFor(v => v.Id).NotNull().ForEach(v=>v.GreaterThan(0));
+        RuleFor(v => v.Id)
+            .NotNull().WithMessage("Ids cannot be null.")
+            .NotEmpty().WithMessage("Ids cannot be an empty array.")
+            .ForEach(guid => guid
+                .NotEqual(Guid.Empty).WithMessage("Ids must not contain empty Guids.")
+            );
           
         }
 }

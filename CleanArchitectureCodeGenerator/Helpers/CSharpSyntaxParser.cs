@@ -8,108 +8,108 @@ namespace CleanArchitecture.CodeGenerator.Helpers
 {
     public class CSharpSyntaxParser
     {
-        public IEnumerable<CSharpClassObject> ProcessFile(string filePath)
+        public IEnumerable<CSharpClassObject> ParseFile(string filePath)
         {
             if (!File.Exists(filePath))
             {
                 return null;
             }
 
-            var syntaxTree = CSharpSyntaxTree.ParseText(File.ReadAllText(filePath));
-            var root = syntaxTree.GetRoot() as CompilationUnitSyntax;
+            var syntaxTreeRoot = CSharpSyntaxTree.ParseText(File.ReadAllText(filePath));
+            var compilationUnit = syntaxTreeRoot.GetRoot() as CompilationUnitSyntax;
 
-            if (root == null)
+            if (compilationUnit == null)
             {
                 Console.WriteLine("Root is null. File might not have valid C# syntax.");
                 return null;
             }
 
 
-            var list = new List<CSharpClassObject>();
+            var parsedClassObjects = new List<CSharpClassObject>();
 
-            foreach (var namespaceDecl in root.Members.OfType<NamespaceDeclarationSyntax>())
+            foreach (var namespaceDeclaration in compilationUnit.Members.OfType<NamespaceDeclarationSyntax>())
             {
-                ProcessNamespace(namespaceDecl, list);
+                ParseNamespaceDeclaration(namespaceDeclaration, parsedClassObjects);
             }
 
-            foreach (var member in root.Members)
+            foreach (var member in compilationUnit.Members)
             {
-                ProcessRootMember(member, list);
+                ParseGlobalMember(member, parsedClassObjects);
             }
-            return new HashSet<CSharpClassObject>(list);
+            return new HashSet<CSharpClassObject>(parsedClassObjects);
         }
 
-        private void ProcessNamespace(NamespaceDeclarationSyntax namespaceDecl, List<CSharpClassObject> list)
+        private void ParseNamespaceDeclaration(NamespaceDeclarationSyntax namespaceDecl, List<CSharpClassObject> list)
         {
             foreach (var member in namespaceDecl.Members)
             {
-                list.AddRange(ProcessMember(member, namespaceDecl.Name.ToString()));
+                list.AddRange(ParseMemberDeclaration(member, namespaceDecl.Name.ToString()));
             }
         }
 
-        private void ProcessRootMember(MemberDeclarationSyntax member, List<CSharpClassObject> list)
+        private void ParseGlobalMember(MemberDeclarationSyntax member, List<CSharpClassObject> list)
         {
             if (member is FileScopedNamespaceDeclarationSyntax fileScopedNamespace)
             {
                 foreach (var namespaceMember in fileScopedNamespace.Members)
                 {
-                    list.AddRange(ProcessMember(namespaceMember, fileScopedNamespace.Name.ToString()));
+                    list.AddRange(ParseMemberDeclaration(namespaceMember, fileScopedNamespace.Name.ToString()));
                 }
             }
             else if (!(member is NamespaceDeclarationSyntax))
             {
-                list.AddRange(ProcessMember(member, "Global"));
+                list.AddRange(ParseMemberDeclaration(member, "Global"));
             }
         }
 
-        private List<CSharpClassObject> ProcessMember(MemberDeclarationSyntax member, string namespaceName)
+        private List<CSharpClassObject> ParseMemberDeclaration(MemberDeclarationSyntax memberDeclaration, string namespaceName)
         {
-            if (member is EnumDeclarationSyntax enumDecl)
+            if (memberDeclaration is EnumDeclarationSyntax enumDeclaration)
             {
-                return ProcessEnum(enumDecl, namespaceName);
+                return ParseEnumDeclaration(enumDeclaration, namespaceName);
             }
-            else if (member is ClassDeclarationSyntax classDecl)
+            else if (memberDeclaration is ClassDeclarationSyntax classDeclaration)
             {
-                return ProcessClass(classDecl, namespaceName);
+                return ParseClassDeclaration(classDeclaration, namespaceName);
             }
             return new List<CSharpClassObject>();
         }
 
-        private List<CSharpClassObject> ProcessEnum(EnumDeclarationSyntax enumDecl, string namespaceName)
+        private List<CSharpClassObject> ParseEnumDeclaration(EnumDeclarationSyntax enumDeclaration, string namespaceName)
         {
-            var data = new CSharpClassObject
+            var classObject = new CSharpClassObject
             {
-                Name = enumDecl.Identifier.Text,
-                IsEnum = true,
-                FullName = $"{namespaceName}.{enumDecl.Identifier.Text}",
-                Namespace = namespaceName,
-                Summary = GetSummary(enumDecl)
+                Name = enumDeclaration.Identifier.Text,
+                IsEnumType = true,
+                FullyQualifiedName = $"{namespaceName}.{enumDeclaration.Identifier.Text}",
+                ClassNamespace = namespaceName,
+                Summary = ExtractSummaryFromNode(enumDeclaration)
             };
 
-            foreach (var member in enumDecl.Members)
+            foreach (var member in enumDeclaration.Members)
             {
-                var prop = new ClassProperty
+                var classProperty = new ClassProperty
                 {
                     PropertyName = member.Identifier.Text,
-                    Summary = GetSummary(member),
+                    Summary = ExtractSummaryFromNode(member),
                    // InitExpression = member.EqualsValue?.Value.ToString()
                 };
-                data.Properties.Add(prop);
+                classObject.ClassProperties.Add(classProperty);
             }
 
-            return data.Properties.Count > 0 ? new List<CSharpClassObject> { data } : new List<CSharpClassObject>();
+            return classObject.ClassProperties.Count > 0 ? new List<CSharpClassObject> { classObject } : new List<CSharpClassObject>();
         }
 
-        private List<CSharpClassObject> ProcessClass(ClassDeclarationSyntax classDecl, string namespaceName)
+        private List<CSharpClassObject> ParseClassDeclaration(ClassDeclarationSyntax classDeclaration, string namespaceName)
         {
             var list = new List<CSharpClassObject>();
 
             List<string> baseName = new List<string>();
             string baseNamespace = null;
 
-            if (classDecl.BaseList != null && classDecl.BaseList.Types.Count > 0)
+            if (classDeclaration.BaseList != null && classDeclaration.BaseList.Types.Count > 0)
             {
-                var baseTypeSyntax = classDecl.BaseList.Types.FirstOrDefault();
+                var baseTypeSyntax = classDeclaration.BaseList.Types.FirstOrDefault();
                 if (baseTypeSyntax != null)
                 {
                     var baseTypeName = baseTypeSyntax.Type.ToString();
@@ -118,23 +118,59 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 }
             }
 
-            var data = new CSharpClassObject
+            var classObject = new CSharpClassObject
             {
-                Name = classDecl.Identifier.Text,
-                FullName = $"{namespaceName}.{classDecl.Identifier.Text}",
-                Namespace = namespaceName,
-                Summary = GetSummary(classDecl),
-                BaseName = baseName,
-                BaseNamespace = baseNamespace
+                Name = classDeclaration.Identifier.Text,
+                FullyQualifiedName = $"{namespaceName}.{classDeclaration.Identifier.Text}",
+                ClassNamespace = namespaceName,
+                Summary = ExtractSummaryFromNode(classDeclaration),
+                BaseClassNames = baseName,
+                BaseClassNamespace = baseNamespace
             };
 
-            foreach (var member in classDecl.Members.OfType<PropertyDeclarationSyntax>())
+
+            // Step 2: Extract Class-Level DisplayName and Description Attributes
+            foreach (var attributeListSyntax in classDeclaration.AttributeLists)
             {
-                var prop = new ClassProperty
+                foreach (var attribute in attributeListSyntax.Attributes)
+                {
+                    if (attribute.Name.ToString().Contains("Display"))
+                    {
+                        var argument = attribute.ArgumentList?.Arguments.FirstOrDefault();
+                        if (argument != null)
+                        {
+                            classObject.DisplayName = argument.ToString().Replace("\"", "").Replace("Name = ", ""); // Assign the DisplayName
+                        }
+                    }
+
+                    if (attribute.Name.ToString().Contains("DisplayName"))
+                    {
+                        var argument = attribute.ArgumentList?.Arguments.FirstOrDefault();
+                        if (argument != null)
+                        {
+                            classObject.DisplayName = argument.ToString().Trim('"');
+                        }
+                    }
+
+                    if (attribute.Name.ToString().Contains("Description"))
+                    {
+                        var argument = attribute.ArgumentList?.Arguments.FirstOrDefault();
+                        if (argument != null)
+                        {
+                            classObject.Description = argument.ToString().Trim('"');
+                        }
+                    }
+                }
+            }
+
+            // Step 3: Process Class Members (Properties)
+            foreach (var member in classDeclaration.Members.OfType<PropertyDeclarationSyntax>())
+            {
+                var classProperty = new ClassProperty
                 {
                     PropertyName = member.Identifier.Text,
-                    Type = GetType(member),
-                    Summary = GetSummary(member),
+                    Type = ExtractPropertyType(member),
+                    Summary = ExtractSummaryFromNode(member),
                     propertyDeclarationSyntax = member
                 };
 
@@ -144,13 +180,21 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 {
                     foreach (var attribute in attributeListSyntax.Attributes)
                     {
+                        if (attribute.Name.ToString().Contains("DisplayName"))
+                        {
+                            var argument = attribute.ArgumentList?.Arguments.FirstOrDefault();
+                            if (argument != null)
+                            {
+                                classProperty.DisplayName = argument.ToString().Trim('"');
+                            }
+                        }
 
                         if (attribute.Name.ToString().Contains("Display"))
                         {
                             var argument = attribute.ArgumentList?.Arguments.FirstOrDefault();
                             if (argument != null)
                             {
-                                prop.DisplayName = argument.ToString().Replace("\"", "").Replace("Name = ", ""); // Assign the DisplayName
+                                classProperty.DisplayName = argument.ToString().Replace("\"", "").Replace("Name = ", ""); // Assign the DisplayName
                             }
                         }
 
@@ -160,7 +204,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                             var argument = attribute.ArgumentList?.Arguments.FirstOrDefault();
                             if (argument != null)
                             {
-                                prop.Description = argument.ToString().Trim('"'); // Assign the Description
+                                classProperty.Description = argument.ToString().Trim('"'); // Assign the Description
                             }
                         }
 
@@ -172,49 +216,49 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                                 var argumentName = argument.Expression.ToString();
                                 if (argumentName.Contains("PropRole.Identifier"))
                                 {
-                                    prop.ScaffoldingAtt.PropRole = "Identifier";
+                                    classProperty.ScaffoldingAtt.PropRole = "Identifier";
                                 }
                                 else if (argumentName.Contains("PropRole.Searchable"))
                                 {
-                                    prop.ScaffoldingAtt.PropRole = "Searchable";
+                                    classProperty.ScaffoldingAtt.PropRole = "Searchable";
                                 }
                                 else if (argumentName.Contains("PropRole.Relationship"))
                                 {
-                                    prop.ScaffoldingAtt.PropRole = "Relationship";
+                                    classProperty.ScaffoldingAtt.PropRole = "Relationship";
                                 }
 
                                 if (argumentName.Contains("RelationshipType.OneToOne"))
                                 {
-                                    prop.ScaffoldingAtt.RelationshipType = "OneToOne";
+                                    classProperty.ScaffoldingAtt.RelationshipType = "OneToOne";
                                 }
                                 else if (argumentName.Contains("RelationshipType.OneToMany"))
                                 {
-                                    prop.ScaffoldingAtt.RelationshipType = "OneToMany";
+                                    classProperty.ScaffoldingAtt.RelationshipType = "OneToMany";
                                 }
                                 else if (argumentName.Contains("RelationshipType.ManyToOne"))
                                 {
-                                    prop.ScaffoldingAtt.RelationshipType = "ManyToOne";
+                                    classProperty.ScaffoldingAtt.RelationshipType = "ManyToOne";
                                 }
                                 else if (argumentName.Contains("RelationshipType.ManyToMany"))
                                 {
-                                    prop.ScaffoldingAtt.RelationshipType = "ManyToMany";
+                                    classProperty.ScaffoldingAtt.RelationshipType = "ManyToMany";
                                 }
 
                                 if (argumentName.Contains("DeleteBehavior.Cascade"))
                                 {
-                                    prop.ScaffoldingAtt.DeleteBehavior = "Cascade";
+                                    classProperty.ScaffoldingAtt.DeleteBehavior = "Cascade";
                                 }
                                 else if (argumentName.Contains("DeleteBehavior.Restrict"))
                                 {
-                                    prop.ScaffoldingAtt.DeleteBehavior = "Restrict";
+                                    classProperty.ScaffoldingAtt.DeleteBehavior = "Restrict";
                                 }
                                 else if (argumentName.Contains("DeleteBehavior.SetNull"))
                                 {
-                                    prop.ScaffoldingAtt.DeleteBehavior = "SetNull";
+                                    classProperty.ScaffoldingAtt.DeleteBehavior = "SetNull";
                                 }
                                 else if (argumentName.Contains("DeleteBehavior.NoAction"))
                                 {
-                                    prop.ScaffoldingAtt.DeleteBehavior = "NoAction";
+                                    classProperty.ScaffoldingAtt.DeleteBehavior = "NoAction";
                                 }
                             }
 
@@ -227,7 +271,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                                 _temp = navPropertyArgument.ToString();
                                 _temp = _temp.Replace("inverseProperty: \"", "");
                                 _temp = _temp.Replace("\"", "");
-                                prop.ScaffoldingAtt.InverseProperty = _temp;
+                                classProperty.ScaffoldingAtt.InverseProperty = _temp;
                             }
 
                             //Assign ForeignKeyProperty value
@@ -239,7 +283,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                                 _temp = foreignKeyArgument.ToString();
                                 _temp = _temp.Replace("foreignKeyProperty: \"", "");
                                 _temp = _temp.Replace("\"", "");
-                                prop.ScaffoldingAtt.ForeignKeyProperty = _temp;
+                                classProperty.ScaffoldingAtt.ForeignKeyProperty = _temp;
                             }
 
                             //Assign LinkingTable value
@@ -251,7 +295,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                                 _temp = linkingArgument.ToString();
                                 _temp = _temp.Replace("linkingTable: \"", "");
                                 _temp = _temp.Replace("\"", "");
-                                prop.ScaffoldingAtt.LinkingTable = _temp;
+                                classProperty.ScaffoldingAtt.LinkingTable = _temp;
                             }
 
                         }
@@ -260,19 +304,19 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                     }
                 }
 
-                if (string.IsNullOrWhiteSpace(prop.DisplayName))
+                if (string.IsNullOrWhiteSpace(classProperty.DisplayName))
                 {
-                    prop.DisplayName = Utility.SplitCamelCase(member.Identifier.Text);
+                    classProperty.DisplayName = Utility.SplitCamelCase(member.Identifier.Text);
                 }
 
-                data.Properties.Add(prop);
+                classObject.ClassProperties.Add(classProperty);
             }
 
-            list.Add(data);
+            list.Add(classObject);
             return list;
         }
 
-        private string GetSummary(SyntaxNode node)
+        private string ExtractSummaryFromNode(SyntaxNode node)
         {
             var trivia = node.GetLeadingTrivia().ToString();
             if (string.IsNullOrWhiteSpace(trivia))
@@ -284,7 +328,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             return summaryMatch.Success ? summaryMatch.Groups[1].Value.Trim() : trivia.Trim();
         }
 
-        private PropertyType GetType(PropertyDeclarationSyntax propertyDeclaration)
+        private PropertyType ExtractPropertyType(PropertyDeclarationSyntax propertyDeclaration)
         {
             TypeSyntax typeSyntax = propertyDeclaration.Type;
 
@@ -330,11 +374,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             type.IsIEnumerable = isIEnumerable;
             type.IsKnownBaseType = isKnownBaseType;
 
-     
             return type;
         }
-
-
-
     }
 }

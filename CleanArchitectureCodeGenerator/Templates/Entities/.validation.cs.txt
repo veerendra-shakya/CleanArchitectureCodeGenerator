@@ -5,6 +5,8 @@ using {selectns}.Common.Attributes;
 
 namespace {namespace}
 {
+    [DisplayName("Sample Validation")]
+    [Description("This description will be used in UI forms of this model")]
     public class {itemname} : BaseAuditableEntity, IAuditTrial
     {
         
