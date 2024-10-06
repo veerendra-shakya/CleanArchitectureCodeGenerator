@@ -174,8 +174,8 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
 
             #region Generate Services for Data Access
             Console.WriteLine($"\n--------------------- Generating Services...  --------------------");
-            GenerateCodeFile(modalClassObject, $"Common/Interfaces/I{modalClassName}Service.cs", ApplicationHelper.ApplicationProjectDirectory);
-            GenerateCodeFile(modalClassObject, $"Services/DataServices/{modalClassName}Service.cs", ApplicationHelper.InfrastructureProjectDirectory);
+            GenerateCodeFile(modalClassObject, $"Common/Interfaces/DataAccess/I{modalClassName}Service.cs", ApplicationHelper.ApplicationProjectDirectory);
+            GenerateCodeFile(modalClassObject, $"Services/DataAccess/{modalClassName}Service.cs", ApplicationHelper.InfrastructureProjectDirectory);
            // GenerateCodeFile(modalClassObject, $"Components/Autocompletes/{modalClassName}Autocomplete.razor.cs", ApplicationHelper.UiProjectDirectory);
             
             AutocompleteRazorComponent.Generate(modalClassObject, $"Components/Autocompletes/{modalClassName}Autocomplete.razor.cs", ApplicationHelper.UiProjectDirectory);

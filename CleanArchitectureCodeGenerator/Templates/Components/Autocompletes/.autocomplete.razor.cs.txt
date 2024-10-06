@@ -1,7 +1,8 @@
+using {{ rootnamespace }}.{{ applicationprojectname }}.Common.Interfaces.DataAccess;
 using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.DTOs;
-using {{ rootnamespace }}.{{ infrastructureprojectname }}.Services.DataServices;
 
 namespace {{ namespacename }};
+#nullable disable warnings
 
 public class {{ modelname }}Autocomplete : MudAutocomplete<Guid?>
 {

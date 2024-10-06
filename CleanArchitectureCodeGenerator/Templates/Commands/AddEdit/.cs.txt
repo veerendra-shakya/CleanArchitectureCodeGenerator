@@ -1,6 +1,8 @@
 ﻿using {selectns}.{nameofPlural}.DTOs;
 using {selectns}.{nameofPlural}.Caching;
+
 namespace {namespace};
+#nullable disable warnings
 
 public class AddEdit{itemname}Command: ICacheInvalidatorRequest<Result<Guid>>
 {

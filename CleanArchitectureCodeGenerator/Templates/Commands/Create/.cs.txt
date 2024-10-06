@@ -3,6 +3,7 @@ using {selectns}.{nameofPlural}.DTOs;
 using {selectns}.{nameofPlural}.Caching;
 
 namespace {namespace};
+#nullable disable warnings
 
 public class Create{itemname}Command: ICacheInvalidatorRequest<Result<Guid>>
 {
@@ -21,29 +22,29 @@ public class Create{itemname}Command: ICacheInvalidatorRequest<Result<Guid>>
     }
 }
     
-    public class Create{itemname}CommandHandler : IRequestHandler<Create{itemname}Command, Result<Guid>>
+public class Create{itemname}CommandHandler : IRequestHandler<Create{itemname}Command, Result<Guid>>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly IMapper _mapper;
+    private readonly IStringLocalizer<Create{itemname}Command> _localizer;
+    public Create{itemname}CommandHandler(
+        IApplicationDbContext context,
+        IStringLocalizer<Create{itemname}Command> localizer,
+        IMapper mapper
+        )
     {
-        private readonly IApplicationDbContext _context;
-        private readonly IMapper _mapper;
-        private readonly IStringLocalizer<Create{itemname}Command> _localizer;
-        public Create{itemname}CommandHandler(
-            IApplicationDbContext context,
-            IStringLocalizer<Create{itemname}Command> localizer,
-            IMapper mapper
-            )
-        {
-            _context = context;
-            _localizer = localizer;
-            _mapper = mapper;
-        }
-        public async Task<Result<Guid>> Handle(Create{itemname}Command request, CancellationToken cancellationToken)
-        {
-           var item = _mapper.Map<{itemname}>(request);
-           // raise a create domain event
-	       item.AddDomainEvent(new {itemname}CreatedEvent(item));
-           _context.{nameofPlural}.Add(item);
-           await _context.SaveChangesAsync(cancellationToken);
-           return  await Result<Guid>.SuccessAsync(item.Id);
-        }
+        _context = context;
+        _localizer = localizer;
+        _mapper = mapper;
     }
+    public async Task<Result<Guid>> Handle(Create{itemname}Command request, CancellationToken cancellationToken)
+    {
+        var item = _mapper.Map<{itemname}>(request);
+        // raise a create domain event
+	    item.AddDomainEvent(new {itemname}CreatedEvent(item));
+        _context.{nameofPlural}.Add(item);
+        await _context.SaveChangesAsync(cancellationToken);
+        return  await Result<Guid>.SuccessAsync(item.Id);
+    }
+}
 

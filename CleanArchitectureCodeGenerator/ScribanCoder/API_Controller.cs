@@ -94,7 +94,7 @@ public static class API_Controller
         for (int i = 0; i < searchableProperties.Count; i++)
         {
             var prop = searchableProperties[i];
-            sb.AppendLine($"       [FromQuery] {prop.Type.TypeName} {prop.PropertyName.ToLower()},");
+            sb.AppendLine($"       [FromQuery] {prop.Type.TypeName.Replace("?","")}? {prop.PropertyName.ToLower()},");
         }
         // Add pagination parameters
         sb.AppendLine("       [FromQuery] int pageNumber = 1,");

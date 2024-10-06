@@ -4,11 +4,12 @@ using {selectns}.Common.Entities;
 using {selectns}.Common.Attributes;
 
 namespace {namespace};
+#nullable disable warnings
 
 public class {itemname} : BaseAuditableEntity
 {
     [Scaffolding(PropRole.Identifier)]
-    public string FirstName { get; set; }
+    public string FirstName { get; set; } = string.Empty;
 
     [Scaffolding(PropRole.Searchable)]
     public string LastName { get; set; }

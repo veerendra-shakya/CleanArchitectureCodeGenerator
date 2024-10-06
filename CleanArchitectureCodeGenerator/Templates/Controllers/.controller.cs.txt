@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
 
 namespace {{ namespacename }};
+#nullable disable warnings
 
 [Route("api/[controller]")]
 [ApiController]

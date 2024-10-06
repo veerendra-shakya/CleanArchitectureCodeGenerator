@@ -2,6 +2,7 @@
 using CleanArchitecture.CodeGenerator.Configuration;
 using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
+using CleanArchitecture.CodeGenerator.ScribanCoder;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -158,20 +159,14 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
 
         private void DeleteFiles(CSharpClassObject modalClassObject, string modalClassName, string modalClassNamePlural, string domainProjectDir, string infrastructureProjectDir, string applicationProjectDir, string uiProjectDir)
         {
-            var eventPaths = new[]
+            var domainProjectPaths = new[]
             {
                 $"Events/{modalClassName}CreatedEvent.cs",
                 $"Events/{modalClassName}DeletedEvent.cs",
                 $"Events/{modalClassName}UpdatedEvent.cs"
             };
 
-            var configPaths = new[]
-            {
-                $"Persistence/Configurations/{modalClassName}Configuration.cs",
-                $"PermissionSet/{modalClassNamePlural}.cs"
-            };
-
-            var featurePaths = new[]
+            var applicationProjectPaths = new[]
             {
                 $"Features/{modalClassNamePlural}/Commands/AddEdit/AddEdit{modalClassName}Command.cs",
                 $"Features/{modalClassNamePlural}/Commands/AddEdit/AddEdit{modalClassName}CommandValidator.cs",
@@ -195,20 +190,30 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                 $"Features/{modalClassNamePlural}/Queries/GetAll/GetAll{modalClassNamePlural}Query.cs",
                 $"Features/{modalClassNamePlural}/Queries/GetById/Get{modalClassName}ByIdQuery.cs",
                 $"Features/{modalClassNamePlural}/Queries/Pagination/{modalClassNamePlural}PaginationQuery.cs",
+                $"Common/Interfaces/DataAccess/I{modalClassName}Service.cs"
             };
 
-            var pagePaths = new[]
+            var infrastructureProjectPaths = new[]
+{
+                $"Persistence/Configurations/{modalClassName}Configuration.cs",
+                $"PermissionSet/{modalClassNamePlural}.cs",
+                $"Services/DataAccess/{modalClassName}Service.cs"
+            };
+
+            var uiProjectPaths = new[]
             {
                 $"Pages/{modalClassNamePlural}/{modalClassNamePlural}.razor",
                 $"Pages/{modalClassNamePlural}/Components/{modalClassName}FormDialog.razor",
-                $"Pages/{modalClassNamePlural}/Components/{modalClassNamePlural}AdvancedSearchComponent.razor"
+                $"Pages/{modalClassNamePlural}/Components/{modalClassNamePlural}AdvancedSearchComponent.razor",
+                $"Controllers/{modalClassName}Controller.cs",
+                $"Components/Autocompletes/{modalClassName}Autocomplete.razor.cs",
             };
 
+            ProcessFiles(modalClassObject, domainProjectPaths, domainProjectDir);
+            ProcessFiles(modalClassObject, applicationProjectPaths, applicationProjectDir);
+            ProcessFiles(modalClassObject, infrastructureProjectPaths, infrastructureProjectDir);
+            ProcessFiles(modalClassObject, uiProjectPaths, uiProjectDir);
 
-            ProcessFiles(modalClassObject, eventPaths, domainProjectDir);
-            ProcessFiles(modalClassObject, configPaths, infrastructureProjectDir);
-            ProcessFiles(modalClassObject, featurePaths, applicationProjectDir);
-            ProcessFiles(modalClassObject, pagePaths, uiProjectDir);
 
             Console.WriteLine($"\n--------------------- {modalClassName} Update DbContext Started...  --------------------");
             Update_DbContext dbContextModifier = new Update_DbContext();

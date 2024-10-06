@@ -2,6 +2,7 @@
 using {selectns}.Common.Attributes;
 
 namespace {namespace};
+#nullable disable warnings
 
 public class {itemname} : BaseAuditableEntity
 {

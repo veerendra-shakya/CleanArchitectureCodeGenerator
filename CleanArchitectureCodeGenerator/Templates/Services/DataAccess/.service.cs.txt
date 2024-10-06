@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using {rootnamespace}.{applicationprojectname}.Common.Interfaces.DataAccess;
 using {rootnamespace}.{applicationprojectname}.Features.{nameofPlural}.Caching;
 using {rootnamespace}.{applicationprojectname}.Features.{nameofPlural}.DTOs;
 using ZiggyCreatures.Caching.Fusion;
 
 namespace {namespace};
+#nullable disable warnings
 
 public class {itemname}Service : I{itemname}Service
 {
@@ -47,4 +49,3 @@ public class {itemname}Service : I{itemname}Service
         OnChange?.Invoke();
     }
 }
-

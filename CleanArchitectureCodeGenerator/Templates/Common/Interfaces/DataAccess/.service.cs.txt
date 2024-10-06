@@ -1,6 +1,7 @@
 ﻿using {selectns}.{nameofPlural}.DTOs;
 
 namespace {namespace};
+#nullable disable warnings
 
 public interface I{itemname}Service
 {
