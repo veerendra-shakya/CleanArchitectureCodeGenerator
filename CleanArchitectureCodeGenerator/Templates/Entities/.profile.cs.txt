@@ -17,7 +17,7 @@ public class {itemname} : BaseAuditableEntity
 
     public int Height { get; set; }
 
-    public int StudentId { get; set; }
+    public Guid StudentId { get; set; }
     [Scaffolding(PropRole.Relationship, RelationshipType.OneToOne, inverseProperty: "Profile", foreignKeyProperty: "Id", deleteAction: DeleteBehavior.Cascade)]
     public virtual DemoStudent Student { get; set; }
 }

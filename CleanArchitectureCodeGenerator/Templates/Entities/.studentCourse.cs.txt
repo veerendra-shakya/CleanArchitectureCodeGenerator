@@ -7,10 +7,10 @@ namespace {namespace};
 
 public class {itemname}
 {
-    public int StudentId { get; set; }
+    public Guid StudentId { get; set; }
     public virtual DemoStudent? Student { get; set; }
 
-    public int CourseId { get; set; }
+    public Guid CourseId { get; set; }
     public virtual DemoCourse? Course { get; set; }
 
 }

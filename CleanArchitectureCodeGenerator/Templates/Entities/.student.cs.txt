@@ -22,7 +22,7 @@ public class {itemname} : BaseAuditableEntity
     public virtual DemoProfile Profile { get; set; }
 
     // Foreign Key for Many-to-One Relationship with DemoSchool
-    public int SchoolId { get; set; }
+    public Guid SchoolId { get; set; }
     [Scaffolding(role: PropRole.Relationship, relationship: RelationshipType.ManyToOne, inverseProperty: "Students", foreignKeyProperty: "SchoolId",deleteAction: DeleteBehavior.Restrict)]
     public virtual DemoSchool School { get; set; }
 
