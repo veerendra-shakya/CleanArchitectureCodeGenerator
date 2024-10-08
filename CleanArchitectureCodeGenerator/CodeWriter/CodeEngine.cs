@@ -120,20 +120,20 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
         private void GenerateTargetPaths(CSharpClassObject modalClassObject, string modalClassName, string modalClassNamePlural)
         {
             #region Setup Basic Application Paths
-            var eventPaths = new[]
+            var domainPaths = new[]
 {
                 $"Events/{modalClassName}CreatedEvent.cs",
                 $"Events/{modalClassName}DeletedEvent.cs",
                 $"Events/{modalClassName}UpdatedEvent.cs"
             };
 
-            var configPaths = new[]
+            var infrastructurePaths = new[]
             {
                 $"Persistence/Configurations/{modalClassName}Configuration.cs",
                 $"PermissionSet/{modalClassNamePlural}.cs"
             };
 
-            var featurePaths = new[]
+            var applicationPaths = new[]
             {
                 $"Features/{modalClassNamePlural}/Commands/AddEdit/AddEdit{modalClassName}Command.cs",
                 $"Features/{modalClassNamePlural}/Commands/AddEdit/AddEdit{modalClassName}CommandValidator.cs",
@@ -159,7 +159,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                 $"Features/{modalClassNamePlural}/Queries/Pagination/{modalClassNamePlural}PaginationQuery.cs"
             };
 
-            var pagePaths = new[]
+            var UI_Paths = new[]
             {
                 $"Pages/{modalClassNamePlural}/{modalClassNamePlural}.razor",
                 $"Pages/{modalClassNamePlural}/Components/{modalClassName}FormDialog.razor",
@@ -167,10 +167,10 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             };
             #endregion
 
-            ProcessFiles(modalClassObject, eventPaths, ApplicationHelper.DomainProjectDirectory);
-            ProcessFiles(modalClassObject, configPaths, ApplicationHelper.InfrastructureProjectDirectory);
-            ProcessFiles(modalClassObject, featurePaths, ApplicationHelper.ApplicationProjectDirectory);
-            ProcessFiles(modalClassObject, pagePaths, ApplicationHelper.UiProjectDirectory);
+            ProcessFiles(modalClassObject, domainPaths, ApplicationHelper.DomainProjectDirectory);
+            ProcessFiles(modalClassObject, infrastructurePaths, ApplicationHelper.InfrastructureProjectDirectory);
+            ProcessFiles(modalClassObject, applicationPaths, ApplicationHelper.ApplicationProjectDirectory);
+            ProcessFiles(modalClassObject, UI_Paths, ApplicationHelper.UiProjectDirectory);
 
             #region Generate Services for Data Access
             Console.WriteLine($"\n--------------------- Generating Services...  --------------------");
@@ -181,6 +181,8 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             AutocompleteRazorComponent.Generate(modalClassObject, $"Components/Autocompletes/{modalClassName}Autocomplete.razor.cs", ApplicationHelper.UiProjectDirectory);
             API_Controller.Generate(modalClassObject, $"Controllers/{modalClassName}Controller.cs", ApplicationHelper.UiProjectDirectory);
             Console.WriteLine($"\n--------------------- Services Generated  --------------------");
+
+
 
             #endregion
 
@@ -194,8 +196,11 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
 
             #region Generate Additional Requirments
 
-                //check if any property having many to many relationship then create linking table configurations
-                Ef_LinkingTableConfigurationsGenerator.GenerateConfigurations(modalClassObject);
+            var menuItemAdder = new MenuItemManager();
+            menuItemAdder.AddMenuItem(modalClassName, $"/pages/{modalClassNamePlural}");
+
+            //check if any property having many to many relationship then create linking table configurations
+            Ef_LinkingTableConfigurationsGenerator.GenerateConfigurations(modalClassObject);
 
             #endregion
 

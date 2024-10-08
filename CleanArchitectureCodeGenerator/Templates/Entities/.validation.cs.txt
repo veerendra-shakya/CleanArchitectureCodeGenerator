@@ -32,10 +32,10 @@ public class {itemname} : BaseAuditableEntity, IAuditTrial
     [Range(0, 100, ErrorMessage = "Age must be between 0 and 100")]
     public int Age { get; set; }
 
-    [Display(Name = "Biography")]
-    [Description("Short biography of the author")]
+    [Display(Name = "Occupation")]
+    [Description("Short Occupation of the author")]
     [MaxLength(1000)]
-    public string Biography { get; set; }
+    public string Occupation { get; set; }
 
     [Display(Name = "Email Address")]
     [Description("Email address of the author")]
