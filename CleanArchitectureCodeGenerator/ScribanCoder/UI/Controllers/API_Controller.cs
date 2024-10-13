@@ -3,22 +3,15 @@ using CleanArchitecture.CodeGenerator.Models;
 using Scriban;
 using System.Text;
 
-namespace CleanArchitecture.CodeGenerator.ScribanCoder;
+namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Controllers;
 
 public static class API_Controller
 {
     public static void Generate(CSharpClassObject modalClassObject, string relativeTargetPath, string targetProjectDirectory)
     {
-        if (!Utility.ValidatePath(relativeTargetPath, targetProjectDirectory))
+        FileInfo? targetFile = Helper.GetFileInfo(relativeTargetPath, targetProjectDirectory);
+        if (targetFile == null)
         {
-            return;
-        }
-
-        FileInfo targetFile = new FileInfo(Path.Combine(targetProjectDirectory, relativeTargetPath));
-
-        if (targetFile.Exists)
-        {
-            Console.WriteLine($"The file '{targetFile.FullName}' already exists.");
             return;
         }
 
@@ -27,11 +20,11 @@ public static class API_Controller
             var relativePath = Utility.MakeRelativePath(ApplicationHelper.RootDirectory, Path.GetDirectoryName(targetFile.FullName) ?? "");
             string templateFilePath = Utility.GetTemplateFile(relativePath, targetFile.FullName);
             string templateContent = File.ReadAllText(templateFilePath, Encoding.UTF8);
-            string NamespaceName = Utility.GetNameSpace(relativePath);
+            string NamespaceName = Helper.GetNamespace(relativePath);
 
             string codeofgetfunction = ComposeGetFunction(modalClassObject);
             string returnstring = ComposeReturnString(modalClassObject);
-            
+
             // Initialize MasterData object
             var masterdata = new
             {
@@ -47,11 +40,11 @@ public static class API_Controller
                 uiprojectdirectory = ApplicationHelper.UiProjectDirectory,
                 applicationprojectdirectory = ApplicationHelper.ApplicationProjectDirectory,
                 modelnameplural = modalClassObject.Name.Pluralize(),
-               // modelnameplurallower = modalClassObject.Name.Pluralize().ToLower(),
+                // modelnameplurallower = modalClassObject.Name.Pluralize().ToLower(),
                 modelname = modalClassObject.Name,
                 modelnamelower = modalClassObject.Name.ToLower(),
-                codeofgetfunction = codeofgetfunction,
-                returnstring = returnstring,
+                codeofgetfunction,
+                returnstring,
             };
 
             // Parse and render the class template
@@ -61,7 +54,9 @@ public static class API_Controller
             if (!string.IsNullOrEmpty(generatedClass))
             {
                 Utility.WriteToDiskAsync(targetFile.FullName, generatedClass);
+                Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine($"Created file: {targetFile.FullName}");
+                Console.ResetColor();
             }
         }
         catch (Exception ex)
@@ -72,7 +67,7 @@ public static class API_Controller
         }
     }
 
-  
+
 
     private static string ComposeGetFunction(CSharpClassObject model)
     {
@@ -84,7 +79,7 @@ public static class API_Controller
             // Insert masterProperty at the beginning of the list
             searchableProperties.Insert(0, masterProperty);
         }
-   
+
         var sb = new StringBuilder();
 
         // Start the method definition
@@ -94,7 +89,7 @@ public static class API_Controller
         for (int i = 0; i < searchableProperties.Count; i++)
         {
             var prop = searchableProperties[i];
-            sb.AppendLine($"       [FromQuery] {prop.Type.TypeName.Replace("?","")}? {prop.PropertyName.ToLower()},");
+            sb.AppendLine($"       [FromQuery] {prop.Type.TypeName.Replace("?", "")}? {prop.PropertyName.ToLower()},");
         }
         // Add pagination parameters
         sb.AppendLine("       [FromQuery] int pageNumber = 1,");

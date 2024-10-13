@@ -1,10 +1,10 @@
-﻿namespace {namespace};
+﻿namespace {{ namespacename }};
 
-public class AddEdit{itemname}CommandValidator : AbstractValidator<AddEdit{itemname}Command>
+public class AddEdit{{ modelname }}CommandValidator : AbstractValidator<AddEdit{{ modelname }}Command>
 {
-    public AddEdit{itemname}CommandValidator()
+    public AddEdit{{ modelname }}CommandValidator()
     {
-        {fluentValidation}
+        {{ fluentvalidation }}
     }
 }
 

@@ -2,11 +2,7 @@
 using CleanArchitecture.CodeGenerator.Configuration;
 using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
-using CleanArchitecture.CodeGenerator.ScribanCoder;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+
 
 namespace CleanArchitecture.CodeGenerator.CodeWriter
 {
@@ -135,8 +131,8 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
 
             var applicationPaths = new[]
             {
-                $"Features/{modalClassNamePlural}/Commands/AddEdit/AddEdit{modalClassName}Command.cs",
-                $"Features/{modalClassNamePlural}/Commands/AddEdit/AddEdit{modalClassName}CommandValidator.cs",
+                //$"Features/{modalClassNamePlural}/Commands/AddEdit/AddEdit{modalClassName}Command.cs",
+                //$"Features/{modalClassNamePlural}/Commands/AddEdit/AddEdit{modalClassName}CommandValidator.cs",
                 $"Features/{modalClassNamePlural}/Commands/Create/Create{modalClassName}Command.cs",
                 $"Features/{modalClassNamePlural}/Commands/Create/Create{modalClassName}CommandValidator.cs",
                 $"Features/{modalClassNamePlural}/Commands/Delete/Delete{modalClassName}Command.cs",
@@ -162,7 +158,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             var UI_Paths = new[]
             {
                 $"Pages/{modalClassNamePlural}/{modalClassNamePlural}.razor",
-                $"Pages/{modalClassNamePlural}/Components/{modalClassName}FormDialog.razor",
+                //$"Pages/{modalClassNamePlural}/Components/{modalClassName}FormDialog.razor",
                 $"Pages/{modalClassNamePlural}/Components/{modalClassNamePlural}AdvancedSearchComponent.razor"
             };
             #endregion
@@ -172,14 +168,47 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             ProcessFiles(modalClassObject, applicationPaths, ApplicationHelper.ApplicationProjectDirectory);
             ProcessFiles(modalClassObject, UI_Paths, ApplicationHelper.UiProjectDirectory);
 
+
+            #region Scriban Coder
+            ScribanCoder.Application.Features.Commands.AddEdit.AddEditCommand.Generate(
+                modalClassObject,
+                $"Features/{modalClassNamePlural}/Commands/AddEdit/AddEdit{modalClassName}Command.cs",
+                ApplicationHelper.ApplicationProjectDirectory
+                );
+
+            ScribanCoder.Application.Features.Commands.AddEdit.AddEditCommandValidator.Generate(
+                modalClassObject,
+                $"Features/{modalClassNamePlural}/Commands/AddEdit/AddEdit{modalClassName}CommandValidator.cs",
+                ApplicationHelper.ApplicationProjectDirectory
+                );
+
+
+            ScribanCoder.UI.Controllers.API_Controller.Generate(
+                modalClassObject, 
+                $"Controllers/{modalClassName}Controller.cs", 
+                ApplicationHelper.UiProjectDirectory
+                );
+            
+            ScribanCoder.UI.Components.Autocompletes.AutocompleteRazorComponent.Generate(
+                modalClassObject, 
+                $"Components/Autocompletes/{modalClassName}Autocomplete.razor.cs", 
+                ApplicationHelper.UiProjectDirectory
+                );
+            
+            ScribanCoder.UI.Pages.FormDialog_razor.Generate(
+                modalClassObject, 
+                $"Pages/{modalClassNamePlural}/Components/{modalClassName}FormDialog.razor", 
+                ApplicationHelper.UiProjectDirectory
+                );
+
+            #endregion
+
             #region Generate Services for Data Access
             Console.WriteLine($"\n--------------------- Generating Services...  --------------------");
             GenerateCodeFile(modalClassObject, $"Common/Interfaces/DataAccess/I{modalClassName}Service.cs", ApplicationHelper.ApplicationProjectDirectory);
             GenerateCodeFile(modalClassObject, $"Services/DataAccess/{modalClassName}Service.cs", ApplicationHelper.InfrastructureProjectDirectory);
-           // GenerateCodeFile(modalClassObject, $"Components/Autocompletes/{modalClassName}Autocomplete.razor.cs", ApplicationHelper.UiProjectDirectory);
-            
-            AutocompleteRazorComponent.Generate(modalClassObject, $"Components/Autocompletes/{modalClassName}Autocomplete.razor.cs", ApplicationHelper.UiProjectDirectory);
-            API_Controller.Generate(modalClassObject, $"Controllers/{modalClassName}Controller.cs", ApplicationHelper.UiProjectDirectory);
+            // GenerateCodeFile(modalClassObject, $"Components/Autocompletes/{modalClassName}Autocomplete.razor.cs", ApplicationHelper.UiProjectDirectory);
+
             Console.WriteLine($"\n--------------------- Services Generated  --------------------");
 
 
@@ -188,10 +217,10 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
 
             #region Update DbContext
             Console.WriteLine($"\n--------------------- {modalClassObject} Update DbContext Started...  --------------------");
-                Update_DbContext dbContextModifier = new Update_DbContext();
-                var paths = dbContextModifier.SearchDbContextFiles(ApplicationHelper.RootDirectory);
-                dbContextModifier.AddEntityProperty(paths, modalClassName);
-                Console.WriteLine($"---------------------  Update DbContext Completed...  --------------------\n");
+            Update_DbContext dbContextModifier = new Update_DbContext();
+            var paths = dbContextModifier.SearchDbContextFiles(ApplicationHelper.RootDirectory);
+            dbContextModifier.AddEntityProperty(paths, modalClassName);
+            Console.WriteLine($"---------------------  Update DbContext Completed...  --------------------\n");
             #endregion
 
             #region Generate Additional Requirments

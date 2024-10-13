@@ -3,22 +3,15 @@ using CleanArchitecture.CodeGenerator.Models;
 using Scriban;
 using System.Text;
 
-namespace CleanArchitecture.CodeGenerator.ScribanCoder;
+namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Components.Autocompletes;
 
 public static class AutocompleteRazorComponent
 {
     public static void Generate(CSharpClassObject modalClassObject, string relativeTargetPath, string targetProjectDirectory)
     {
-        if (!Utility.ValidatePath(relativeTargetPath, targetProjectDirectory))
+        FileInfo? targetFile = Helper.GetFileInfo(relativeTargetPath, targetProjectDirectory);
+        if (targetFile == null)
         {
-            return;
-        }
-
-        FileInfo targetFile = new FileInfo(Path.Combine(targetProjectDirectory, relativeTargetPath));
-
-        if (targetFile.Exists)
-        {
-            Console.WriteLine($"The file '{targetFile.FullName}' already exists.");
             return;
         }
 
@@ -27,18 +20,12 @@ public static class AutocompleteRazorComponent
             var relativePath = Utility.MakeRelativePath(ApplicationHelper.RootDirectory, Path.GetDirectoryName(targetFile.FullName) ?? "");
             string templateFilePath = Utility.GetTemplateFile(relativePath, targetFile.FullName);
             string templateContent = File.ReadAllText(templateFilePath, Encoding.UTF8);
-
-            var NamespaceName = ApplicationHelper.RootNamespace;
-            if (!string.IsNullOrEmpty(relativePath))
-            {
-                NamespaceName += "." + Utility.RelativePath_To_Namespace(relativePath);
-            }
-            NamespaceName = NamespaceName.TrimEnd('.');
+            string NamespaceName = Helper.GetNamespace(relativePath);
 
             string querystring = ComposeQueryString(modalClassObject);
             string returnstring = ComposeReturnString(modalClassObject);
             // Initialize MasterData object
-            var masterdata = new 
+            var masterdata = new
             {
                 rootdirectory = ApplicationHelper.RootDirectory,
                 rootnamespace = ApplicationHelper.RootNamespace,
@@ -53,8 +40,8 @@ public static class AutocompleteRazorComponent
                 applicationprojectdirectory = ApplicationHelper.ApplicationProjectDirectory,
                 modelnameplural = modalClassObject.Name.Pluralize(),
                 modelname = modalClassObject.Name,
-                querystring = querystring,
-                returnstring = returnstring,
+                querystring,
+                returnstring,
             };
 
             // Parse and render the class template
@@ -64,10 +51,10 @@ public static class AutocompleteRazorComponent
             if (!string.IsNullOrEmpty(generatedClass))
             {
                 Utility.WriteToDiskAsync(targetFile.FullName, generatedClass);
+                Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine($"Created file: {targetFile.FullName}");
+                Console.ResetColor();
             }
-
-
         }
         catch (Exception ex)
         {
@@ -76,6 +63,8 @@ public static class AutocompleteRazorComponent
             Console.ResetColor();
         }
     }
+
+
 
     private static string ComposeQueryString(CSharpClassObject model)
     {
@@ -91,7 +80,7 @@ public static class AutocompleteRazorComponent
         var sb = new StringBuilder();
 
         // Start composing the query string dynamically
-        sb.Append($"result = _{model.Name}List")
+        sb.Append($"result = _list_{model.Name}")
           .AppendLine()
           .Append("    .Where(x => $\"");
 
@@ -110,7 +99,7 @@ public static class AutocompleteRazorComponent
         sb.AppendLine("\"")
           .Append("    .Contains(value, StringComparison.OrdinalIgnoreCase))")
           .AppendLine()
-          .Append("    .Select(x => (Guid?)x.Id).ToList();");
+          .Append("    .Select(x => (Guid)x.Id).ToList();");
 
         return sb.ToString();
     }

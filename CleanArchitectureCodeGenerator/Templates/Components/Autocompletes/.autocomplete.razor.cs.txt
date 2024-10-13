@@ -1,16 +1,19 @@
 using {{ rootnamespace }}.{{ applicationprojectname }}.Common.Interfaces.DataAccess;
 using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.DTOs;
+using Microsoft.AspNetCore.Components.Rendering;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace {{ namespacename }};
 #nullable disable warnings
 
-public class {{ modelname }}Autocomplete : MudAutocomplete<Guid?>
+public class {{ modelname }}Autocomplete : MudAutocomplete<Guid>
 {
     
     [Inject]
     private I{{ modelname }}Service DataProvider { get; set; } = default!;
 
-    private List<{{ modelname }}Dto>? _{{ modelname }}List;
+    private List<{{ modelname }}Dto>? _list_{{ modelname }};
+    private bool _isLoading = false;
     
     public {{ modelname }}Autocomplete()
     {
@@ -24,43 +27,98 @@ public class {{ modelname }}Autocomplete : MudAutocomplete<Guid?>
     
     protected override void OnInitialized()
     {
-        DataProvider.OnChange += {{ modelname }}Service_OnChange;
+        DataProvider.OnChange += {{ modelname }}Service_OnChangeAsync;
     }
 
-    private void {{ modelname }}Service_OnChange()
+    private async void {{ modelname }}Service_OnChangeAsync()
     {
-        InvokeAsync(StateHasChanged);
+        await Task.Delay(1000);
+        _list_{{ modelname }} = DataProvider.DataSource.ToList();
+        _isLoading = false;
+        await InvokeAsync(StateHasChanged);
     }
    
     protected override void Dispose(bool disposing)
     {
-        DataProvider.OnChange -= {{ modelname }}Service_OnChange;
+        DataProvider.OnChange -= {{ modelname }}Service_OnChangeAsync;
         base.Dispose(disposing);
     }
 
-    private Task<IEnumerable<Guid?>> SearchKeyValues(string value, CancellationToken cancellation)
+    private Task<IEnumerable<Guid>> SearchKeyValues(string value, CancellationToken cancellation)
     {
-        _{{ modelname }}List = DataProvider.DataSource.ToList();
-        var result = new List<Guid?>();
-        if (_{{ modelname }}List is not null && string.IsNullOrEmpty(value))
+        _list_{{ modelname }} = DataProvider.DataSource.ToList();
+        var result = new List<Guid>();
+        if (_list_{{ modelname }} is not null && string.IsNullOrEmpty(value))
         {
-            result = _{{ modelname }}List.Select(x => (Guid?)x.Id).ToList();
+            result = _list_{{ modelname }}.Select(x => (Guid)x.Id).ToList();
         }
-        else if(_{{ modelname }}List is not null)
+        else if(_list_{{ modelname }} is not null)
         {
             {{ querystring }}
         }
         return Task.FromResult(result.AsEnumerable());
     }
 
-    private string ToString(Guid? id)
+    private string ToString(Guid id)
     {
-        if (id.HasValue)
+        if (id != Guid.Empty)
         {
             var userDto = DataProvider.DataSource.Find(x => x.Id == id);
             return ${{ returnstring }}
         }
         return string.Empty;
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            StateHasChanged();
+        }
+    }
+
+     // This renders the refresh button next to the dropdown
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    {
+        // Wrap the autocomplete input with a container
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "style", "display: inline-flex; align-items: center; width: 100%;");
+
+        // Add the base MudAutocomplete element
+        base.BuildRenderTree(builder);
+
+        // Render the refresh button or MudProgressCircular depending on loading state
+        if (!_isLoading)
+        {
+            // Render the refresh button
+            builder.OpenComponent<MudIconButton>(2);
+            builder.AddAttribute(3, "Icon", Icons.Material.Filled.Refresh);
+            builder.AddAttribute(4, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, OnRefreshClick));
+            builder.AddAttribute(5, "Color", Color.Info);
+            builder.AddAttribute(6, "Size", Size.Small);
+            builder.AddAttribute(7, "Title", "Refresh Data");
+            builder.AddAttribute(8, "Style", "margin-left: 8px; margin-top: 8px;");
+            builder.CloseComponent();
+        }
+        else
+        {
+            // Render MudProgressCircular while loading
+            builder.OpenComponent<MudProgressCircular>(9);
+            builder.AddAttribute(10, "Size", Size.Small);
+            builder.AddAttribute(11, "Style", "margin-left: 8px; margin-top: 8px;");
+            builder.AddAttribute(12, "Color", Color.Info);
+            builder.AddAttribute(13, "Indeterminate", true); // Circular progress spins indefinitely
+            builder.CloseComponent();
+        }
+
+        builder.CloseElement(); // Close container
+    }
+
+    // Handler for the refresh button click
+    private void OnRefreshClick()
+    {
+        _isLoading = true; // Set loading state to true
+        DataProvider.Refresh(); // Call refresh method
     }
 
 }

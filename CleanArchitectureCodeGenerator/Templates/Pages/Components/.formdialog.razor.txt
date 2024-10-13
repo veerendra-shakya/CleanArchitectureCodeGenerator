@@ -1,15 +1,15 @@
-﻿@using CleanArchitecture.Blazor.Application.Features.{nameofPlural}.Commands.AddEdit
+﻿@using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Commands.AddEdit
 
 @inherits MudComponentBase
 @inject IValidationService Validator
-@inject IStringLocalizer<{nameofPlural}> L
+@inject IStringLocalizer<{{ modelnameplural }}> L
 
 <MudDialog>
     <DialogContent>
         <MudForm Model="@model" @ref="@_form" Validation="@(Validator.ValidateValue(model))">
             <MudGrid>
                 @*TODO: define mudform that should be edit fields, for example:*@
-                {mudFormFieldDefinition}
+                {{ mudformfielddefinition }}
             </MudGrid>
         </MudForm>
     </DialogContent>
@@ -26,8 +26,8 @@
     private bool _savingnew = false;
     [CascadingParameter]
     MudDialogInstance MudDialog { get; set; } = default!;
-    AddEdit{itemname}CommandValidator _modelValidator = new ();
-    [EditorRequired] [Parameter] public AddEdit{itemname}Command model { get; set; } = null!;
+    AddEdit{{ modelname }}CommandValidator _modelValidator = new ();
+    [EditorRequired] [Parameter] public AddEdit{{ modelname }}Command model { get; set; } = null!;
     async Task Submit()
     {
         try
@@ -65,7 +65,7 @@
             {
                 Snackbar.Add(ConstantString.SaveSuccess, MudBlazor.Severity.Info);
                 await Task.Delay(300);
-                model = new AddEdit{itemname}Command() { };
+                model = new AddEdit{{ modelname }}Command() { };
             }
             else
             {

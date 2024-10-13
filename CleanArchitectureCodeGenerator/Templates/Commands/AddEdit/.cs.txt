@@ -1,37 +1,36 @@
-﻿using {selectns}.{nameofPlural}.DTOs;
-using {selectns}.{nameofPlural}.Caching;
+﻿using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.DTOs;
+using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Caching;
 
-namespace {namespace};
+namespace {{ namespacename }};
 #nullable disable warnings
 
-public class AddEdit{itemname}Command: ICacheInvalidatorRequest<Result<Guid>>
+public class AddEdit{{ modelname }}Command: ICacheInvalidatorRequest<Result<Guid>>
 {
       [Description("Id")]
       public Guid Id { get; set; }
-      {dtoFieldDefinition}
+      {{ dtofielddefinition }}
 
-      public string CacheKey => {itemname}CacheKey.GetAllCacheKey;
-      public CancellationTokenSource? SharedExpiryTokenSource => {itemname}CacheKey.GetOrCreateTokenSource();
+      public string CacheKey => {{ modelname }}CacheKey.GetAllCacheKey;
+      public CancellationTokenSource? SharedExpiryTokenSource => {{ modelname }}CacheKey.GetOrCreateTokenSource();
 
     private class Mapping : Profile
     {
         public Mapping()
         {
-            CreateMap<{itemname}Dto,AddEdit{itemname}Command>(MemberList.None);
-            CreateMap<AddEdit{itemname}Command,{itemname}>(MemberList.None);
-         
+            CreateMap<{{ modelname }}Dto,AddEdit{{ modelname }}Command>(MemberList.None);
+            CreateMap<AddEdit{{ modelname }}Command,{{ modelname }}>(MemberList.None);
         }
     }
 }
 
-    public class AddEdit{itemname}CommandHandler : IRequestHandler<AddEdit{itemname}Command, Result<Guid>>
+    public class AddEdit{{ modelname }}CommandHandler : IRequestHandler<AddEdit{{ modelname }}Command, Result<Guid>>
     {
         private readonly IApplicationDbContext _context;
         private readonly IMapper _mapper;
-        private readonly IStringLocalizer<AddEdit{itemname}CommandHandler> _localizer;
-        public AddEdit{itemname}CommandHandler(
+        private readonly IStringLocalizer<AddEdit{{ modelname }}CommandHandler> _localizer;
+        public AddEdit{{ modelname }}CommandHandler(
             IApplicationDbContext context,
-            IStringLocalizer<AddEdit{itemname}CommandHandler> localizer,
+            IStringLocalizer<AddEdit{{ modelname }}CommandHandler> localizer,
             IMapper mapper
             )
         {
@@ -39,23 +38,23 @@ public class AddEdit{itemname}Command: ICacheInvalidatorRequest<Result<Guid>>
             _localizer = localizer;
             _mapper = mapper;
         }
-        public async Task<Result<Guid>> Handle(AddEdit{itemname}Command request, CancellationToken cancellationToken)
+        public async Task<Result<Guid>> Handle(AddEdit{{ modelname }}Command request, CancellationToken cancellationToken)
         {
             if (request.Id != Guid.Empty)
             {
-                var item = await _context.{nameofPlural}.FindAsync(new object[] { request.Id }, cancellationToken) ?? throw new NotFoundException($"{itemname} with id: [{request.Id}] not found.");
+                var item = await _context.{{ modelnameplural }}.FindAsync(new object[] { request.Id }, cancellationToken) ?? throw new NotFoundException($"{{ modelname }} with id: [{request.Id}] not found.");
                 item = _mapper.Map(request, item);
 				// raise a update domain event
-				item.AddDomainEvent(new {itemname}UpdatedEvent(item));
+				item.AddDomainEvent(new {{ modelname }}UpdatedEvent(item));
                 await _context.SaveChangesAsync(cancellationToken);
                 return await Result<Guid>.SuccessAsync(item.Id);
             }
             else
             {
-                var item = _mapper.Map<{itemname}>(request);
+                var item = _mapper.Map<{{ modelname }}>(request);
                 // raise a create domain event
-				item.AddDomainEvent(new {itemname}CreatedEvent(item));
-                _context.{nameofPlural}.Add(item);
+				item.AddDomainEvent(new {{ modelname }}CreatedEvent(item));
+                _context.{{ modelnameplural }}.Add(item);
                 await _context.SaveChangesAsync(cancellationToken);
                 return await Result<Guid>.SuccessAsync(item.Id);
             }

@@ -13,6 +13,11 @@ public class {itemname}Service : I{itemname}Service
     private readonly IApplicationDbContext _context;
     private readonly IFusionCache _fusionCache;
     private readonly IMapper _mapper;
+    private const string CacheKey = "{itemname}DataServicesCacheKey";
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(30);
+
+    public event Action? OnChange;
+    public List<{itemname}Dto> DataSource { get; private set; } = new();
 
     public {itemname}Service(
         IFusionCache fusionCache,
@@ -25,27 +30,29 @@ public class {itemname}Service : I{itemname}Service
         _mapper = mapper;
     }
 
-    public event Action? OnChange;
-    public List<{itemname}Dto> DataSource { get; private set; } = new();
-
-
     public void Initialize()
     {
-        DataSource = _fusionCache.GetOrSet("{itemname}DataServicesCacheKey",
-            _ => _context.{nameofPlural}//.OrderBy(x => x.Name).ThenBy(x => x.Value)
+        DataSource = _fusionCache.GetOrSet(CacheKey,
+            _ => _context.{nameofPlural}
                 .ProjectTo<{itemname}Dto>(_mapper.ConfigurationProvider)
-                .ToList()
+                .AsNoTracking()
+                .ToList(),
+                 CacheDuration
         ) ?? new List<{itemname}Dto>();
     }
 
     public void Refresh()
     {
-        _fusionCache.Remove("{itemname}DataServicesCacheKey");
-        DataSource = _fusionCache.GetOrSet("{itemname}DataServicesCacheKey",
-            _ => _context.{nameofPlural}//.OrderBy(x => x.Name).ThenBy(x => x.Value)
+        _fusionCache.Remove(CacheKey);
+        
+        DataSource = _fusionCache.GetOrSet(CacheKey,
+            _ => _context.{nameofPlural}
                 .ProjectTo<{itemname}Dto>(_mapper.ConfigurationProvider)
-                .ToList()
+                .AsNoTracking()
+                .ToList(),
+                 CacheDuration
         ) ?? new List<{itemname}Dto>();
+        
         OnChange?.Invoke();
     }
 }

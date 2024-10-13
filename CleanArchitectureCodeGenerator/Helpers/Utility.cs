@@ -587,16 +587,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             return typeName;
         }
 
-        public static string GetNameSpace(string relativePath)
-        {
-            var NamespaceName = ApplicationHelper.RootNamespace;
-            if (!string.IsNullOrEmpty(relativePath))
-            {
-                NamespaceName += "." + Utility.RelativePath_To_Namespace(relativePath);
-            }
-            NamespaceName = NamespaceName.TrimEnd('.');
-            return NamespaceName;
-        }
+       
     }
 
 }
