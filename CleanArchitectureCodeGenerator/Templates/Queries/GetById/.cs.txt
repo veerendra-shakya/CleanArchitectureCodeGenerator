@@ -1,27 +1,27 @@
-﻿using {selectns}.{nameofPlural}.DTOs;
-using {selectns}.{nameofPlural}.Caching;
-using {selectns}.{nameofPlural}.Specifications;
+﻿using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.DTOs;
+using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Caching;
+using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Specifications;
 
-namespace {namespace};
+namespace {{ namespacename }};
 
-public class Get{itemname}ByIdQuery : ICacheableRequest<{itemname}Dto>
+public class Get{{ modelname }}ByIdQuery : ICacheableRequest<{{ modelname }}Dto>
 {
    public required Guid Id { get; set; }
-   public string CacheKey => {itemname}CacheKey.GetByIdCacheKey($"{Id}");
-   public MemoryCacheEntryOptions? Options => {itemname}CacheKey.MemoryCacheEntryOptions;
+   public string CacheKey => {{ modelname }}CacheKey.GetByIdCacheKey($"{Id}");
+   public MemoryCacheEntryOptions? Options => {{ modelname }}CacheKey.MemoryCacheEntryOptions;
 }
 
-public class Get{itemname}ByIdQueryHandler :
-     IRequestHandler<Get{itemname}ByIdQuery, {itemname}Dto>
+public class Get{{ modelname }}ByIdQueryHandler :
+     IRequestHandler<Get{{ modelname }}ByIdQuery, {{ modelname }}Dto>
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
-    private readonly IStringLocalizer<Get{itemname}ByIdQueryHandler> _localizer;
+    private readonly IStringLocalizer<Get{{ modelname }}ByIdQueryHandler> _localizer;
 
-    public Get{itemname}ByIdQueryHandler(
+    public Get{{ modelname }}ByIdQueryHandler(
         IApplicationDbContext context,
         IMapper mapper,
-        IStringLocalizer<Get{itemname}ByIdQueryHandler> localizer
+        IStringLocalizer<Get{{ modelname }}ByIdQueryHandler> localizer
         )
     {
         _context = context;
@@ -29,11 +29,11 @@ public class Get{itemname}ByIdQueryHandler :
         _localizer = localizer;
     }
 
-    public async Task<{itemname}Dto> Handle(Get{itemname}ByIdQuery request, CancellationToken cancellationToken)
+    public async Task<{{ modelname }}Dto> Handle(Get{{ modelname }}ByIdQuery request, CancellationToken cancellationToken)
     {
-        var data = await _context.{nameofPlural}
-            .ApplySpecification(new {itemname}ByIdSpecification(request.Id))
-            .ProjectTo<{itemname}Dto>(_mapper.ConfigurationProvider)
+        var data = await _context.{{ modelnameplural }}
+            .ApplySpecification(new {{ modelname }}ByIdSpecification(request.Id))
+            .ProjectTo<{{ modelname }}Dto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(cancellationToken);
         return data;
     }

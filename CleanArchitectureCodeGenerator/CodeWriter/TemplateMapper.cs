@@ -48,9 +48,9 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             SnippetsWriter snippetsWriter = new SnippetsWriter();
             var nameofPlural = Utility.Pluralize(ModalClassObject.Name);
             //var dtoFieldDefinition = snippetsWriter.CreateDtoFieldDefinition(ModalClassObject);
-            var importFuncExpression = snippetsWriter.CreateImportFuncExpression(ModalClassObject);
+            // var importFuncExpression = snippetsWriter.CreateImportFuncExpression(ModalClassObject);
             var templateFieldDefinition = snippetsWriter.CreateTemplateFieldDefinition(ModalClassObject);
-            var exportFuncExpression = snippetsWriter.CreateExportFuncExpression(ModalClassObject);
+           // var exportFuncExpression = snippetsWriter.CreateExportFuncExpression(ModalClassObject);
             var mudTdDefinition = snippetsWriter.CreateMudTdDefinition(ModalClassObject);
             var mudTdHeaderDefinition = snippetsWriter.CreateMudTdHeaderDefinition(ModalClassObject);
            // var mudFormFieldDefinition = snippetsWriter.CreateMudFormFieldDefinition(ModalClassObject);
@@ -58,8 +58,8 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             //var fluentValidation = FluentValidationGenerator.GenerateFluentValidation(ModalClassObject);
             var masterProperty = ModalClassObject.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Identifier").Select(p => p.PropertyName).FirstOrDefault();
             var efConfigurations = Ef_FluentConfigurationsGenerator.GenerateConfigurations(ModalClassObject);
-            var advancedSpecificationQuery = snippetsWriter.CreateAdvancedSpecificationQuery(ModalClassObject);
-            var searchableproperties = snippetsWriter.CreateSearchableProperties(ModalClassObject);
+            //var advancedSpecificationQuery = snippetsWriter.CreateAdvancedSpecificationQuery(ModalClassObject);
+            //var searchableproperties = snippetsWriter.CreateSearchableProperties(ModalClassObject);
 
 
             // Read the template file with UTF-8 encoding
@@ -80,15 +80,15 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             content = content.Replace("{nameofPlural}", nameofPlural);
             //content = content.Replace("{dtoFieldDefinition}", dtoFieldDefinition);
             content = content.Replace("{fieldAssignmentDefinition}", fieldAssignmentDefinition);
-            content = content.Replace("{importFuncExpression}", importFuncExpression);
+            //content = content.Replace("{importFuncExpression}", importFuncExpression);
             content = content.Replace("{templateFieldDefinition}", templateFieldDefinition);
-            content = content.Replace("{exportFuncExpression}", exportFuncExpression);
+            //content = content.Replace("{exportFuncExpression}", exportFuncExpression);
             content = content.Replace("{mudTdDefinition}", mudTdDefinition);
             content = content.Replace("{mudTdHeaderDefinition}", mudTdHeaderDefinition);
            // content = content.Replace("{mudFormFieldDefinition}", mudFormFieldDefinition);
             //content = content.Replace("{fluentValidation}", fluentValidation);
-            content = content.Replace("{advancedSpecificationQuery}", advancedSpecificationQuery);
-            content = content.Replace("{searchableproperties}", searchableproperties);
+            //content = content.Replace("{advancedSpecificationQuery}", advancedSpecificationQuery);
+            //content = content.Replace("{searchableproperties}", searchableproperties);
             content = content.Replace("{masterProperty}", masterProperty);
             content = content.Replace("{efConfigurations}", efConfigurations);
 

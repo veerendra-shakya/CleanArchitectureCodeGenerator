@@ -67,6 +67,7 @@ public static class FormDialog_razor
 
     public static string CreateMudFormFieldDefinition(CSharpClassObject classObject)
     {
+
         var output = new StringBuilder();
         foreach (var property in classObject.ClassProperties.Where(x => x.Type.IsKnownType))
         {

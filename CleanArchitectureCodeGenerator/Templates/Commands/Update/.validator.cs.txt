@@ -1,12 +1,12 @@
-﻿namespace {namespace};
+﻿namespace {{ namespacename }};
 
-public class Update{itemname}CommandValidator : AbstractValidator<Update{itemname}Command>
+public class Update{{ modelname }}CommandValidator : AbstractValidator<Update{{ modelname }}Command>
 {
-    public Update{itemname}CommandValidator()
+    public Update{{ modelname }}CommandValidator()
     {
         RuleFor(v => v.Id).NotNull();
         
-        {fluentValidation}
+        {{ fluentvalidation }}
     }
 }
 

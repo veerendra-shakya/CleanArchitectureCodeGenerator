@@ -1,31 +1,31 @@
-﻿using {selectns}.{nameofPlural}.DTOs;
-using {selectns}.{nameofPlural}.Caching;
-using {selectns}.{nameofPlural}.Specifications;
+﻿using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.DTOs;
+using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Caching;
+using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Specifications;
 
-namespace {namespace};
+namespace {{ namespacename }};
 
-public class {nameofPlural}WithPaginationQuery : {itemname}AdvancedFilter, ICacheableRequest<PaginatedData<{itemname}Dto>>
+public class {{ modelnameplural }}WithPaginationQuery : {{ modelname }}AdvancedFilter, ICacheableRequest<PaginatedData<{{ modelname }}Dto>>
 {
     public override string ToString()
     {
         return $"Listview:{ListView}, Search:{Keyword}, {OrderBy}, {SortDirection}, {PageNumber}, {PageSize}";
     }
-    public string CacheKey => {itemname}CacheKey.GetPaginationCacheKey($"{this}");
-    public MemoryCacheEntryOptions? Options => {itemname}CacheKey.MemoryCacheEntryOptions;
-    public {itemname}AdvancedSpecification Specification => new {itemname}AdvancedSpecification(this);
+    public string CacheKey => {{ modelname }}CacheKey.GetPaginationCacheKey($"{this}");
+    public MemoryCacheEntryOptions? Options => {{ modelname }}CacheKey.MemoryCacheEntryOptions;
+    public {{ modelname }}AdvancedSpecification Specification => new {{ modelname }}AdvancedSpecification(this);
 }
     
-public class {nameofPlural}WithPaginationQueryHandler :
-         IRequestHandler<{nameofPlural}WithPaginationQuery, PaginatedData<{itemname}Dto>>
+public class {{ modelnameplural }}WithPaginationQueryHandler :
+         IRequestHandler<{{ modelnameplural }}WithPaginationQuery, PaginatedData<{{ modelname }}Dto>>
 {
         private readonly IApplicationDbContext _context;
         private readonly IMapper _mapper;
-        private readonly IStringLocalizer<{nameofPlural}WithPaginationQueryHandler> _localizer;
+        private readonly IStringLocalizer<{{ modelnameplural }}WithPaginationQueryHandler> _localizer;
 
-        public {nameofPlural}WithPaginationQueryHandler(
+        public {{ modelnameplural }}WithPaginationQueryHandler(
             IApplicationDbContext context,
             IMapper mapper,
-            IStringLocalizer<{nameofPlural}WithPaginationQueryHandler> localizer
+            IStringLocalizer<{{ modelnameplural }}WithPaginationQueryHandler> localizer
             )
         {
             _context = context;
@@ -33,10 +33,10 @@ public class {nameofPlural}WithPaginationQueryHandler :
             _localizer = localizer;
         }
 
-        public async Task<PaginatedData<{itemname}Dto>> Handle({nameofPlural}WithPaginationQuery request, CancellationToken cancellationToken)
+        public async Task<PaginatedData<{{ modelname }}Dto>> Handle({{ modelnameplural }}WithPaginationQuery request, CancellationToken cancellationToken)
         {
-           var data = await _context.{nameofPlural}.OrderBy($"{request.OrderBy} {request.SortDirection}")
-                                    .ProjectToPaginatedDataAsync<{itemname}, {itemname}Dto>(request.Specification, request.PageNumber, request.PageSize, _mapper.ConfigurationProvider, cancellationToken);
+           var data = await _context.{{ modelnameplural }}.OrderBy($"{request.OrderBy} {request.SortDirection}")
+                                    .ProjectToPaginatedDataAsync<{{ modelname }}, {{ modelname }}Dto>(request.Specification, request.PageNumber, request.PageSize, _mapper.ConfigurationProvider, cancellationToken);
             return data;
         }
 }

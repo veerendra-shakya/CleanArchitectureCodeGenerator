@@ -1,16 +1,16 @@
-﻿namespace {namespace};
+﻿namespace {{ namespacename }};
 
-    public class {itemname}UpdatedEventHandler : INotificationHandler<{itemname}UpdatedEvent>
+    public class {{ modelname }}UpdatedEventHandler : INotificationHandler<{{ modelname }}UpdatedEvent>
     {
-        private readonly ILogger<{itemname}UpdatedEventHandler> _logger;
+        private readonly ILogger<{{ modelname }}UpdatedEventHandler> _logger;
 
-        public {itemname}UpdatedEventHandler(
-            ILogger<{itemname}UpdatedEventHandler> logger
+        public {{ modelname }}UpdatedEventHandler(
+            ILogger<{{ modelname }}UpdatedEventHandler> logger
             )
         {
             _logger = logger;
         }
-        public Task Handle({itemname}UpdatedEvent notification, CancellationToken cancellationToken)
+        public Task Handle({{ modelname }}UpdatedEvent notification, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Domain Event: {DomainEvent}", notification.GetType().FullName);
             return Task.CompletedTask;

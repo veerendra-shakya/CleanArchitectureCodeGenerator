@@ -16,7 +16,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder
             if (!Utility.ValidatePath(relativeTargetPath, targetProjectDirectory))
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Error: Invalid Path '{targetFile.FullName}'.");
+                Console.WriteLine($"Error: Invalid Path '{relativeTargetPath}'.");
                 Console.ResetColor();
                 return null;
             }
@@ -25,7 +25,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder
             if (targetFile.Exists)
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine($"The file '{targetFile.FullName}' already exists.");
+                Console.WriteLine($"The file '{relativeTargetPath}' already exists.");
                 Console.ResetColor();
                 return null;
             }

@@ -1,25 +1,25 @@
-﻿using {selectns}.{nameofPlural}.DTOs;
-using {selectns}.{nameofPlural}.Caching;
+﻿using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.DTOs;
+using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Caching;
 
-namespace {namespace};
+namespace {{ namespacename }};
 
-public class GetAll{nameofPlural}Query : ICacheableRequest<IEnumerable<{itemname}Dto>>
+public class GetAll{{ modelnameplural }}Query : ICacheableRequest<IEnumerable<{{ modelname }}Dto>>
 {
-   public string CacheKey => {itemname}CacheKey.GetAllCacheKey;
-   public MemoryCacheEntryOptions? Options => {itemname}CacheKey.MemoryCacheEntryOptions;
+   public string CacheKey => {{ modelname }}CacheKey.GetAllCacheKey;
+   public MemoryCacheEntryOptions? Options => {{ modelname }}CacheKey.MemoryCacheEntryOptions;
 }
 
-public class GetAll{nameofPlural}QueryHandler :
-     IRequestHandler<GetAll{nameofPlural}Query, IEnumerable<{itemname}Dto>>
+public class GetAll{{ modelnameplural }}QueryHandler :
+     IRequestHandler<GetAll{{ modelnameplural }}Query, IEnumerable<{{ modelname }}Dto>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
-    private readonly IStringLocalizer<GetAll{nameofPlural}QueryHandler> _localizer;
+    private readonly IStringLocalizer<GetAll{{ modelnameplural }}QueryHandler> _localizer;
 
-    public GetAll{nameofPlural}QueryHandler(
+    public GetAll{{ modelnameplural }}QueryHandler(
         IApplicationDbContext context,
         IMapper mapper,
-        IStringLocalizer<GetAll{nameofPlural}QueryHandler> localizer
+        IStringLocalizer<GetAll{{ modelnameplural }}QueryHandler> localizer
         )
     {
         _context = context;
@@ -27,10 +27,10 @@ public class GetAll{nameofPlural}QueryHandler :
         _localizer = localizer;
     }
 
-    public async Task<IEnumerable<{itemname}Dto>> Handle(GetAll{nameofPlural}Query request, CancellationToken cancellationToken)
+    public async Task<IEnumerable<{{ modelname }}Dto>> Handle(GetAll{{ modelnameplural }}Query request, CancellationToken cancellationToken)
     {
-        var data = await _context.{nameofPlural}
-                     .ProjectTo<{itemname}Dto>(_mapper.ConfigurationProvider)
+        var data = await _context.{{ modelnameplural }}
+                     .ProjectTo<{{ modelname }}Dto>(_mapper.ConfigurationProvider)
                      .AsNoTracking()
                      .ToListAsync(cancellationToken);
         return data;

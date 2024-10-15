@@ -8,7 +8,7 @@ public class AddEdit{{ modelname }}Command: ICacheInvalidatorRequest<Result<Guid
 {
       [Description("Id")]
       public Guid Id { get; set; }
-      {{ dtofielddefinition }}
+      {{ commandfielddefinition }}
 
       public string CacheKey => {{ modelname }}CacheKey.GetAllCacheKey;
       public CancellationTokenSource? SharedExpiryTokenSource => {{ modelname }}CacheKey.GetOrCreateTokenSource();

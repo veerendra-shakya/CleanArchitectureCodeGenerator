@@ -1,12 +1,12 @@
-namespace {namespace};
+namespace {{ namespacename }};
 
 #nullable disable warnings
 /// <summary>
-/// Specification class for advanced filtering of {nameofPlural}.
+/// Specification class for advanced filtering of {{ modelnameplural }}.
 /// </summary>
-public class {itemname}AdvancedSpecification : Specification<{itemname}>
+public class {{ modelname }}AdvancedSpecification : Specification<{{ modelname }}>
 {
-    public {itemname}AdvancedSpecification({itemname}AdvancedFilter filter)
+    public {{ modelname }}AdvancedSpecification({{ modelname }}AdvancedFilter filter)
     {
         var today = DateTime.Now.ToUniversalTime().Date;
         var start = Convert.ToDateTime(today.ToString("yyyy-MM-dd", CultureInfo.CurrentCulture) + " 00:00:00",
@@ -17,7 +17,7 @@ public class {itemname}AdvancedSpecification : Specification<{itemname}>
             today.AddDays(-30).ToString("yyyy-MM-dd", CultureInfo.CurrentCulture) + " 00:00:00",
             CultureInfo.CurrentCulture);
 
-       {advancedSpecificationQuery}
+       {{ advancedspecificationquery }}
     
     }
 }

@@ -1,27 +1,27 @@
-﻿using {selectns}.{nameofPlural}.DTOs;
-using {selectns}.{nameofPlural}.Specifications;
-using {selectns}.{nameofPlural}.Queries.Pagination;
+﻿using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.DTOs;
+using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Specifications;
+using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Queries.Pagination;
 
-namespace {namespace};
+namespace {{ namespacename }};
 
-public class Export{nameofPlural}Query : {itemname}AdvancedFilter, IRequest<Result<byte[]>>
+public class Export{{ modelnameplural }}Query : {{ modelname }}AdvancedFilter, IRequest<Result<byte[]>>
 {
-      public {itemname}AdvancedSpecification Specification => new {itemname}AdvancedSpecification(this);
+      public {{ modelname }}AdvancedSpecification Specification => new {{ modelname }}AdvancedSpecification(this);
 }
     
-public class Export{nameofPlural}QueryHandler :
-         IRequestHandler<Export{nameofPlural}Query, Result<byte[]>>
+public class Export{{ modelnameplural }}QueryHandler :
+         IRequestHandler<Export{{ modelnameplural }}Query, Result<byte[]>>
 {
         private readonly IApplicationDbContext _context;
         private readonly IMapper _mapper;
         private readonly IExcelService _excelService;
-        private readonly IStringLocalizer<Export{nameofPlural}QueryHandler> _localizer;
-        private readonly {itemname}Dto _dto = new();
-        public Export{nameofPlural}QueryHandler(
+        private readonly IStringLocalizer<Export{{ modelnameplural }}QueryHandler> _localizer;
+        private readonly {{ modelname }}Dto _dto = new();
+        public Export{{ modelnameplural }}QueryHandler(
             IApplicationDbContext context,
             IMapper mapper,
             IExcelService excelService,
-            IStringLocalizer<Export{nameofPlural}QueryHandler> localizer
+            IStringLocalizer<Export{{ modelnameplural }}QueryHandler> localizer
             )
         {
             _context = context;
@@ -30,18 +30,18 @@ public class Export{nameofPlural}QueryHandler :
             _localizer = localizer;
         }
         #nullable disable warnings
-        public async Task<Result<byte[]>> Handle(Export{nameofPlural}Query request, CancellationToken cancellationToken)
+        public async Task<Result<byte[]>> Handle(Export{{ modelnameplural }}Query request, CancellationToken cancellationToken)
         {
-            var data = await _context.{nameofPlural}.ApplySpecification(request.Specification)
+            var data = await _context.{{ modelnameplural }}.ApplySpecification(request.Specification)
                        .OrderBy($"{request.OrderBy} {request.SortDirection}")
-                       .ProjectTo<{itemname}Dto>(_mapper.ConfigurationProvider)
+                       .ProjectTo<{{ modelname }}Dto>(_mapper.ConfigurationProvider)
                        .AsNoTracking()
                        .ToListAsync(cancellationToken);
             var result = await _excelService.ExportAsync(data,
-                new Dictionary<string, Func<{itemname}Dto, object?>>()
+                new Dictionary<string, Func<{{ modelname }}Dto, object?>>()
                 {
                     // TODO: Define the fields that should be exported, for example:
-                    {exportFuncExpression}
+                    {{ exportfuncexpression }}
                 }
                 , _localizer[_dto.GetClassDescription()]);
             return await Result<byte[]>.SuccessAsync(result);

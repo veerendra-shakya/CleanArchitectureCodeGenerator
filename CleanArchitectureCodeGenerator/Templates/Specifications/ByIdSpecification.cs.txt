@@ -1,12 +1,12 @@
-﻿namespace {namespace};
+﻿namespace {{ namespacename }};
 
 #nullable disable warnings
 /// <summary>
-/// Specification class for filtering {nameofPlural} by their ID.
+/// Specification class for filtering {{ modelnameplural }} by their ID.
 /// </summary>
-public class {itemname}ByIdSpecification : Specification<{itemname}>
+public class {{ modelname }}ByIdSpecification : Specification<{{ modelname }}>
 {
-    public {itemname}ByIdSpecification(Guid id)
+    public {{ modelname }}ByIdSpecification(Guid id)
     {
        Query.Where(q => q.Id == id);
     }

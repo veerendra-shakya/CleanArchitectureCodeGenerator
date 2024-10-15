@@ -13,41 +13,43 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
 
             foreach (var property in classObject.ClassProperties)
             {
-                var propertyName = property.PropertyName;
-                sb.Append($"RuleFor(v => v.{propertyName})");
-
-                if (HasAttribute(property, "Required"))
+                if (property.Type.IsKnownType)
                 {
-                    sb.Append(".NotEmpty()");
-                    sb.Append(".WithMessage(\"This field is required and cannot be empty.\")");
-                }
+                    var propertyName = property.PropertyName;
+                    sb.Append($"RuleFor(v => v.{propertyName})");
 
-                if (HasAttribute(property, "MaxLength", out int maxLength))
-                {
-                    sb.Append($".MaximumLength({maxLength})");
-                    sb.Append($".WithMessage(\"This field must not exceed {maxLength} characters.\")");
-                }
-
-                if (HasAttribute(property, "Range", out int minValue, out int maxValue))
-                {
-                    sb.Append($".InclusiveBetween({minValue}, {maxValue})");
-                    sb.Append($".WithMessage(\"This field must be greater than {minValue} and less than {maxValue}.\")");
-                }
-
-                if (HasAttribute(property, "RegularExpression", out string regexPattern, out string errorMessage))
-                {
-                    if (regexPattern.StartsWith("@\""))
+                    if (HasAttribute(property, "Required"))
                     {
-                        regexPattern = regexPattern.Replace("@\"", "");
+                        sb.Append(".NotEmpty()");
+                        sb.Append(".WithMessage(\"This field is required and cannot be empty.\")");
                     }
 
-                    sb.Append($".Matches(@\"{regexPattern}\")");
-                    sb.Append($".WithMessage(\"{errorMessage}\")");
+                    if (HasAttribute(property, "MaxLength", out int maxLength))
+                    {
+                        sb.Append($".MaximumLength({maxLength})");
+                        sb.Append($".WithMessage(\"This field must not exceed {maxLength} characters.\")");
+                    }
+
+                    if (HasAttribute(property, "Range", out int minValue, out int maxValue))
+                    {
+                        sb.Append($".InclusiveBetween({minValue}, {maxValue})");
+                        sb.Append($".WithMessage(\"This field must be greater than {minValue} and less than {maxValue}.\")");
+                    }
+
+                    if (HasAttribute(property, "RegularExpression", out string regexPattern, out string errorMessage))
+                    {
+                        if (regexPattern.StartsWith("@\""))
+                        {
+                            regexPattern = regexPattern.Replace("@\"", "");
+                        }
+
+                        sb.Append($".Matches(@\"{regexPattern}\")");
+                        sb.Append($".WithMessage(\"{errorMessage}\")");
+                    }
+
+                    sb.Append("; ");
+                    sb.AppendLine(); // Add a new line after each property validation rule set
                 }
-
-                sb.Append("; ");
-                sb.AppendLine(); // Add a new line after each property validation rule set
-
             }
 
             return sb.ToString().Trim(); // Trim to remove unnecessary line breaks

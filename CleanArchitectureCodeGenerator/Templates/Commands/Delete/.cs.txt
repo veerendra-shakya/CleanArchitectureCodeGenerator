@@ -1,29 +1,29 @@
-﻿using {selectns}.{nameofPlural}.Caching;
+﻿using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Caching;
 
-namespace {namespace};
+namespace {{ namespacename }};
 #nullable disable warnings
 
-public class Delete{itemname}Command:  ICacheInvalidatorRequest<Result<Guid>>
+public class Delete{{ modelname }}Command:  ICacheInvalidatorRequest<Result<Guid>>
 {
     public Guid[] Id {  get; }
-    public string CacheKey => {itemname}CacheKey.GetAllCacheKey;
-    public CancellationTokenSource? SharedExpiryTokenSource => {itemname}CacheKey.GetOrCreateTokenSource();
-    public Delete{itemname}Command(Guid[] id)
+    public string CacheKey => {{ modelname }}CacheKey.GetAllCacheKey;
+    public CancellationTokenSource? SharedExpiryTokenSource => {{ modelname }}CacheKey.GetOrCreateTokenSource();
+    public Delete{{ modelname }}Command(Guid[] id)
     {
     Id = id;
     }
 }
 
-public class Delete{itemname}CommandHandler : 
-                IRequestHandler<Delete{itemname}Command, Result<Guid>>
+public class Delete{{ modelname }}CommandHandler : 
+                IRequestHandler<Delete{{ modelname }}Command, Result<Guid>>
 
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
-    private readonly IStringLocalizer<Delete{itemname}CommandHandler> _localizer;
-    public Delete{itemname}CommandHandler(
+    private readonly IStringLocalizer<Delete{{ modelname }}CommandHandler> _localizer;
+    public Delete{{ modelname }}CommandHandler(
         IApplicationDbContext context,
-        IStringLocalizer<Delete{itemname}CommandHandler> localizer,
+        IStringLocalizer<Delete{{ modelname }}CommandHandler> localizer,
             IMapper mapper
         )
     {
@@ -31,14 +31,14 @@ public class Delete{itemname}CommandHandler :
         _localizer = localizer;
         _mapper = mapper;
     }
-    public async Task<Result<Guid>> Handle(Delete{itemname}Command request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(Delete{{ modelname }}Command request, CancellationToken cancellationToken)
     {
-        var items = await _context.{nameofPlural}.Where(x=>request.Id.Contains(x.Id)).ToListAsync(cancellationToken);
+        var items = await _context.{{ modelnameplural }}.Where(x=>request.Id.Contains(x.Id)).ToListAsync(cancellationToken);
         foreach (var item in items)
         {
 			// raise a delete domain event
-			item.AddDomainEvent(new {itemname}DeletedEvent(item));
-            _context.{nameofPlural}.Remove(item);
+			item.AddDomainEvent(new {{ modelname }}DeletedEvent(item));
+            _context.{{ modelnameplural }}.Remove(item);
         }
         var result = await _context.SaveChangesAsync(cancellationToken);
         return await Result<Guid>.SuccessAsync(result);

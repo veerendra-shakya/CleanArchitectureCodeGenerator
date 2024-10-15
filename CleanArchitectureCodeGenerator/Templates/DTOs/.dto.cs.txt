@@ -1,18 +1,18 @@
-﻿namespace {namespace};
+﻿namespace {{ namespacename }};
 #nullable disable warnings
 
-[Description("{nameofPlural}")]
-public class {itemname}Dto
+[Description("{{ modelnameplural }}")]
+public class {{ modelname }}Dto
 {
     [Description("Id")]
     public Guid Id { get; set; }
-    {dtoFieldDefinition}
+    {{ dtofielddefinition }}
 
     private class Mapping : Profile
     {
         public Mapping()
         {
-            CreateMap<{itemname}, {itemname}Dto>().ReverseMap();
+            CreateMap<{{ modelname }}, {{ modelname }}Dto>().ReverseMap();
         }
     }
 }

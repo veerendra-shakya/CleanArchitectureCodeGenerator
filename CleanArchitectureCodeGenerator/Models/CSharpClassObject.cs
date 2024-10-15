@@ -78,6 +78,8 @@ namespace CleanArchitecture.CodeGenerator.Models
 
         public ScaffoldingAttribute ScaffoldingAtt { get; set; } = new();
 
+        public UIDesignAttribute UIDesignAtt { get; set; } = new();
+
         /// <summary>
         /// Gets or sets the syntax representation of a property declaration in a C# class.
         /// This is an instance of <see cref="PropertyDeclarationSyntax"/>, which represents
@@ -94,12 +96,44 @@ namespace CleanArchitecture.CodeGenerator.Models
 
     public class ScaffoldingAttribute
     {
+        public bool Has { get; set; } = false;
         public string PropRole { get; set; }
         public string RelationshipType { get; set; }
         public string InverseProperty { get; set; }
         public string ForeignKeyProperty { get; set; }
         public string LinkingTable { get; set; }
         public string DeleteBehavior { get; set; }
+    }
+    /// <summary>
+    /// Represents the design attributes applied to a UI component for a property, controlling the component's appearance and behavior.
+    /// </summary>
+    public class UIDesignAttribute
+    {
+        public bool Has { get; set; } = false;
+        public string? Adornment { get; set; }
+        public string? AdornmentIcon { get; set; }
+        public string? AdornmentColor { get; set; }
+        public bool? AutoGrow { get; set; }
+        public bool? Clearable { get; set; }
+        public string? CompType { get; set; }
+        public int? Counter { get; set; }
+        public string? DataModel { get; set; }
+        public bool? Disabled { get; set; }
+        public string? Format { get; set; }
+        public string? HelperText { get; set; }
+        public bool? HelperTextOnFocus { get; set; }
+        public bool? Immediate { get; set; }
+        public string? InputType { get; set; }
+        public string? Label { get; set; }
+        public int? Lines { get; set; }
+        public bool? ReadOnly { get; set; }
+        public bool? ShrinkLabel { get; set; }
+        public int? MaxLength { get; set; }
+        public int? MaxLines { get; set; }
+        public string? Margin { get; set; }
+        public string? Mask { get; set; }
+        public string? Typography { get; set; }
+        public string? Variant { get; set; }
     }
 
     public class PropertyType

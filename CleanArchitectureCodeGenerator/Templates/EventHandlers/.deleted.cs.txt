@@ -1,16 +1,16 @@
-﻿namespace {namespace};
+﻿namespace {{ namespacename }};
 
-    public class {itemname}DeletedEventHandler : INotificationHandler<{itemname}DeletedEvent>
+    public class {{ modelname }}DeletedEventHandler : INotificationHandler<{{ modelname }}DeletedEvent>
     {
-        private readonly ILogger<{itemname}DeletedEventHandler> _logger;
+        private readonly ILogger<{{ modelname }}DeletedEventHandler> _logger;
 
-        public {itemname}DeletedEventHandler(
-            ILogger<{itemname}DeletedEventHandler> logger
+        public {{ modelname }}DeletedEventHandler(
+            ILogger<{{ modelname }}DeletedEventHandler> logger
             )
         {
             _logger = logger;
         }
-        public Task Handle({itemname}DeletedEvent notification, CancellationToken cancellationToken)
+        public Task Handle({{ modelname }}DeletedEvent notification, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Domain Event: {DomainEvent}", notification.GetType().FullName);
             return Task.CompletedTask;

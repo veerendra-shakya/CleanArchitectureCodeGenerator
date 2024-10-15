@@ -1,35 +1,35 @@
 ﻿using System.ComponentModel;
-using {selectns}.{nameofPlural}.DTOs;
-using {selectns}.{nameofPlural}.Caching;
+using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.DTOs;
+using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Caching;
 
-namespace {namespace};
+namespace {{ namespacename }};
 #nullable disable warnings
 
-public class Create{itemname}Command: ICacheInvalidatorRequest<Result<Guid>>
+public class Create{{ modelname }}Command: ICacheInvalidatorRequest<Result<Guid>>
 {
       [Description("Id")]
       public Guid Id { get; set; }
-      {dtoFieldDefinition}
-      public string CacheKey => {itemname}CacheKey.GetAllCacheKey;
-      public CancellationTokenSource? SharedExpiryTokenSource => {itemname}CacheKey.GetOrCreateTokenSource();
+      {{ commandfielddefinition }}
+      public string CacheKey => {{ modelname }}CacheKey.GetAllCacheKey;
+      public CancellationTokenSource? SharedExpiryTokenSource => {{ modelname }}CacheKey.GetOrCreateTokenSource();
     private class Mapping : Profile
     {
         public Mapping()
         {
-             CreateMap<{itemname}Dto,Create{itemname}Command>(MemberList.None);
-             CreateMap<Create{itemname}Command,{itemname}>(MemberList.None);
+             CreateMap<{{ modelname }}Dto,Create{{ modelname }}Command>(MemberList.None);
+             CreateMap<Create{{ modelname }}Command,{{ modelname }}>(MemberList.None);
         }
     }
 }
     
-public class Create{itemname}CommandHandler : IRequestHandler<Create{itemname}Command, Result<Guid>>
+public class Create{{ modelname }}CommandHandler : IRequestHandler<Create{{ modelname }}Command, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
-    private readonly IStringLocalizer<Create{itemname}Command> _localizer;
-    public Create{itemname}CommandHandler(
+    private readonly IStringLocalizer<Create{{ modelname }}Command> _localizer;
+    public Create{{ modelname }}CommandHandler(
         IApplicationDbContext context,
-        IStringLocalizer<Create{itemname}Command> localizer,
+        IStringLocalizer<Create{{ modelname }}Command> localizer,
         IMapper mapper
         )
     {
@@ -37,12 +37,12 @@ public class Create{itemname}CommandHandler : IRequestHandler<Create{itemname}Co
         _localizer = localizer;
         _mapper = mapper;
     }
-    public async Task<Result<Guid>> Handle(Create{itemname}Command request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(Create{{ modelname }}Command request, CancellationToken cancellationToken)
     {
-        var item = _mapper.Map<{itemname}>(request);
+        var item = _mapper.Map<{{ modelname }}>(request);
         // raise a create domain event
-	    item.AddDomainEvent(new {itemname}CreatedEvent(item));
-        _context.{nameofPlural}.Add(item);
+	    item.AddDomainEvent(new {{ modelname }}CreatedEvent(item));
+        _context.{{ modelnameplural }}.Add(item);
         await _context.SaveChangesAsync(cancellationToken);
         return  await Result<Guid>.SuccessAsync(item.Id);
     }

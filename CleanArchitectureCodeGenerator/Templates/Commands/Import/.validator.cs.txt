@@ -1,8 +1,8 @@
-﻿namespace {namespace};
+﻿namespace {{ namespacename }};
 
-public class Import{nameofPlural}CommandValidator : AbstractValidator<Import{nameofPlural}Command>
+public class Import{{ modelnameplural }}CommandValidator : AbstractValidator<Import{{ modelnameplural }}Command>
 {
-        public Import{nameofPlural}CommandValidator()
+        public Import{{ modelnameplural }}CommandValidator()
         {
            
            RuleFor(v => v.Data)

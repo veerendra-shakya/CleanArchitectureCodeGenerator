@@ -28,7 +28,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Comm
                 string NamespaceName = Helper.GetNamespace(relativePath);
 
                 SnippetsWriter snippetsWriter = new SnippetsWriter();
-                string dtoFieldDefinition = snippetsWriter.CreateDtoFieldDefinition(modalClassObject);
+                string CommandFieldDefinition = snippetsWriter.CreateCommandFieldDefinition(modalClassObject);
 
                 // Initialize MasterData object
                 var masterdata = new
@@ -46,9 +46,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Comm
                     applicationprojectdirectory = ApplicationHelper.ApplicationProjectDirectory,
                     modelnameplural = modalClassObject.Name.Pluralize(),
                     modelname = modalClassObject.Name,
-
-                    dtofielddefinition = dtoFieldDefinition,
-                
+                    commandfielddefinition = CommandFieldDefinition,
                 };
 
                 // Parse and render the class template
@@ -59,14 +57,14 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Comm
                 {
                     Utility.WriteToDiskAsync(targetFile.FullName, generatedClass);
                     Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine($"Created file: {targetFile.FullName}");
+                    Console.WriteLine($"Created file: {relativeTargetPath}");
                     Console.ResetColor();
                 }
             }
             catch (Exception ex)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Error generating file '{targetFile.FullName}': {ex.Message}");
+                Console.WriteLine($"Error generating file '{relativeTargetPath}': {ex.Message}");
                 Console.ResetColor();
             }
         }

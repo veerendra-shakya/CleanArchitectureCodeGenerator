@@ -1,35 +1,35 @@
 ﻿using System.ComponentModel;
-using {selectns}.{nameofPlural}.DTOs;
-using {selectns}.{nameofPlural}.Caching;
+using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.DTOs;
+using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Caching;
 
-namespace {namespace};
+namespace {{ namespacename }};
 #nullable disable warnings
 
-public class Update{itemname}Command: ICacheInvalidatorRequest<Result<Guid>>
+public class Update{{ modelname }}Command: ICacheInvalidatorRequest<Result<Guid>>
 {
       [Description("Id")]
       public Guid Id { get; set; }
-        {dtoFieldDefinition}
-        public string CacheKey => {itemname}CacheKey.GetAllCacheKey;
-        public CancellationTokenSource? SharedExpiryTokenSource => {itemname}CacheKey.GetOrCreateTokenSource();
+        {{ commandfielddefinition }}
+        public string CacheKey => {{ modelname }}CacheKey.GetAllCacheKey;
+        public CancellationTokenSource? SharedExpiryTokenSource => {{ modelname }}CacheKey.GetOrCreateTokenSource();
     private class Mapping : Profile
     {
         public Mapping()
         {
-            CreateMap<{itemname}Dto,Update{itemname}Command>(MemberList.None);
-            CreateMap<Update{itemname}Command,{itemname}>(MemberList.None);
+            CreateMap<{{ modelname }}Dto,Update{{ modelname }}Command>(MemberList.None);
+            CreateMap<Update{{ modelname }}Command,{{ modelname }}>(MemberList.None);
         }
     }
 }
 
-public class Update{itemname}CommandHandler : IRequestHandler<Update{itemname}Command, Result<Guid>>
+public class Update{{ modelname }}CommandHandler : IRequestHandler<Update{{ modelname }}Command, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
-    private readonly IStringLocalizer<Update{itemname}CommandHandler> _localizer;
-    public Update{itemname}CommandHandler(
+    private readonly IStringLocalizer<Update{{ modelname }}CommandHandler> _localizer;
+    public Update{{ modelname }}CommandHandler(
         IApplicationDbContext context,
-        IStringLocalizer<Update{itemname}CommandHandler> localizer,
+        IStringLocalizer<Update{{ modelname }}CommandHandler> localizer,
             IMapper mapper
         )
     {
@@ -37,13 +37,13 @@ public class Update{itemname}CommandHandler : IRequestHandler<Update{itemname}Co
         _localizer = localizer;
         _mapper = mapper;
     }
-    public async Task<Result<Guid>> Handle(Update{itemname}Command request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(Update{{ modelname }}Command request, CancellationToken cancellationToken)
     {
 
-        var item =await _context.{nameofPlural}.FindAsync( new object[] { request.Id }, cancellationToken)?? throw new NotFoundException($"{itemname} with id: [{request.Id}] not found.");
+        var item =await _context.{{ modelnameplural }}.FindAsync( new object[] { request.Id }, cancellationToken)?? throw new NotFoundException($"{{ modelname }} with id: [{request.Id}] not found.");
         item = _mapper.Map(request, item);
 		// raise a update domain event
-		item.AddDomainEvent(new {itemname}UpdatedEvent(item));
+		item.AddDomainEvent(new {{ modelname }}UpdatedEvent(item));
         await _context.SaveChangesAsync(cancellationToken);
         return await Result<Guid>.SuccessAsync(item.Id);
     }

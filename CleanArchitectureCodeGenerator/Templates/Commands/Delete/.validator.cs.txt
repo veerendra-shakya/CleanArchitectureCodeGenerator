@@ -1,8 +1,8 @@
-﻿namespace {namespace};
+﻿namespace {{ namespacename }};
 
-public class Delete{itemname}CommandValidator : AbstractValidator<Delete{itemname}Command>
+public class Delete{{ modelname }}CommandValidator : AbstractValidator<Delete{{ modelname }}Command>
 {
-        public Delete{itemname}CommandValidator()
+        public Delete{{ modelname }}CommandValidator()
         {
           
         RuleFor(v => v.Id)

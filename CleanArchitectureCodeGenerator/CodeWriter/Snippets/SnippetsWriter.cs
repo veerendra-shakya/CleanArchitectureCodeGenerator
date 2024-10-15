@@ -18,125 +18,27 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
 
         public const string PRIMARYKEY = "Id";
 
-        public string CreateDtoFieldDefinition(CSharpClassObject classObject)
+
+        public string CreateCommandFieldDefinition(CSharpClassObject classObject)
         {
             var output = new StringBuilder();
 
-            foreach (var property in classObject.ClassProperties)
-            {
-                output.AppendLine($"    [Description(\"{property.DisplayName}\")]");
-                if (property.PropertyName == PRIMARYKEY)
-                {
-                    output.AppendLine($"    public {property.Type.TypeName} {property.PropertyName} {{get;set;}}");
-                }
-                else if (property.Type.IsList || property.Type.IsICollection)
-                {
-                    string _proptype = property.Type.TypeName;
-                    _proptype = _proptype.Replace("IList", "List");
-                    _proptype = _proptype.Replace("ICollection", "List");
-                    output.AppendLine($"    public {_proptype} {property.PropertyName} {{get;set;}} = new();");
-                }
-                else
-                {
-                    switch (property.Type.TypeName)
-                    {
-                        case "string" when property.PropertyName.Equals("Name", StringComparison.OrdinalIgnoreCase):
-                            output.AppendLine($"    public {property.Type.TypeName} {property.PropertyName} {{get;set;}} = string.Empty;");
-                            break;
-                        case "string" when !property.PropertyName.Equals("Name", StringComparison.OrdinalIgnoreCase) && !property.Type.IsArray && !property.Type.IsDictionary:
-                            output.AppendLine($"    public {property.Type.TypeName}? {property.PropertyName} {{get;set;}}");
-                            break;
-                        case "string" when !property.PropertyName.Equals("Name", StringComparison.OrdinalIgnoreCase) && property.Type.IsArray:
-                            output.AppendLine($"    public HashSet<{property.Type.TypeName}>? {property.PropertyName} {{get;set;}}");
-                            break;
-                        case "string":
-                            output.AppendLine($"    public {property.Type.TypeName} {property.PropertyName} {{get;set;}} = string.Empty;");
-                            break;
-                        case "System.DateTime?":
-                        case "System.DateTime":
-                        case "decimal?":
-                        case "decimal":
-                        case "int?":
-                        case "int":
-                        case "double?":
-                        case "double":
-                            output.AppendLine($"    public {property.Type.TypeName} {property.PropertyName} {{get;set;}}");
-                            break;
-                        default:
-                            output.AppendLine($"    public {property.Type.TypeName} {property.PropertyName} {{get;set;}}");
-                            break;
-                    }
-
-                }
-            }
-            return output.ToString();
-        }
-
-        public string CreateImportFuncExpression(CSharpClassObject classObject)
-        {
-            var output = new StringBuilder();
             foreach (var property in classObject.ClassProperties.Where(x => x.Type.IsKnownType))
             {
-                if (property.PropertyName == PRIMARYKEY) continue;
-
-                var typeName = property.Type.TypeName;
-
-                if (typeName.StartsWith("bool"))
+                output.AppendLine($"    [Description(\"{property.DisplayName}\")]");
+                switch (property.Type.TypeName)
                 {
-                    output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = Convert.ToBoolean(row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]]) }},");
-                }
-                else if (typeName.StartsWith("int"))
-                {
-                    output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = Convert.ToInt32(row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]]) }},");
-                }
-                else if (typeName.StartsWith("long"))
-                {
-                    output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = Convert.ToInt64(row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]]) }},");
-                }
-                else if (typeName.StartsWith("short"))
-                {
-                    output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = Convert.ToInt16(row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]]) }},");
-                }
-                else if (typeName.StartsWith("byte"))
-                {
-                    output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = Convert.ToByte(row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]]) }},");
-                }
-                else if (typeName.StartsWith("float"))
-                {
-                    output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = Convert.ToSingle(row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]]) }},");
-                }
-                else if (typeName.StartsWith("double"))
-                {
-                    output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = Convert.ToDouble(row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]]) }},");
-                }
-                else if (typeName.StartsWith("decimal"))
-                {
-                    output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = Convert.ToDecimal(row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]]) }},");
-                }
-                else if (typeName.StartsWith("DateTime"))
-                {
-                    output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = Convert.ToDateTime(row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]]) }},");
-                }
-                else if (typeName.StartsWith("Guid"))
-                {
-                    output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = Guid.Parse(row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]].ToString()) }},");
-                }
-                else if (typeName.StartsWith("char"))
-                {
-                    output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = Convert.ToChar(row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]]) }},");
-                }
-                else if (typeName.StartsWith("string"))
-                {
-                    output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]].ToString() }},");
-                }
-                else
-                {
-                    // Default case, handle as string if no specific type is matched
-                    output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], (row, item) => item.{property.PropertyName} = row[_localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})]].ToString() }},");
+                    case "string":
+                        output.AppendLine($"    public {property.Type.TypeName} {property.PropertyName} {{get;set;}} = string.Empty;");
+                        break;
+                    default:
+                        output.AppendLine($"    public {property.Type.TypeName} {property.PropertyName} {{get;set;}}");
+                        break;
                 }
             }
             return output.ToString();
         }
+
 
         public string CreateTemplateFieldDefinition(CSharpClassObject classObject)
         {
@@ -149,15 +51,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             return output.ToString();
         }
 
-        public string CreateExportFuncExpression(CSharpClassObject classObject)
-        {
-            var output = new StringBuilder();
-            foreach (var property in classObject.ClassProperties.Where(x => x.Type.IsKnownType))
-            {
-                output.AppendLine($"{{ _localizer[_dto.GetMemberDescription(x=>x.{property.PropertyName})], item => item.{property.PropertyName} }},");
-            }
-            return output.ToString();
-        }
+  
 
         public string CreateMudTdHeaderDefinition(CSharpClassObject classObject)
         {
@@ -203,7 +97,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                         {
                             output.Append(GenerateTemplateColumnForOtherRelationships(property, relatedClass));
                         }
-                        else 
+                        else
                         {
                             output.Append(GenerateTemplateColumnForOneToOne(property, relatedClass));
 
@@ -268,7 +162,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             return output.ToString();
         }
 
-      
+
 
         public string CreateFieldAssignmentDefinition(CSharpClassObject classObject)
         {
@@ -280,80 +174,19 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             return output.ToString();
         }
 
-        public string CreateAdvancedSpecificationQuery(CSharpClassObject classObject)
-        {
-            // Get the item name from classObject.Name
-            var itemName = classObject.Name;
 
-            // Get the master property for identifier role
-            var masterProperty = classObject.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Identifier").Select(p => p.PropertyName).FirstOrDefault();
-            // Get the list of searchable properties
-            var searchableProperty = classObject.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Searchable").Select(p => p.PropertyName).ToList();
-            if( masterProperty!=null)
-            {
-                searchableProperty.Add(masterProperty);
-            }
-            var output = new StringBuilder();
-
-            // Start building the query with {itemname} replaced
-            output.AppendLine($"Query.Where(q => q.{masterProperty} != null)");
-
-            // Build the search condition for searchable properties
-            if (searchableProperty.Any())
-            {
-                output.Append("         .Where(q => ");
-                for (int i = 0; i < searchableProperty.Count; i++)
-                {
-                    output.Append($"q.{searchableProperty[i]}!.Contains(filter.Keyword)");
-
-                    if (i < searchableProperty.Count - 1)
-                    {
-                        output.Append(" || ");
-                    }
-                }
-                output.AppendLine(", !string.IsNullOrEmpty(filter.Keyword))");
-            }
-
-            // Add the rest of the conditions with {itemname} replaced
-            output.AppendLine($"            .Where(q => q.CreatedBy == filter.CurrentUser.UserId, filter.ListView == {itemName}ListView.My && filter.CurrentUser is not null)");
-            output.AppendLine($"            .Where(q => q.Created >= start && q.Created <= end, filter.ListView == {itemName}ListView.CreatedToday)");
-            output.AppendLine($"            .Where(q => q.Created >= last30day, filter.ListView == {itemName}ListView.Created30Days);");
-
-            // Return the built query as a string
-            return output.ToString();
-        }
-
-        public string CreateSearchableProperties(CSharpClassObject model)
-        {
-            var masterProperty = model.ClassProperties.FirstOrDefault(p => p.ScaffoldingAtt.PropRole == "Identifier");
-            var searchableProperties = model.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Searchable").ToList();
-
-            if (masterProperty != null)
-            {
-                // Insert masterProperty at the beginning of the list
-                searchableProperties.Insert(0, masterProperty);
-            }
-
-            var sb = new StringBuilder();
-
-            foreach (var property in searchableProperties)
-            {
-                sb.AppendLine($"    public {property.Type.TypeName} {property.PropertyName} {{get;set;}}");
-            }
-
-            return sb.ToString();
-        }
+   
 
         // Generates a TemplateColumn for OneToOne relationships using StringBuilder
         private string GenerateTemplateColumnForOneToOne(ClassProperty property, CSharpClassObject relatedClass)
         {
             var masterProperty = relatedClass.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Identifier").FirstOrDefault();
             var displayProperties = relatedClass.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Searchable").ToList();
-            if (masterProperty != null){ displayProperties.Add(masterProperty);}
+            if (masterProperty != null) { displayProperties.Add(masterProperty); }
 
             var sb = new StringBuilder();
 
-         
+
             sb.AppendLine($"<TemplateColumn Title=\"@L[_currentDto.GetMemberDescription(x=>x.{property.PropertyName})]\">");
             sb.AppendLine("    <CellTemplate>");
             sb.AppendLine($"        @if(context.Item.{property.PropertyName} != null)");

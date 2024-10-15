@@ -1,11 +1,11 @@
-namespace {namespace};
+namespace {{ namespacename }};
 
 #nullable disable warnings
 
 /// <summary>
-/// Specifies the different views available for the {itemname} list.
+/// Specifies the different views available for the {{ modelname }} list.
 /// </summary>
-public enum {itemname}ListView
+public enum {{ modelname }}ListView
 {
     [Description("All")]
     All,
@@ -18,12 +18,12 @@ public enum {itemname}ListView
 }
 
 /// <summary>
-/// A class for applying advanced filtering options to {itemname} lists.
+/// A class for applying advanced filtering options to {{ modelname }} lists.
 /// </summary>
-public class {itemname}AdvancedFilter: PaginationFilter
+public class {{ modelname }}AdvancedFilter: PaginationFilter
 {
-    {searchableproperties}
+    {{ searchableproperties }}
 
-    public {itemname}ListView ListView { get; set; } = {itemname}ListView.All;
+    public {{ modelname }}ListView ListView { get; set; } = {{ modelname }}ListView.All;
     public UserProfile? CurrentUser { get; set; }
 }

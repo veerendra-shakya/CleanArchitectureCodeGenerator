@@ -1,40 +1,40 @@
-﻿using {selectns}.{nameofPlural}.DTOs;
-using {selectns}.{nameofPlural}.Caching;
+﻿using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.DTOs;
+using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Caching;
 
-namespace {namespace};
+namespace {{ namespacename }};
 #nullable disable warnings
     
-public class Import{nameofPlural}Command: ICacheInvalidatorRequest<Result<int>>
+public class Import{{ modelnameplural }}Command: ICacheInvalidatorRequest<Result<int>>
 {
     public string FileName { get; set; }
     public byte[] Data { get; set; }
-    public string CacheKey => {itemname}CacheKey.GetAllCacheKey;
-    public CancellationTokenSource? SharedExpiryTokenSource => {itemname}CacheKey.GetOrCreateTokenSource();
-    public Import{nameofPlural}Command(string fileName,byte[] data)
+    public string CacheKey => {{ modelname }}CacheKey.GetAllCacheKey;
+    public CancellationTokenSource? SharedExpiryTokenSource => {{ modelname }}CacheKey.GetOrCreateTokenSource();
+    public Import{{ modelnameplural }}Command(string fileName,byte[] data)
     {
         FileName = fileName;
         Data = data;
     }
 }
-public record class Create{nameofPlural}TemplateCommand : IRequest<Result<byte[]>>
+public record class Create{{ modelnameplural }}TemplateCommand : IRequest<Result<byte[]>>
 {
  
 }
 
-public class Import{nameofPlural}CommandHandler : 
-                IRequestHandler<Create{nameofPlural}TemplateCommand, Result<byte[]>>,
-                IRequestHandler<Import{nameofPlural}Command, Result<int>>
+public class Import{{ modelnameplural }}CommandHandler : 
+                IRequestHandler<Create{{ modelnameplural }}TemplateCommand, Result<byte[]>>,
+                IRequestHandler<Import{{ modelnameplural }}Command, Result<int>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
-    private readonly IStringLocalizer<Import{nameofPlural}CommandHandler> _localizer;
+    private readonly IStringLocalizer<Import{{ modelnameplural }}CommandHandler> _localizer;
     private readonly IExcelService _excelService;
-    private readonly {itemname}Dto _dto = new();
+    private readonly {{ modelname }}Dto _dto = new();
 
-    public Import{nameofPlural}CommandHandler(
+    public Import{{ modelnameplural }}CommandHandler(
         IApplicationDbContext context,
         IExcelService excelService,
-        IStringLocalizer<Import{nameofPlural}CommandHandler> localizer,
+        IStringLocalizer<Import{{ modelnameplural }}CommandHandler> localizer,
         IMapper mapper
         )
     {
@@ -44,24 +44,24 @@ public class Import{nameofPlural}CommandHandler :
         _mapper = mapper;
     }
     #nullable disable warnings
-    public async Task<Result<int>> Handle(Import{nameofPlural}Command request, CancellationToken cancellationToken)
+    public async Task<Result<int>> Handle(Import{{ modelnameplural }}Command request, CancellationToken cancellationToken)
     {
 
-        var result = await _excelService.ImportAsync(request.Data, mappers: new Dictionary<string, Func<DataRow, {itemname}Dto, object?>>
+        var result = await _excelService.ImportAsync(request.Data, mappers: new Dictionary<string, Func<DataRow, {{ modelname }}Dto, object?>>
         {
-            {importFuncExpression}
+            {{ importfuncexpression }}
         }, _localizer[_dto.GetClassDescription()]);
         if (result.Succeeded && result.Data is not null)
         {
             foreach (var dto in result.Data)
             {
-                var exists = await _context.{nameofPlural}.AnyAsync(x => x.{masterProperty} == dto.{masterProperty}, cancellationToken);
+                var exists = await _context.{{ modelnameplural }}.AnyAsync(x => x.{{ masterproperty }} == dto.{{ masterproperty }}, cancellationToken);
                 if (!exists)
                 {
-                    var item = _mapper.Map<{itemname}>(dto);
+                    var item = _mapper.Map<{{ modelname }}>(dto);
                     // add create domain events if this entity implement the IHasDomainEvent interface
-				    // item.AddDomainEvent(new {itemname}CreatedEvent(item));
-                    await _context.{nameofPlural}.AddAsync(item, cancellationToken);
+				    // item.AddDomainEvent(new {{ modelname }}CreatedEvent(item));
+                    await _context.{{ modelnameplural }}.AddAsync(item, cancellationToken);
                 }
                 }
                 await _context.SaveChangesAsync(cancellationToken);
@@ -72,12 +72,12 @@ public class Import{nameofPlural}CommandHandler :
             return await Result<int>.FailureAsync(result.Errors);
         }
     }
-    public async Task<Result<byte[]>> Handle(Create{nameofPlural}TemplateCommand request, CancellationToken cancellationToken)
+    public async Task<Result<byte[]>> Handle(Create{{ modelnameplural }}TemplateCommand request, CancellationToken cancellationToken)
     {
-        // TODO: Implement Import{nameofPlural}CommandHandler method 
+        // TODO: Implement Import{{ modelnameplural }}CommandHandler method 
         var fields = new string[] {
                 // TODO: Define the fields that should be generate in the template, for example:
-                {templateFieldDefinition}
+                {{ templatefielddefinition }}
             };
         var result = await _excelService.CreateTemplateAsync(fields, _localizer[_dto.GetClassDescription()]);
         return await Result<byte[]>.SuccessAsync(result);

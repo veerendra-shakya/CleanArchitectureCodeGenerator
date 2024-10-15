@@ -1,9 +1,9 @@
-﻿namespace {namespace};
+﻿namespace {{ namespacename }};
 
 /// <summary>
-/// Static class for managing cache keys and expiration for {itemname}-related data.
+/// Static class for managing cache keys and expiration for {{ modelname }}-related data.
 /// </summary>
-public static class {itemname}CacheKey
+public static class {{ modelname }}CacheKey
 {
     // Defines the refresh interval for the cache expiration token
     private static readonly TimeSpan RefreshInterval = TimeSpan.FromMinutes(30);
@@ -17,15 +17,15 @@ public static class {itemname}CacheKey
     public static MemoryCacheEntryOptions MemoryCacheEntryOptions =>
         new MemoryCacheEntryOptions().AddExpirationToken(new CancellationChangeToken(GetOrCreateTokenSource().Token));
 
-    public const string GetAllCacheKey = "all-{nameofPlural}";
+    public const string GetAllCacheKey = "all-{{ modelnameplural }}";
     public static string GetPaginationCacheKey(string parameters) {
-        return $"{itemname}CacheKey:{nameofPlural}WithPaginationQuery,{parameters}";
+        return $"{{ modelname }}CacheKey:{{ modelnameplural }}WithPaginationQuery,{parameters}";
     }
     public static string GetByNameCacheKey(string parameters) {
-        return $"{itemname}CacheKey:GetByNameCacheKey,{parameters}";
+        return $"{{ modelname }}CacheKey:GetByNameCacheKey,{parameters}";
     }
     public static string GetByIdCacheKey(string parameters) {
-        return $"{itemname}CacheKey:GetByIdCacheKey,{parameters}";
+        return $"{{ modelname }}CacheKey:GetByIdCacheKey,{parameters}";
     }
 
     

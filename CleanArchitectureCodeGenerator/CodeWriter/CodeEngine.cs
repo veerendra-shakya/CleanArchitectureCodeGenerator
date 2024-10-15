@@ -129,31 +129,31 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                 $"PermissionSet/{modalClassNamePlural}.cs"
             };
 
-            var applicationPaths = new[]
-            {
-                //$"Features/{modalClassNamePlural}/Commands/AddEdit/AddEdit{modalClassName}Command.cs",
-                //$"Features/{modalClassNamePlural}/Commands/AddEdit/AddEdit{modalClassName}CommandValidator.cs",
-                $"Features/{modalClassNamePlural}/Commands/Create/Create{modalClassName}Command.cs",
-                $"Features/{modalClassNamePlural}/Commands/Create/Create{modalClassName}CommandValidator.cs",
-                $"Features/{modalClassNamePlural}/Commands/Delete/Delete{modalClassName}Command.cs",
-                $"Features/{modalClassNamePlural}/Commands/Delete/Delete{modalClassName}CommandValidator.cs",
-                $"Features/{modalClassNamePlural}/Commands/Update/Update{modalClassName}Command.cs",
-                $"Features/{modalClassNamePlural}/Commands/Update/Update{modalClassName}CommandValidator.cs",
-                $"Features/{modalClassNamePlural}/Commands/Import/Import{modalClassNamePlural}Command.cs",
-                $"Features/{modalClassNamePlural}/Commands/Import/Import{modalClassNamePlural}CommandValidator.cs",
-                $"Features/{modalClassNamePlural}/Caching/{modalClassName}CacheKey.cs",
-                $"Features/{modalClassNamePlural}/DTOs/{modalClassName}Dto.cs",
-                $"Features/{modalClassNamePlural}/EventHandlers/{modalClassName}CreatedEventHandler.cs",
-                $"Features/{modalClassNamePlural}/EventHandlers/{modalClassName}UpdatedEventHandler.cs",
-                $"Features/{modalClassNamePlural}/EventHandlers/{modalClassName}DeletedEventHandler.cs",
-                $"Features/{modalClassNamePlural}/Specifications/{modalClassName}AdvancedFilter.cs",
-                $"Features/{modalClassNamePlural}/Specifications/{modalClassName}AdvancedSpecification.cs",
-                $"Features/{modalClassNamePlural}/Specifications/{modalClassName}ByIdSpecification.cs",
-                $"Features/{modalClassNamePlural}/Queries/Export/Export{modalClassNamePlural}Query.cs",
-                $"Features/{modalClassNamePlural}/Queries/GetAll/GetAll{modalClassNamePlural}Query.cs",
-                $"Features/{modalClassNamePlural}/Queries/GetById/Get{modalClassName}ByIdQuery.cs",
-                $"Features/{modalClassNamePlural}/Queries/Pagination/{modalClassNamePlural}PaginationQuery.cs"
-            };
+            //var applicationPaths = new[]
+            //{
+            //$"Features/{modalClassNamePlural}/Commands/AddEdit/AddEdit{modalClassName}Command.cs",
+            //$"Features/{modalClassNamePlural}/Commands/AddEdit/AddEdit{modalClassName}CommandValidator.cs",
+            //$"Features/{modalClassNamePlural}/Commands/Create/Create{modalClassName}Command.cs",
+            //$"Features/{modalClassNamePlural}/Commands/Create/Create{modalClassName}CommandValidator.cs",
+            //$"Features/{modalClassNamePlural}/Commands/Delete/Delete{modalClassName}Command.cs",
+            //$"Features/{modalClassNamePlural}/Commands/Delete/Delete{modalClassName}CommandValidator.cs",
+            //$"Features/{modalClassNamePlural}/Commands/Update/Update{modalClassName}Command.cs",
+            //$"Features/{modalClassNamePlural}/Commands/Update/Update{modalClassName}CommandValidator.cs",
+            //$"Features/{modalClassNamePlural}/Commands/Import/Import{modalClassNamePlural}Command.cs",
+            //$"Features/{modalClassNamePlural}/Commands/Import/Import{modalClassNamePlural}CommandValidator.cs",
+            //$"Features/{modalClassNamePlural}/Caching/{modalClassName}CacheKey.cs",
+            //$"Features/{modalClassNamePlural}/DTOs/{modalClassName}Dto.cs",
+            //$"Features/{modalClassNamePlural}/EventHandlers/{modalClassName}CreatedEventHandler.cs",
+            //$"Features/{modalClassNamePlural}/EventHandlers/{modalClassName}UpdatedEventHandler.cs",
+            //$"Features/{modalClassNamePlural}/EventHandlers/{modalClassName}DeletedEventHandler.cs",
+            //$"Features/{modalClassNamePlural}/Specifications/{modalClassName}AdvancedFilter.cs",
+            //$"Features/{modalClassNamePlural}/Specifications/{modalClassName}AdvancedSpecification.cs",
+            //$"Features/{modalClassNamePlural}/Specifications/{modalClassName}ByIdSpecification.cs",
+            //$"Features/{modalClassNamePlural}/Queries/Export/Export{modalClassNamePlural}Query.cs",
+            //$"Features/{modalClassNamePlural}/Queries/GetAll/GetAll{modalClassNamePlural}Query.cs",
+            //$"Features/{modalClassNamePlural}/Queries/GetById/Get{modalClassName}ByIdQuery.cs",
+            //$"Features/{modalClassNamePlural}/Queries/Pagination/{modalClassNamePlural}PaginationQuery.cs"
+            //};
 
             var UI_Paths = new[]
             {
@@ -165,11 +165,11 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
 
             ProcessFiles(modalClassObject, domainPaths, ApplicationHelper.DomainProjectDirectory);
             ProcessFiles(modalClassObject, infrastructurePaths, ApplicationHelper.InfrastructureProjectDirectory);
-            ProcessFiles(modalClassObject, applicationPaths, ApplicationHelper.ApplicationProjectDirectory);
+            //ProcessFiles(modalClassObject, applicationPaths, ApplicationHelper.ApplicationProjectDirectory);
             ProcessFiles(modalClassObject, UI_Paths, ApplicationHelper.UiProjectDirectory);
 
 
-            #region Scriban Coder
+            #region Scriban Coder Application
             ScribanCoder.Application.Features.Commands.AddEdit.AddEditCommand.Generate(
                 modalClassObject,
                 $"Features/{modalClassNamePlural}/Commands/AddEdit/AddEdit{modalClassName}Command.cs",
@@ -182,25 +182,145 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                 ApplicationHelper.ApplicationProjectDirectory
                 );
 
+            ScribanCoder.Application.Features.Commands.Create.CreateCommand.Generate(
+               modalClassObject,
+               $"Features/{modalClassNamePlural}/Commands/Create/Create{modalClassName}Command.cs",
+               ApplicationHelper.ApplicationProjectDirectory
+               );
 
+            ScribanCoder.Application.Features.Commands.Create.CreateCommandValidator.Generate(
+               modalClassObject,
+               $"Features/{modalClassNamePlural}/Commands/Create/Create{modalClassName}CommandValidator.cs",
+               ApplicationHelper.ApplicationProjectDirectory
+               );
+
+            ScribanCoder.Application.Features.Commands.Delete.DeleteCommand.Generate(
+               modalClassObject,
+               $"Features/{modalClassNamePlural}/Commands/Delete/Delete{modalClassName}Command.cs",
+               ApplicationHelper.ApplicationProjectDirectory
+               );
+
+            ScribanCoder.Application.Features.Commands.Delete.DeleteCommandValidator.Generate(
+               modalClassObject,
+               $"Features/{modalClassNamePlural}/Commands/Delete/Delete{modalClassName}CommandValidator.cs",
+               ApplicationHelper.ApplicationProjectDirectory
+               );
+
+            ScribanCoder.Application.Features.Commands.Update.UpdateCommand.Generate(
+               modalClassObject,
+               $"Features/{modalClassNamePlural}/Commands/Update/Update{modalClassName}Command.cs",
+               ApplicationHelper.ApplicationProjectDirectory
+               );
+
+            ScribanCoder.Application.Features.Commands.Update.UpdateCommandValidator.Generate(
+               modalClassObject,
+               $"Features/{modalClassNamePlural}/Commands/Update/Update{modalClassName}CommandValidator.cs",
+               ApplicationHelper.ApplicationProjectDirectory
+               );
+
+            ScribanCoder.Application.Features.Commands.Import.ImportCommand.Generate(
+               modalClassObject,
+               $"Features/{modalClassNamePlural}/Commands/Import/Import{modalClassNamePlural}Command.cs",
+               ApplicationHelper.ApplicationProjectDirectory
+               );
+
+            ScribanCoder.Application.Features.Commands.Import.ImportCommandValidator.Generate(
+               modalClassObject,
+               $"Features/{modalClassNamePlural}/Commands/Import/Import{modalClassNamePlural}CommandValidator.cs",
+               ApplicationHelper.ApplicationProjectDirectory
+               );
+
+            ScribanCoder.Application.Features.Caching.CacheKey.Generate(
+                modalClassObject,
+                $"Features/{modalClassNamePlural}/Caching/{modalClassName}CacheKey.cs",
+                ApplicationHelper.ApplicationProjectDirectory
+                );
+
+            ScribanCoder.Application.Features.DTOs.Dto.Generate(
+                 modalClassObject,
+                 $"Features/{modalClassNamePlural}/DTOs/{modalClassName}Dto.cs",
+                 ApplicationHelper.ApplicationProjectDirectory
+                 );
+
+            ScribanCoder.Application.Features.EventHandlers.CreatedEventHandler.Generate(
+                 modalClassObject,
+                 $"Features/{modalClassNamePlural}/EventHandlers/{modalClassName}CreatedEventHandler.cs",
+                 ApplicationHelper.ApplicationProjectDirectory
+                 );
+
+            ScribanCoder.Application.Features.EventHandlers.UpdatedEventHandler.Generate(
+                modalClassObject,
+                $"Features/{modalClassNamePlural}/EventHandlers/{modalClassName}UpdatedEventHandler.cs",
+                ApplicationHelper.ApplicationProjectDirectory
+                );
+
+            ScribanCoder.Application.Features.EventHandlers.DeletedEventHandler.Generate(
+                 modalClassObject,
+                 $"Features/{modalClassNamePlural}/EventHandlers/{modalClassName}DeletedEventHandler.cs",
+                 ApplicationHelper.ApplicationProjectDirectory
+                 );
+
+            ScribanCoder.Application.Features.Specifications.AdvancedFilter.Generate(
+                 modalClassObject,
+                 $"Features/{modalClassNamePlural}/Specifications/{modalClassName}AdvancedFilter.cs",
+                 ApplicationHelper.ApplicationProjectDirectory
+                 );
+
+            ScribanCoder.Application.Features.Specifications.AdvancedSpecification.Generate(
+                 modalClassObject,
+                 $"Features/{modalClassNamePlural}/Specifications/{modalClassName}AdvancedSpecification.cs",
+                 ApplicationHelper.ApplicationProjectDirectory
+                 );
+
+            ScribanCoder.Application.Features.Specifications.ByIdSpecification.Generate(
+                 modalClassObject,
+                 $"Features/{modalClassNamePlural}/Specifications/{modalClassName}ByIdSpecification.cs",
+                 ApplicationHelper.ApplicationProjectDirectory
+                 );
+
+            ScribanCoder.Application.Features.Queries.Export.ExportQuery.Generate(
+                 modalClassObject,
+                 $"Features/{modalClassNamePlural}/Queries/Export/Export{modalClassNamePlural}Query.cs",
+                 ApplicationHelper.ApplicationProjectDirectory
+                 );
+
+            ScribanCoder.Application.Features.Queries.GetAll.GetAllQuery.Generate(
+                 modalClassObject,
+                 $"Features/{modalClassNamePlural}/Queries/GetAll/GetAll{modalClassNamePlural}Query.cs",
+                 ApplicationHelper.ApplicationProjectDirectory
+                 );
+
+            ScribanCoder.Application.Features.Queries.GetById.GetByIdQuery.Generate(
+                 modalClassObject,
+                 $"Features/{modalClassNamePlural}/Queries/GetById/Get{modalClassName}ByIdQuery.cs",
+                 ApplicationHelper.ApplicationProjectDirectory
+                 );
+
+            ScribanCoder.Application.Features.Queries.Pagination.PaginationQuery.Generate(
+                 modalClassObject,
+                 $"Features/{modalClassNamePlural}/Queries/Pagination/{modalClassNamePlural}PaginationQuery.cs",
+                 ApplicationHelper.ApplicationProjectDirectory
+                 );
+            #endregion
+
+            #region Scriban Coder UiProject
             ScribanCoder.UI.Controllers.API_Controller.Generate(
-                modalClassObject, 
-                $"Controllers/{modalClassName}Controller.cs", 
-                ApplicationHelper.UiProjectDirectory
-                );
-            
-            ScribanCoder.UI.Components.Autocompletes.AutocompleteRazorComponent.Generate(
-                modalClassObject, 
-                $"Components/Autocompletes/{modalClassName}Autocomplete.razor.cs", 
-                ApplicationHelper.UiProjectDirectory
-                );
-            
-            ScribanCoder.UI.Pages.FormDialog_razor.Generate(
-                modalClassObject, 
-                $"Pages/{modalClassNamePlural}/Components/{modalClassName}FormDialog.razor", 
+                modalClassObject,
+                $"Controllers/{modalClassName}Controller.cs",
                 ApplicationHelper.UiProjectDirectory
                 );
 
+            ScribanCoder.UI.Components.Autocompletes.AutocompleteRazorComponent.Generate(
+                modalClassObject,
+                $"Components/Autocompletes/{modalClassName}Autocomplete.razor.cs",
+                ApplicationHelper.UiProjectDirectory
+                );
+
+            ScribanCoder.UI.Pages.FormDialog_razor.Generate(
+                modalClassObject,
+                $"Pages/{modalClassNamePlural}/Components/{modalClassName}FormDialog.razor",
+                ApplicationHelper.UiProjectDirectory
+                );
             #endregion
 
             #region Generate Services for Data Access
