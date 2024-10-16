@@ -52,14 +52,14 @@ public static class AutocompleteRazorComponent
             {
                 Utility.WriteToDiskAsync(targetFile.FullName, generatedClass);
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine($"Created file: {targetFile.FullName}");
+                Console.WriteLine($"Created file: {relativeTargetPath}");
                 Console.ResetColor();
             }
         }
         catch (Exception ex)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"Error generating file '{targetFile.FullName}': {ex.Message}");
+            Console.WriteLine($"Error generating file '{relativeTargetPath}': {ex.Message}");
             Console.ResetColor();
         }
     }

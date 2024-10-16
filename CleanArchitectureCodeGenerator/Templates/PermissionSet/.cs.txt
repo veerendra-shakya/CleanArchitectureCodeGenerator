@@ -1,20 +1,20 @@
 ﻿using System.ComponentModel;
 
-namespace {namespace};
+namespace {{ namespacename }};
 
 public static partial class Permissions
 {
-    [DisplayName("{nameofPlural}")]
-    [Description("{nameofPlural} Permissions")]
-    public static class {nameofPlural}
+    [DisplayName("{{ modelnameplural }}")]
+    [Description("{{ modelnameplural }} Permissions")]
+    public static class {{ modelnameplural }}
     {
-        public const string View = "Permissions.{nameofPlural}.View";
-        public const string Create = "Permissions.{nameofPlural}.Create";
-        public const string Edit = "Permissions.{nameofPlural}.Edit";
-        public const string Delete = "Permissions.{nameofPlural}.Delete";
-        public const string Search = "Permissions.{nameofPlural}.Search";
-        public const string Export = "Permissions.{nameofPlural}.Export";
-        public const string Import = "Permissions.{nameofPlural}.Import";
+        public const string View = "Permissions.{{ modelnameplural }}.View";
+        public const string Create = "Permissions.{{ modelnameplural }}.Create";
+        public const string Edit = "Permissions.{{ modelnameplural }}.Edit";
+        public const string Delete = "Permissions.{{ modelnameplural }}.Delete";
+        public const string Search = "Permissions.{{ modelnameplural }}.Search";
+        public const string Export = "Permissions.{{ modelnameplural }}.Export";
+        public const string Import = "Permissions.{{ modelnameplural }}.Import";
     }
 }
 

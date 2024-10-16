@@ -8,9 +8,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Commands.AddEdit
+namespace CleanArchitecture.CodeGenerator.ScribanCoder.Infrastructure.Services.DataAccess
 {
-    public static class AddEditCommand
+    public static class Service
     {
         public static void Generate(CSharpClassObject modalClassObject, string relativeTargetPath, string targetProjectDirectory)
         {
@@ -26,7 +26,6 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Comm
                 string templateFilePath = Utility.GetTemplateFile(relativePath, targetFile.FullName);
                 string templateContent = File.ReadAllText(templateFilePath, Encoding.UTF8);
                 string NamespaceName = Helper.GetNamespace(relativePath);
-                string CommandFieldDefinition = Helper.CreateCommandFieldDefinition(modalClassObject);
 
                 // Initialize MasterData object
                 var masterdata = new
@@ -44,7 +43,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Comm
                     applicationprojectdirectory = ApplicationHelper.ApplicationProjectDirectory,
                     modelnameplural = modalClassObject.Name.Pluralize(),
                     modelname = modalClassObject.Name,
-                    commandfielddefinition = CommandFieldDefinition,
+
                 };
 
                 // Parse and render the class template

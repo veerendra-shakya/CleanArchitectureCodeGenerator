@@ -1,11 +1,11 @@
-﻿using {selectns}.{nameofPlural}.DTOs;
+﻿using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.DTOs;
 
-namespace {namespace};
+namespace {{ namespacename }};
 #nullable disable warnings
 
-public interface I{itemname}Service
+public interface I{{ modelname }}Service
 {
-    List<{itemname}Dto> DataSource { get; }
+    List<{{ modelname }}Dto> DataSource { get; }
     event Action? OnChange;
     void Initialize();
     void Refresh();

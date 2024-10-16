@@ -1,5 +1,5 @@
-﻿@using CleanArchitecture.Blazor.Application.Features.{nameofPlural}.Queries.Pagination
-@inject IStringLocalizer<{nameofPlural}> L
+﻿@using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Queries.Pagination
+@inject IStringLocalizer<{{ modelnameplural }}> L
 
 <MudExpansionPanel @bind-Expanded="_advancedSearchExpanded"
                    Style="border-radius: var(--mud-default-borderradius) !important;"
@@ -17,7 +17,7 @@
 </MudExpansionPanel>
 
 @code {
-    [EditorRequired][Parameter] public {nameofPlural}WithPaginationQuery TRequest { get; set; } = null!;
+    [EditorRequired][Parameter] public {{ modelnameplural }}WithPaginationQuery TRequest { get; set; } = null!;
     [EditorRequired][Parameter] public EventCallback<string> OnConditionChanged { get; set; }
     private bool _advancedSearchExpanded;
     private async Task TextChanged(string str)

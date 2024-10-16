@@ -1,18 +1,18 @@
-﻿@page "/pages/{nameofPlural}"
+﻿@page "/pages/{{ modelnameplural }}"
 
 @using BlazorDownloadFile
-@using CleanArchitecture.Blazor.Application.Features.{nameofPlural}.Caching
-@using CleanArchitecture.Blazor.Application.Features.{nameofPlural}.DTOs
-@using CleanArchitecture.Blazor.Application.Features.{nameofPlural}.Specifications
-@using CleanArchitecture.Blazor.Application.Features.{nameofPlural}.Commands.Delete
-@using CleanArchitecture.Blazor.Application.Features.{nameofPlural}.Commands.Import
-@using CleanArchitecture.Blazor.Application.Features.{nameofPlural}.Queries.Export
-@using CleanArchitecture.Blazor.Application.Features.{nameofPlural}.Queries.Pagination
-@using CleanArchitecture.Blazor.Application.Features.{nameofPlural}.Commands.AddEdit
-@using CleanArchitecture.Blazor.Server.UI.Pages.{nameofPlural}.Components
+@using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Caching
+@using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.DTOs
+@using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Specifications
+@using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Commands.Delete
+@using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Commands.Import
+@using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Queries.Export
+@using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Queries.Pagination
+@using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Commands.AddEdit
+@using CleanArchitecture.Blazor.Server.UI.Pages.{{ modelnameplural }}.Components
 
-@inject IStringLocalizer<{nameofPlural}> L
-@attribute [Authorize(Policy = Permissions.{nameofPlural}.View)]
+@inject IStringLocalizer<{{ modelnameplural }}> L
+@attribute [Authorize(Policy = Permissions.{{ modelnameplural }}.View)]
 <PageTitle>@Title</PageTitle>
 <style>
     .mud-table-toolbar {
@@ -37,7 +37,7 @@
                             <MudIcon Icon="@Icons.Material.Filled.Window" Size="Size.Large" />
                             <div class="d-flex flex-column">
                                 <MudText Typo="Typo.caption" Class="mb-2">@Title</MudText>
-                                <MudEnumSelect Style="min-width:120px" TEnum="{itemname}ListView" ValueChanged="OnChangedListView" Value="Query.ListView" Dense="true" Label="List View">
+                                <MudEnumSelect Style="min-width:120px" TEnum="{{ modelname }}ListView" ValueChanged="OnChangedListView" Value="Query.ListView" Dense="true" Label="List View">
                                 </MudEnumSelect>
                             </div>
                         </div>
@@ -174,7 +174,7 @@
                     </CellTemplate>
                 </TemplateColumn>
                 @*TODO: Define the fields that should be displayed in data table*@
-                {mudTdHeaderDefinition}
+                {{ mudtdheaderdefinition }}
             </Columns>
             <NoRecordsContent>
                 <MudText>@ConstantString.NoRecords</MudText>
@@ -192,9 +192,9 @@
 @code {
     public string? Title { get; private set; }
     private int _defaultPageSize = 15;
-    private HashSet<{itemname}Dto> _selectedItems = new HashSet<{itemname}Dto>();
-    private MudDataGrid<{itemname}Dto> _table = default!;
-    private {itemname}Dto _currentDto = new();
+    private HashSet<{{ modelname }}Dto> _selectedItems = new HashSet<{{ modelname }}Dto>();
+    private MudDataGrid<{{ modelname }}Dto> _table = default!;
+    private {{ modelname }}Dto _currentDto = new();
     private bool _loading;
     private bool _uploading;
     private bool _downloading;
@@ -204,7 +204,7 @@
     [CascadingParameter]
     private UserProfile? UserProfile { get; set; }
 
-    private {nameofPlural}WithPaginationQuery Query { get; set; } = new();
+    private {{ modelnameplural }}WithPaginationQuery Query { get; set; } = new();
     [Inject]
     private IBlazorDownloadFileService BlazorDownloadFileService { get; set; } = null!;
     private bool _canSearch;
@@ -218,14 +218,14 @@
     {
         Title = L[_currentDto.GetClassDescription()];
         var state = await AuthState;
-        _canCreate = (await AuthService.AuthorizeAsync(state.User, Permissions.{nameofPlural}.Create)).Succeeded;
-        _canSearch = (await AuthService.AuthorizeAsync(state.User, Permissions.{nameofPlural}.Search)).Succeeded;
-        _canEdit   = (await AuthService.AuthorizeAsync(state.User, Permissions.{nameofPlural}.Edit)).Succeeded;
-        _canDelete = (await AuthService.AuthorizeAsync(state.User, Permissions.{nameofPlural}.Delete)).Succeeded;
-        _canImport = (await AuthService.AuthorizeAsync(state.User, Permissions.{nameofPlural}.Import)).Succeeded;
-        _canExport = (await AuthService.AuthorizeAsync(state.User, Permissions.{nameofPlural}.Export)).Succeeded;
+        _canCreate = (await AuthService.AuthorizeAsync(state.User, Permissions.{{ modelnameplural }}.Create)).Succeeded;
+        _canSearch = (await AuthService.AuthorizeAsync(state.User, Permissions.{{ modelnameplural }}.Search)).Succeeded;
+        _canEdit   = (await AuthService.AuthorizeAsync(state.User, Permissions.{{ modelnameplural }}.Edit)).Succeeded;
+        _canDelete = (await AuthService.AuthorizeAsync(state.User, Permissions.{{ modelnameplural }}.Delete)).Succeeded;
+        _canImport = (await AuthService.AuthorizeAsync(state.User, Permissions.{{ modelnameplural }}.Import)).Succeeded;
+        _canExport = (await AuthService.AuthorizeAsync(state.User, Permissions.{{ modelnameplural }}.Export)).Succeeded;
     }
-    private async Task<GridData<{itemname}Dto>> ServerReload(GridState<{itemname}Dto> state)
+    private async Task<GridData<{{ modelname }}Dto>> ServerReload(GridState<{{ modelname }}Dto> state)
     {
         try
         {
@@ -236,7 +236,7 @@
             Query.PageNumber = state.Page + 1;
             Query.PageSize = state.PageSize;
             var result = await Mediator.Send(Query).ConfigureAwait(false);
-            return new GridData<{itemname}Dto>() { TotalItems = result.TotalItems, Items = result.Items };
+            return new GridData<{{ modelname }}Dto>() { TotalItems = result.TotalItems, Items = result.Items };
         }
         finally
         {
@@ -250,26 +250,26 @@
         Query.Keyword = text;
         await _table.ReloadServerData();
     }
-    private async Task OnChangedListView({itemname}ListView listview)
+    private async Task OnChangedListView({{ modelname }}ListView listview)
     {
         Query.ListView = listview;
         await _table.ReloadServerData();
     }
     private async Task OnRefresh()
     {
-        {itemname}CacheKey.Refresh();
+        {{ modelname }}CacheKey.Refresh();
         _selectedItems = new();
         Query.Keyword  = string.Empty;
         await _table.ReloadServerData();
     }
-    private async Task ShowEditFormDialog(string title, AddEdit{itemname}Command command)
+    private async Task ShowEditFormDialog(string title, AddEdit{{ modelname }}Command command)
     {
-        var parameters = new DialogParameters<{itemname}FormDialog>
+        var parameters = new DialogParameters<{{ modelname }}FormDialog>
             {
                 { x=>x.model,command },
             };
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
-        var dialog = DialogService.Show<{itemname}FormDialog>(title, parameters, options);
+        var dialog = DialogService.Show<{{ modelname }}FormDialog>(title, parameters, options);
         var state = await dialog.Result;
 
         if (state != null && !state.Canceled)
@@ -281,31 +281,31 @@
 
     private async Task OnCreate()
     {
-        var command = new AddEdit{itemname}Command();
-        await ShowEditFormDialog(string.Format(ConstantString.CreateAnItem, L["{itemname}"]), command);
+        var command = new AddEdit{{ modelname }}Command();
+        await ShowEditFormDialog(string.Format(ConstantString.CreateAnItem, L["{{ modelname }}"]), command);
     }
     private async Task OnClone()
     {
         var dto = _selectedItems.First();
-        var command = Mapper.Map<{itemname}Dto, AddEdit{itemname}Command>(dto, opts =>
+        var command = Mapper.Map<{{ modelname }}Dto, AddEdit{{ modelname }}Command>(dto, opts =>
         {
            opts.AfterMap((src, dest) =>
            {
                dest.Id = Guid.Empty;
            });
         });
-        await ShowEditFormDialog(string.Format(ConstantString.CreateAnItem, L["{itemname}"]), command);
+        await ShowEditFormDialog(string.Format(ConstantString.CreateAnItem, L["{{ modelname }}"]), command);
     }
-    private async Task OnEdit({itemname}Dto dto)
+    private async Task OnEdit({{ modelname }}Dto dto)
     {
-        var command = Mapper.Map<AddEdit{itemname}Command>(dto);
-        await ShowEditFormDialog(string.Format(ConstantString.EditTheItem, L["{itemname}"]), command);
+        var command = Mapper.Map<AddEdit{{ modelname }}Command>(dto);
+        await ShowEditFormDialog(string.Format(ConstantString.EditTheItem, L["{{ modelname }}"]), command);
     }
 
-    private async Task OnDelete({itemname}Dto dto)
+    private async Task OnDelete({{ modelname }}Dto dto)
     {
-        var contentText = string.Format(ConstantString.DeleteConfirmation, dto.{masterProperty});
-        var command = new Delete{itemname}Command(new Guid[] { dto.Id });
+        var contentText = string.Format(ConstantString.DeleteConfirmation, dto.{{ masterproperty }});
+        var command = new Delete{{ modelname }}Command(new Guid[] { dto.Id });
         await DialogServiceHelper.ShowDeleteConfirmationDialog(command, ConstantString.DeleteConfirmationTitle, contentText,
             async () =>
             {
@@ -318,7 +318,7 @@
     private async Task OnDeleteChecked()
     {
         var contentText = string.Format(ConstantString.DeleteConfirmWithSelected, _selectedItems.Count);
-        var command = new Delete{itemname}Command(_selectedItems.Select(x => x.Id).ToArray());
+        var command = new Delete{{ modelname }}Command(_selectedItems.Select(x => x.Id).ToArray());
         await DialogServiceHelper.ShowDeleteConfirmationDialog(command, ConstantString.DeleteConfirmationTitle, contentText,
             async () =>
             {
@@ -331,7 +331,7 @@
     private async Task OnExport()
     {
         _exporting = true;
-        var request = new Export{nameofPlural}Query()
+        var request = new Export{{ modelnameplural }}Query()
             {
                 Keyword = Query.Keyword,
                 CurrentUser = UserProfile,
@@ -342,7 +342,7 @@
         var result = await Mediator.Send(request);
         if (result.Succeeded)
         {
-            var downloadresult = await BlazorDownloadFileService.DownloadFile($"{L["{nameofPlural}"]}.xlsx", result.Data, contentType:"application/octet-stream");
+            var downloadresult = await BlazorDownloadFileService.DownloadFile($"{L["{{ modelnameplural }}"]}.xlsx", result.Data, contentType:"application/octet-stream");
             Snackbar.Add($"{ConstantString.ExportSuccess}", MudBlazor.Severity.Info);
         }
         else
@@ -356,7 +356,7 @@
         _uploading = true;
         var stream = new MemoryStream();
         await file.OpenReadStream().CopyToAsync(stream);
-        var command = new Import{nameofPlural}Command(file.Name, stream.ToArray());
+        var command = new Import{{ modelnameplural }}Command(file.Name, stream.ToArray());
         var result = await Mediator.Send(command);
         if (result.Succeeded)
         {

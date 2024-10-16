@@ -3,7 +3,7 @@ using CleanArchitecture.CodeGenerator.Models;
 using Scriban;
 using System.Text;
 
-namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages;
+namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages.Components;
 
 public static class FormDialog_razor
 {
@@ -51,14 +51,14 @@ public static class FormDialog_razor
             {
                 Utility.WriteToDiskAsync(targetFile.FullName, generatedClass);
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine($"Created file: {targetFile.FullName}");
+                Console.WriteLine($"Created file: {relativeTargetPath}");
                 Console.ResetColor();
             }
         }
         catch (Exception ex)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"Error generating file '{targetFile.FullName}': {ex.Message}");
+            Console.WriteLine($"Error generating file '{relativeTargetPath}': {ex.Message}");
             Console.ResetColor();
         }
 

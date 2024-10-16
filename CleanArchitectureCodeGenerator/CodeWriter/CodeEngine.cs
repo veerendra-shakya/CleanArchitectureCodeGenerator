@@ -4,6 +4,7 @@ using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
 
 
+
 namespace CleanArchitecture.CodeGenerator.CodeWriter
 {
 
@@ -115,59 +116,26 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
 
         private void GenerateTargetPaths(CSharpClassObject modalClassObject, string modalClassName, string modalClassNamePlural)
         {
-            #region Setup Basic Application Paths
-            var domainPaths = new[]
-{
+
+            #region Scriban Coder Domain
+            ScribanCoder.Domain.Events.CreatedEvent.Generate(
+                modalClassObject,
                 $"Events/{modalClassName}CreatedEvent.cs",
-                $"Events/{modalClassName}DeletedEvent.cs",
-                $"Events/{modalClassName}UpdatedEvent.cs"
-            };
+                ApplicationHelper.DomainProjectDirectory
+                );
 
-            var infrastructurePaths = new[]
-            {
-                $"Persistence/Configurations/{modalClassName}Configuration.cs",
-                $"PermissionSet/{modalClassNamePlural}.cs"
-            };
+            ScribanCoder.Domain.Events.DeletedEvent.Generate(
+               modalClassObject,
+               $"Events/{modalClassName}DeletedEvent.cs",
+               ApplicationHelper.DomainProjectDirectory
+               );
 
-            //var applicationPaths = new[]
-            //{
-            //$"Features/{modalClassNamePlural}/Commands/AddEdit/AddEdit{modalClassName}Command.cs",
-            //$"Features/{modalClassNamePlural}/Commands/AddEdit/AddEdit{modalClassName}CommandValidator.cs",
-            //$"Features/{modalClassNamePlural}/Commands/Create/Create{modalClassName}Command.cs",
-            //$"Features/{modalClassNamePlural}/Commands/Create/Create{modalClassName}CommandValidator.cs",
-            //$"Features/{modalClassNamePlural}/Commands/Delete/Delete{modalClassName}Command.cs",
-            //$"Features/{modalClassNamePlural}/Commands/Delete/Delete{modalClassName}CommandValidator.cs",
-            //$"Features/{modalClassNamePlural}/Commands/Update/Update{modalClassName}Command.cs",
-            //$"Features/{modalClassNamePlural}/Commands/Update/Update{modalClassName}CommandValidator.cs",
-            //$"Features/{modalClassNamePlural}/Commands/Import/Import{modalClassNamePlural}Command.cs",
-            //$"Features/{modalClassNamePlural}/Commands/Import/Import{modalClassNamePlural}CommandValidator.cs",
-            //$"Features/{modalClassNamePlural}/Caching/{modalClassName}CacheKey.cs",
-            //$"Features/{modalClassNamePlural}/DTOs/{modalClassName}Dto.cs",
-            //$"Features/{modalClassNamePlural}/EventHandlers/{modalClassName}CreatedEventHandler.cs",
-            //$"Features/{modalClassNamePlural}/EventHandlers/{modalClassName}UpdatedEventHandler.cs",
-            //$"Features/{modalClassNamePlural}/EventHandlers/{modalClassName}DeletedEventHandler.cs",
-            //$"Features/{modalClassNamePlural}/Specifications/{modalClassName}AdvancedFilter.cs",
-            //$"Features/{modalClassNamePlural}/Specifications/{modalClassName}AdvancedSpecification.cs",
-            //$"Features/{modalClassNamePlural}/Specifications/{modalClassName}ByIdSpecification.cs",
-            //$"Features/{modalClassNamePlural}/Queries/Export/Export{modalClassNamePlural}Query.cs",
-            //$"Features/{modalClassNamePlural}/Queries/GetAll/GetAll{modalClassNamePlural}Query.cs",
-            //$"Features/{modalClassNamePlural}/Queries/GetById/Get{modalClassName}ByIdQuery.cs",
-            //$"Features/{modalClassNamePlural}/Queries/Pagination/{modalClassNamePlural}PaginationQuery.cs"
-            //};
-
-            var UI_Paths = new[]
-            {
-                $"Pages/{modalClassNamePlural}/{modalClassNamePlural}.razor",
-                //$"Pages/{modalClassNamePlural}/Components/{modalClassName}FormDialog.razor",
-                $"Pages/{modalClassNamePlural}/Components/{modalClassNamePlural}AdvancedSearchComponent.razor"
-            };
+            ScribanCoder.Domain.Events.UpdatedEvent.Generate(
+               modalClassObject,
+               $"Events/{modalClassName}UpdatedEvent.cs",
+               ApplicationHelper.DomainProjectDirectory
+               );
             #endregion
-
-            ProcessFiles(modalClassObject, domainPaths, ApplicationHelper.DomainProjectDirectory);
-            ProcessFiles(modalClassObject, infrastructurePaths, ApplicationHelper.InfrastructureProjectDirectory);
-            //ProcessFiles(modalClassObject, applicationPaths, ApplicationHelper.ApplicationProjectDirectory);
-            ProcessFiles(modalClassObject, UI_Paths, ApplicationHelper.UiProjectDirectory);
-
 
             #region Scriban Coder Application
             ScribanCoder.Application.Features.Commands.AddEdit.AddEditCommand.Generate(
@@ -301,6 +269,32 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                  $"Features/{modalClassNamePlural}/Queries/Pagination/{modalClassNamePlural}PaginationQuery.cs",
                  ApplicationHelper.ApplicationProjectDirectory
                  );
+
+            ScribanCoder.Application.Common.Interfaces.DataAccess.IService.Generate(
+                  modalClassObject,
+                  $"Common/Interfaces/DataAccess/I{modalClassName}Service.cs",
+                  ApplicationHelper.ApplicationProjectDirectory
+                  );
+            #endregion
+
+            #region Scriban Coder Infrastructure
+            ScribanCoder.Infrastructure.PermissionSet.PermissionSet.Generate(
+                modalClassObject,
+                $"PermissionSet/{modalClassNamePlural}.cs",
+                ApplicationHelper.InfrastructureProjectDirectory
+                );
+
+            ScribanCoder.Infrastructure.Persistence.Configurations.Configuration.Generate(
+                 modalClassObject,
+                 $"Persistence/Configurations/{modalClassName}Configuration.cs",
+                 ApplicationHelper.InfrastructureProjectDirectory
+                 );
+
+            ScribanCoder.Infrastructure.Services.DataAccess.Service.Generate(
+                  modalClassObject,
+                  $"Services/DataAccess/{modalClassName}Service.cs",
+                  ApplicationHelper.InfrastructureProjectDirectory
+                  );
             #endregion
 
             #region Scriban Coder UiProject
@@ -316,23 +310,24 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                 ApplicationHelper.UiProjectDirectory
                 );
 
-            ScribanCoder.UI.Pages.FormDialog_razor.Generate(
+            ScribanCoder.UI.Pages.ListPage_razor.Generate(
+                modalClassObject,
+                $"Pages/{modalClassNamePlural}/{modalClassNamePlural}.razor",
+                ApplicationHelper.UiProjectDirectory
+                );
+
+            ScribanCoder.UI.Pages.Components.AdvancedSearch_razor.Generate(
+                modalClassObject,
+                $"Pages/{modalClassNamePlural}/Components/{modalClassNamePlural}AdvancedSearchComponent.razor",
+                ApplicationHelper.UiProjectDirectory
+                );
+
+
+            ScribanCoder.UI.Pages.Components.FormDialog_razor.Generate(
                 modalClassObject,
                 $"Pages/{modalClassNamePlural}/Components/{modalClassName}FormDialog.razor",
                 ApplicationHelper.UiProjectDirectory
                 );
-            #endregion
-
-            #region Generate Services for Data Access
-            Console.WriteLine($"\n--------------------- Generating Services...  --------------------");
-            GenerateCodeFile(modalClassObject, $"Common/Interfaces/DataAccess/I{modalClassName}Service.cs", ApplicationHelper.ApplicationProjectDirectory);
-            GenerateCodeFile(modalClassObject, $"Services/DataAccess/{modalClassName}Service.cs", ApplicationHelper.InfrastructureProjectDirectory);
-            // GenerateCodeFile(modalClassObject, $"Components/Autocompletes/{modalClassName}Autocomplete.razor.cs", ApplicationHelper.UiProjectDirectory);
-
-            Console.WriteLine($"\n--------------------- Services Generated  --------------------");
-
-
-
             #endregion
 
             #region Update DbContext
@@ -353,53 +348,6 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
 
             #endregion
 
-        }
-
-        private void ProcessFiles(CSharpClassObject modalClassObject, IEnumerable<string> relativeTargetPaths, string targetProjectDirectory)
-        {
-            Console.WriteLine($"\n---------------------  {Utility.GetProjectNameFromPath(targetProjectDirectory)} Started...  --------------------");
-            int count = 1;
-            foreach (var targetPath in relativeTargetPaths)
-            {
-                Console.Write($" {count} of {relativeTargetPaths.Count()}  ");
-                GenerateCodeFile(modalClassObject, targetPath, targetProjectDirectory);
-                // Add a 0.5-second delay
-                Thread.Sleep(200);
-                count++;
-            }
-
-            Console.WriteLine($"---------------------  {Utility.GetProjectNameFromPath(targetProjectDirectory)} Completed...  --------------------\n");
-        }
-
-        public void GenerateCodeFile(CSharpClassObject modalClassObject, string relativeTargetPath, string targetProjectDirectory)
-        {
-            if (!Utility.ValidatePath(relativeTargetPath, targetProjectDirectory))
-            {
-                return;
-            }
-
-            FileInfo targetFile = new FileInfo(Path.Combine(targetProjectDirectory, relativeTargetPath));
-            if (targetFile.Exists)
-            {
-                Console.WriteLine($"The file '{targetFile.FullName}' already exists.");
-                return;
-            }
-
-            try
-            {
-                TemplateMapper templateMapper = new TemplateMapper();
-                string template = templateMapper.GenerateClass(modalClassObject, targetFile.FullName, targetProjectDirectory);
-
-                if (!string.IsNullOrEmpty(template))
-                {
-                    Utility.WriteToDiskAsync(targetFile.FullName, template);
-                    Console.WriteLine($"Created file: {targetFile.FullName}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error generating file '{targetFile.FullName}': {ex.Message}");
-            }
         }
 
     }

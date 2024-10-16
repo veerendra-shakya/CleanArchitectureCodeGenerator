@@ -27,8 +27,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Comm
                 string templateContent = File.ReadAllText(templateFilePath, Encoding.UTF8);
                 string NamespaceName = Helper.GetNamespace(relativePath);
 
-                SnippetsWriter snippetsWriter = new SnippetsWriter();
-                string CommandFieldDefinition = snippetsWriter.CreateCommandFieldDefinition(modalClassObject);
+                string CommandFieldDefinition = Helper.CreateCommandFieldDefinition(modalClassObject);
 
                 // Initialize MasterData object
                 var masterdata = new

@@ -1,25 +1,25 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using {rootnamespace}.{applicationprojectname}.Common.Interfaces.DataAccess;
-using {rootnamespace}.{applicationprojectname}.Features.{nameofPlural}.Caching;
-using {rootnamespace}.{applicationprojectname}.Features.{nameofPlural}.DTOs;
+using {{ rootnamespace }}.{{ applicationprojectname }}.Common.Interfaces.DataAccess;
+using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Caching;
+using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.DTOs;
 using ZiggyCreatures.Caching.Fusion;
 
-namespace {namespace};
+namespace {{ namespacename }};
 #nullable disable warnings
 
-public class {itemname}Service : I{itemname}Service
+public class {{ modelname }}Service : I{{ modelname }}Service
 {
     private readonly IApplicationDbContext _context;
     private readonly IFusionCache _fusionCache;
     private readonly IMapper _mapper;
-    private const string CacheKey = "{itemname}DataServicesCacheKey";
+    private const string CacheKey = "{{ modelname }}DataServicesCacheKey";
     private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(30);
 
     public event Action? OnChange;
-    public List<{itemname}Dto> DataSource { get; private set; } = new();
+    public List<{{ modelname }}Dto> DataSource { get; private set; } = new();
 
-    public {itemname}Service(
+    public {{ modelname }}Service(
         IFusionCache fusionCache,
         IServiceScopeFactory scopeFactory,
         IMapper mapper)
@@ -33,12 +33,12 @@ public class {itemname}Service : I{itemname}Service
     public void Initialize()
     {
         DataSource = _fusionCache.GetOrSet(CacheKey,
-            _ => _context.{nameofPlural}
-                .ProjectTo<{itemname}Dto>(_mapper.ConfigurationProvider)
+            _ => _context.{{ modelnameplural }}
+                .ProjectTo<{{ modelname }}Dto>(_mapper.ConfigurationProvider)
                 .AsNoTracking()
                 .ToList(),
                  CacheDuration
-        ) ?? new List<{itemname}Dto>();
+        ) ?? new List<{{ modelname }}Dto>();
     }
 
     public void Refresh()
@@ -46,12 +46,12 @@ public class {itemname}Service : I{itemname}Service
         _fusionCache.Remove(CacheKey);
         
         DataSource = _fusionCache.GetOrSet(CacheKey,
-            _ => _context.{nameofPlural}
-                .ProjectTo<{itemname}Dto>(_mapper.ConfigurationProvider)
+            _ => _context.{{ modelnameplural }}
+                .ProjectTo<{{ modelname }}Dto>(_mapper.ConfigurationProvider)
                 .AsNoTracking()
                 .ToList(),
                  CacheDuration
-        ) ?? new List<{itemname}Dto>();
+        ) ?? new List<{{ modelname }}Dto>();
         
         OnChange?.Invoke();
     }

@@ -1,13 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace {namespace};
+namespace {{ namespacename }};
 
 #nullable disable
-public class {itemname}Configuration : IEntityTypeConfiguration<{itemname}>
+public class {{ modelname }}Configuration : IEntityTypeConfiguration<{{ modelname }}>
 {
-    public void Configure(EntityTypeBuilder<{itemname}> builder)
+    public void Configure(EntityTypeBuilder<{{ modelname }}> builder)
     {
-        {efConfigurations}
+        {{ efconfigurations }}
         builder.Ignore(e => e.DomainEvents);
     }
 }

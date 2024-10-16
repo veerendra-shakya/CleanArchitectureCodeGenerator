@@ -1,12 +1,12 @@
-﻿namespace {namespace};
+﻿namespace {{ namespacename }};
 
-public class {itemname}CreatedEvent : DomainEvent
+public class {{ modelname }}CreatedEvent : DomainEvent
 {
-    public {itemname}CreatedEvent({itemname} item)
+    public {{ modelname }}CreatedEvent({{ modelname }} item)
     {
         Item = item;
     }
 
-    public {itemname} Item { get; }
+    public {{ modelname }} Item { get; }
 }
 
