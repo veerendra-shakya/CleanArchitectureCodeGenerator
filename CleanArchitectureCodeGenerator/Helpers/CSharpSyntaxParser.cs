@@ -430,6 +430,10 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 {
                     classProperty.UIDesignAtt.Margin = ExtractEnumValue(argumentValue);
                 }
+                if (argumentName.Equals("relateWith"))
+                {
+                    classProperty.UIDesignAtt.RelateWith = ExtractStringValue(argumentValue);
+                }
             }
         }
 

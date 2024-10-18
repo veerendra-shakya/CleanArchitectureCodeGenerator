@@ -1,15 +1,12 @@
 ﻿using CleanArchitecture.CodeGenerator.Configuration;
 using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using CleanArchitecture.CodeGenerator.ScribanCoder.UI.Components.Dialogs.MultiSelector;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
 {
-    public static class Ef_LinkingTableConfigurationsGenerator
+    public static class ManyToManyConfigurationsGenerator
     {
         public static void GenerateConfigurations(CSharpClassObject classObject)
         {
@@ -20,6 +17,12 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                     if (property.ScaffoldingAtt.RelationshipType == "ManyToMany")
                     {
                         AddLinkingEntityConfiguration(property);
+
+                        AddToDatabaseContext(property.ScaffoldingAtt.LinkingTable);
+
+                        MultipleSelectorDialog.Generate(classObject, property,
+                            $"Components/Dialogs/MultiSelector/{property.PropertyName}MultipleSelectorDialog.razor",
+                            ApplicationHelper.UiProjectDirectory);
                     }
                 }
             }
@@ -102,6 +105,13 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             Console.WriteLine("\n");
             Console.ResetColor();
 
+        }
+
+        private static void AddToDatabaseContext(string LinkingEntityName)
+        {
+            Update_DbContext dbContextModifier = new Update_DbContext();
+            var paths = dbContextModifier.SearchDbContextFiles(ApplicationHelper.RootDirectory);
+            dbContextModifier.AddEntityProperty(paths, LinkingEntityName);
         }
 
         public static void RemoveConfigurations(CSharpClassObject classObject)

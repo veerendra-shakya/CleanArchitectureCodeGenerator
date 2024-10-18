@@ -1,0 +1,167 @@
+@using CleanArchitecture.Blazor.Application.Common.Interfaces.DataAccess
+<style>
+    .custom-grid .mud-table-toolbar {
+        height: 50px !important;
+        min-height: 50px !important;
+        padding-top: 0px !important;
+        padding-bottom: 0px !important;
+    }
+</style>
+
+<MudButton OnClick="OpenDialog" Color="Color.Primary" Variant="Variant.Filled">Select {{ modelname }}</MudButton>
+
+@if (SelectedItems.Any())
+{
+    <div class="selected-items-list">
+        @foreach (var item in SelectedItems)
+        {
+            <MudChip T="{{ modelname }}">@item.{{ inverseproperty }}</MudChip>
+        }
+    </div>
+}
+else
+{
+    <MudText>No items selected.</MudText>
+}
+
+<MudDialog @bind-Visible="IsDialogVisible" OnBackdropClick="CloseDialog" Options="dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Select {{ modelnameplural }}</MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (IsLoading)
+        {
+            <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-2" />
+        }
+        else
+        {
+            <MudDataGrid T="{{ modelname }}" Items="@FilteredItems" Class="custom-grid"
+                         @bind-SelectedItems="SelectedItems" 
+                            MultiSelection="true" 
+                            Bordered="true" Dense="true" 
+                            Striped="true">
+                <ToolBarContent>
+                    <MudTextField T="string" @bind-Value="SearchText"
+                            Placeholder="Search"
+                            Adornment="Adornment.Start" OnAdornmentClick="FilterItems"
+                            AdornmentIcon="@Icons.Material.Filled.Search"
+                            AdornmentColor="Color.Secondary"
+                            Immediate="true" IconSize="Size.Medium" Class="mt-0"
+                            OnKeyUp="FilterItems" />
+                    <MudSpacer />
+                    <MudButton Disabled="@_processing" OnClick="ProcessSomething" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Refresh">
+                        @if (_processing)
+                        {
+                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                            <MudText Class="ms-2">Processing</MudText>
+                        }
+                        else
+                        {
+                            <MudText>Refresh Data</MudText>
+                        }
+                    </MudButton>
+                </ToolBarContent>
+                <Columns>
+                    <SelectColumn T="{{ modelname }}" />
+                    <PropertyColumn Property="x => x.{{ inverseproperty }}" Title="{{ inverseproperty }}">
+                        <CellTemplate>
+                            <MudText>@context.Item.{{ inverseproperty }}</MudText>
+                        </CellTemplate>
+                    </PropertyColumn>
+                    <PropertyColumn Property="x => x.Description" Title="Description">
+                        <CellTemplate>
+                            <MudText>@context.Item.Description</MudText>
+                        </CellTemplate>
+                    </PropertyColumn>
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="{{ modelname }}" RowsPerPageString="" DisableRowsPerPage />
+                </PagerContent>
+            </MudDataGrid>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="CloseDialog">Update & Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Inject] private IDemoService DataProvider { get; set; } = default!;
+    [Parameter] public HashSet<{{ modelname }}> SelectedItems { get; set; } = new HashSet<{{ modelname }}>();
+    [Parameter] public EventCallback<HashSet<{{ modelname }}>> SelectedItemsChanged { get; set; }
+    [Parameter] public EventCallback OnDialogClose { get; set; }
+
+    private bool IsDialogVisible = false;
+    private bool IsLoading = false;
+    private bool _processing = false;
+    private List<{{ modelname }}> AllItems = new();
+    private List<{{ modelname }}> FilteredItems = new();
+    private string SearchText = string.Empty;
+
+    private DialogOptions dialogOptions = new DialogOptions
+        {
+            maxwidth = MaxWidth.Medium,
+            fullwidth = true,
+            closebutton = false,
+            position = DialogPosition.TopCenter
+        };
+
+    private void OpenDialog()
+    {
+        IsDialogVisible = true;
+        FilterItems();
+    }
+
+    private void CloseDialog()
+    {
+        IsDialogVisible = false;
+        OnDialogClose.InvokeAsync();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadItems();
+    }
+
+    private async Task LoadItems()
+    {
+        IsLoading = true;
+        var demoDtoList = DataProvider.DataSource.ToList();
+        AllItems = Mapper.Map<List<{{ modelname }}>>(demoDtoList);
+        FilterItems();
+        IsLoading = false;
+    }
+
+    private void FilterItems()
+    {
+        // Search filtering logic
+        FilteredItems = string.IsNullOrEmpty(SearchText)
+            ? AllItems
+            : AllItems.Where(x =>
+                x.{{ inverseproperty }}.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
+            ).ToList();
+
+        UpdateFilteredItemsSelection();
+    }
+
+    private void UpdateFilteredItemsSelection()
+    {
+        // Ensure selected items are synced with FilteredItems
+        foreach (var item in AllItems)
+        {
+            if (SelectedItems.Any(x => x.Id == item.Id))
+            {
+                SelectedItems.RemoveWhere(x => x.Id == item.Id);
+                SelectedItems.Add(item);
+            }
+        }
+    }
+
+    async Task ProcessSomething()
+    {
+        _processing = true;
+        await Task.Delay(1000);
+        await LoadItems();
+        _processing = false;
+    }
+}

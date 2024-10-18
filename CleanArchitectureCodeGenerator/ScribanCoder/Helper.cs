@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace CleanArchitecture.CodeGenerator.ScribanCoder
@@ -48,8 +49,8 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder
         public static string CreateCommandFieldDefinition(CSharpClassObject classObject)
         {
             var output = new StringBuilder();
-
-            foreach (var property in classObject.ClassProperties.Where(x => x.Type.IsKnownType))
+            //.Where(x => x.Type.IsKnownType)
+            foreach (var property in classObject.ClassProperties)
             {
                 output.AppendLine($"    [Description(\"{property.DisplayName}\")]");
                 switch (property.Type.TypeName)
@@ -65,6 +66,16 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder
             return output.ToString();
         }
 
+        public static string ExtractDataType(string genericString)
+        {
+            // Use Regex to match the text inside the < and >
+            var match = Regex.Match(genericString, @"<([^>]+)>");
+            if (match.Success)
+            {
+                return match.Groups[1].Value;
+            }
+            return string.Empty; // Return empty if no match found
+        }
 
     }
 }

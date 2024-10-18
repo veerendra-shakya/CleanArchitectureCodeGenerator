@@ -134,6 +134,7 @@ namespace CleanArchitecture.CodeGenerator.Models
         public string? Mask { get; set; }
         public string? Typography { get; set; }
         public string? Variant { get; set; }
+        public string? RelateWith { get; set; }
     }
 
     public class PropertyType

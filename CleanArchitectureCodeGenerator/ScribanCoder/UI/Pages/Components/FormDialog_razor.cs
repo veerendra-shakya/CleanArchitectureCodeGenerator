@@ -67,60 +67,136 @@ public static class FormDialog_razor
 
     public static string CreateMudFormFieldDefinition(CSharpClassObject classObject)
     {
-
         var output = new StringBuilder();
         foreach (var property in classObject.ClassProperties.Where(x => x.Type.IsKnownType))
         {
             if (property.PropertyName == "Id") continue;
-            switch (property.Type.TypeName.ToLower())
+
+            if (property.UIDesignAtt.Has)
             {
-                case "string" when property.PropertyName.Equals("Name", StringComparison.OrdinalIgnoreCase):
-                    output.AppendLine("<MudItem xs=\"12\" md=\"6\">");
-                    output.AppendLine($"    <MudTextField Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Value=\"model.{property.PropertyName}\" For=\"@(() => model.{property.PropertyName})\" Required=\"true\" RequiredError=\"@L[\"{Utility.SplitCamelCase(property.PropertyName).ToLower()} is required!\"]\"></MudTextField>");
-                    output.AppendLine("</MudItem>");
-                    break;
-                case "string" when property.PropertyName.Equals("Description", StringComparison.OrdinalIgnoreCase):
-                    output.AppendLine("<MudItem xs=\"12\" md=\"6\">");
-                    output.AppendLine($"    <MudTextField Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" Lines=\"3\" For=\"@(() => model.{property.PropertyName})\" @bind-Value=\"model.{property.PropertyName}\"></MudTextField>");
-                    output.AppendLine("</MudItem>");
-                    break;
-                case "bool?":
-                case "bool":
-                    output.AppendLine("<MudItem xs=\"12\" md=\"6\">");
-                    output.AppendLine($"    <MudCheckBox Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Checked=\"model.{property.PropertyName}\" For=\"@(() => model.{property.PropertyName})\"></MudCheckBox>");
-                    output.AppendLine("</MudItem>");
-                    break;
-                case "int?":
-                case "int":
-                    output.AppendLine("<MudItem xs=\"12\" md=\"6\">");
-                    output.AppendLine($"    <MudNumericField Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Value=\"model.{property.PropertyName}\" For=\"@(() => model.{property.PropertyName})\" Min=\"0\" Required=\"false\" RequiredError=\"@L[\"{Utility.SplitCamelCase(property.PropertyName).ToLower()} is required!\"]\"></MudNumericField>");
-                    output.AppendLine("</MudItem>");
-                    break;
-                case "decimal?":
-                case "decimal":
-                    output.AppendLine("<MudItem xs=\"12\" md=\"6\">");
-                    output.AppendLine($"    <MudNumericField Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Value=\"model.{property.PropertyName}\" For=\"@(() => model.{property.PropertyName})\" Min=\"0.00m\" Required=\"false\" RequiredError=\"@L[\"{Utility.SplitCamelCase(property.PropertyName).ToLower()} is required!\"]\"></MudNumericField>");
-                    output.AppendLine("</MudItem>");
-                    break;
-                case "double?":
-                case "double":
-                    output.AppendLine("<MudItem xs=\"12\" md=\"6\">");
-                    output.AppendLine($"    <MudNumericField Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Value=\"model.{property.PropertyName}\" For=\"@(() => model.{property.PropertyName})\" Min=\"0.00\" Required=\"false\" RequiredError=\"@L[\"{Utility.SplitCamelCase(property.PropertyName).ToLower()} is required!\"]\"></MudNumericField>");
-                    output.AppendLine("</MudItem>");
-                    break;
-                case "system.datetime?":
-                    output.AppendLine("<MudItem xs=\"12\" md=\"6\">");
-                    output.AppendLine($"    <MudDatePicker Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Date=\"model.{property.PropertyName}\" For=\"@(() => model.{property.PropertyName})\" Required=\"false\" RequiredError=\"@L[\"{Utility.SplitCamelCase(property.PropertyName).ToLower()} is required!\"]\"></MudDatePicker>");
-                    output.AppendLine("</MudItem>");
-                    break;
-                default:
-                    output.AppendLine("<MudItem xs=\"12\" md=\"6\">");
-                    output.AppendLine($"    <MudTextField Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Value=\"model.{property.PropertyName}\" For=\"@(() => model.{property.PropertyName})\" Required=\"false\" RequiredError=\"@L[\"{Utility.SplitCamelCase(property.PropertyName).ToLower()} is required!\"]\"></MudTextField>");
-                    output.AppendLine("</MudItem>");
-                    break;
+                output.Append(CreateComponentWithMudItem(GenerateCustomComponent(property)));
+            }
+            else
+            {
+                output.Append(CreateComponentWithMudItem(GenerateDefaultComponent(property)));
             }
         }
         return output.ToString();
     }
 
+    private static string CreateComponentWithMudItem(string componentDefinition)
+    {
+        var output = new StringBuilder();
+        output.AppendLine("<MudItem xs=\"12\" md=\"6\">");
+        output.Append($"    {componentDefinition}");
+        output.AppendLine("</MudItem>");
+        return output.ToString();
+    }
+
+    private static string GenerateCustomComponent(ClassProperty property)
+    {
+        var output = new StringBuilder();
+        string CustomAutocompletePicker = $"{property.UIDesignAtt.RelateWith}Autocomplete";
+        string component = property.UIDesignAtt.CompType switch
+        {
+            "TextField" => "MudTextField",
+            "Select" => "MudSelect",
+            "Checkbox" => "MudCheckBox",
+            "RadioGroup" => "MudRadioGroup",
+            "DatePicker" => "MudDatePicker",
+            "Switch" => "MudSwitch",
+            "Slider" => "MudSlider",
+            "Autocomplete" => "MudAutocomplete",
+            "NumericField" => "MudNumericField",
+            "CustomAutocompletePicker" => CustomAutocompletePicker,
+            _ => "MudTextField",
+        };
+
+        if (component == CustomAutocompletePicker)
+        {
+            output.AppendLine($"<{component} For=\"@(() => model.{property.PropertyName})\" @bind-Value=\"model.{property.PropertyName}\" Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" Placeholder=\"Select...\"></{component}>");
+            return output.ToString();
+        }
+
+        if (!string.IsNullOrWhiteSpace(property.UIDesignAtt.Label))
+        {
+            output.AppendLine($"<{component} Label=\"{property.UIDesignAtt.Label}\" @bind-Value=\"model.{property.PropertyName}\" For=\"@(() => model.{property.PropertyName})\"");
+        }
+        else
+        {
+            output.AppendLine($"<{component} Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Value=\"model.{property.PropertyName}\" For=\"@(() => model.{property.PropertyName})\"");
+        }
+
+        if (property.UIDesignAtt.MaxLength.HasValue && property.UIDesignAtt.MaxLength.Value > 0)
+            output.AppendLine($"    MaxLength=\"{property.UIDesignAtt.MaxLength}\"");
+        if (!string.IsNullOrWhiteSpace(property.UIDesignAtt.HelperText))
+            output.AppendLine($"    HelperText=\"{property.UIDesignAtt.HelperText}\"");
+        if (property.UIDesignAtt.Clearable.HasValue && property.UIDesignAtt.Clearable.Value)
+            output.AppendLine($"    Clearable=\"true\"");
+        if (property.UIDesignAtt.Disabled.HasValue && property.UIDesignAtt.Disabled.Value)
+            output.AppendLine($"    Disabled=\"true\"");
+        if (property.UIDesignAtt.ReadOnly.HasValue && property.UIDesignAtt.ReadOnly.Value)
+            output.AppendLine($"    ReadOnly=\"true\"");
+        if (property.UIDesignAtt.AutoGrow.HasValue && property.UIDesignAtt.AutoGrow.Value)
+            output.AppendLine($"    AutoGrow=\"true\"");
+        if (property.UIDesignAtt.Lines.HasValue && property.UIDesignAtt.Lines.Value > 0)
+            output.AppendLine($"    Lines=\"{property.UIDesignAtt.Lines}\"");
+        if (property.UIDesignAtt.Adornment != null)
+            output.AppendLine($"    Adornment=\"{property.UIDesignAtt.Adornment}\"");
+        if (!string.IsNullOrWhiteSpace(property.UIDesignAtt.AdornmentIcon))
+            output.AppendLine($"    AdornmentIcon=\"{property.UIDesignAtt.AdornmentIcon}\"");
+        if (!string.IsNullOrWhiteSpace(property.UIDesignAtt.AdornmentColor))
+            output.AppendLine($"    AdornmentColor=\"{property.UIDesignAtt.AdornmentColor}\"");
+        if (property.UIDesignAtt.Counter.HasValue && property.UIDesignAtt.Counter.Value > 0)
+            output.AppendLine($"    Counter=\"{property.UIDesignAtt.Counter}\"");
+        if (!string.IsNullOrWhiteSpace(property.UIDesignAtt.DataModel))
+            output.AppendLine($"    DataModel=\"{property.UIDesignAtt.DataModel}\"");
+        if (property.UIDesignAtt.HelperTextOnFocus.HasValue && property.UIDesignAtt.HelperTextOnFocus.Value)
+            output.AppendLine($"    HelperTextOnFocus=\"true\"");
+        if (property.UIDesignAtt.Immediate.HasValue && property.UIDesignAtt.Immediate.Value)
+            output.AppendLine($"    Immediate=\"true\"");
+        if (!string.IsNullOrWhiteSpace(property.UIDesignAtt.InputType))
+            output.AppendLine($"    InputType=\"{property.UIDesignAtt.InputType}\"");
+        if (property.UIDesignAtt.ShrinkLabel.HasValue && property.UIDesignAtt.ShrinkLabel.Value)
+            output.AppendLine($"    ShrinkLabel=\"true\"");
+        if (property.UIDesignAtt.MaxLines.HasValue && property.UIDesignAtt.MaxLines.Value > 0)
+            output.AppendLine($"    MaxLines=\"{property.UIDesignAtt.MaxLines}\"");
+        if (!string.IsNullOrWhiteSpace(property.UIDesignAtt.Margin))
+            output.AppendLine($"    Margin=\"{property.UIDesignAtt.Margin}\"");
+        if (!string.IsNullOrWhiteSpace(property.UIDesignAtt.Mask))
+            output.AppendLine($"    Mask=\"{property.UIDesignAtt.Mask}\"");
+        if (!string.IsNullOrWhiteSpace(property.UIDesignAtt.Typography))
+            output.AppendLine($"    Typography=\"{property.UIDesignAtt.Typography}\"");
+        if (!string.IsNullOrWhiteSpace(property.UIDesignAtt.Variant))
+            output.AppendLine($"    Variant=\"{property.UIDesignAtt.Variant}\"");
+
+        output.AppendLine($"></{component}>");
+        return output.ToString();
+    }
+
+    private static string GenerateDefaultComponent(ClassProperty property)
+    {
+        var output = new StringBuilder();
+        switch (property.Type.TypeName.ToLower())
+        {
+            case "string" when property.PropertyName.Equals("Name", StringComparison.OrdinalIgnoreCase):
+                output.AppendLine($"<MudTextField Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Value=\"model.{property.PropertyName}\" For=\"@(() => model.{property.PropertyName})\" Required=\"true\" RequiredError=\"@L[\"{Utility.SplitCamelCase(property.PropertyName).ToLower()} is required!\"]\"></MudTextField>");
+                break;
+            case "bool?":
+            case "bool":
+                output.AppendLine($"<MudCheckBox Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Checked=\"model.{property.PropertyName}\" For=\"@(() => model.{property.PropertyName})\"></MudCheckBox>");
+                break;
+            case "int?":
+            case "int":
+                output.AppendLine($"<MudNumericField Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Value=\"model.{property.PropertyName}\" For=\"@(() => model.{property.PropertyName})\" Min=\"0\" Required=\"false\" RequiredError=\"@L[\"{Utility.SplitCamelCase(property.PropertyName).ToLower()} is required!\"]\"></MudNumericField>");
+                break;
+            case "system.datetime?":
+                output.AppendLine($"<MudDatePicker Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Date=\"model.{property.PropertyName}\" For=\"@(() => model.{property.PropertyName})\" Required=\"false\" RequiredError=\"@L[\"{Utility.SplitCamelCase(property.PropertyName).ToLower()} is required!\"]\"></MudDatePicker>");
+                break;
+            default:
+                output.AppendLine($"<MudTextField Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Value=\"model.{property.PropertyName}\" For=\"@(() => model.{property.PropertyName})\" Required=\"false\" RequiredError=\"@L[\"{Utility.SplitCamelCase(property.PropertyName).ToLower()} is required!\"]\"></MudTextField>");
+                break;
+        }
+        return output.ToString();
+    }
 }

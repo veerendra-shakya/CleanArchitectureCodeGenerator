@@ -18,7 +18,7 @@ public class AddEdit{{ modelname }}Command: ICacheInvalidatorRequest<Result<Guid
         public Mapping()
         {
             CreateMap<{{ modelname }}Dto,AddEdit{{ modelname }}Command>(MemberList.None);
-            CreateMap<AddEdit{{ modelname }}Command,{{ modelname }}>(MemberList.None);
+            CreateMap<AddEdit{{ modelname }}Command,{{ modelname }}>(MemberList.None){{ mapignore }};
         }
     }
 }
@@ -44,6 +44,7 @@ public class AddEdit{{ modelname }}Command: ICacheInvalidatorRequest<Result<Guid
             {
                 var item = await _context.{{ modelnameplural }}.FindAsync(new object[] { request.Id }, cancellationToken) ?? throw new NotFoundException($"{{ modelname }} with id: [{request.Id}] not found.");
                 item = _mapper.Map(request, item);
+                {{ updatemanytomany }}
 				// raise a update domain event
 				item.AddDomainEvent(new {{ modelname }}UpdatedEvent(item));
                 await _context.SaveChangesAsync(cancellationToken);
@@ -55,6 +56,7 @@ public class AddEdit{{ modelname }}Command: ICacheInvalidatorRequest<Result<Guid
                 // raise a create domain event
 				item.AddDomainEvent(new {{ modelname }}CreatedEvent(item));
                 _context.{{ modelnameplural }}.Add(item);
+                {{ addmanytomany }}
                 await _context.SaveChangesAsync(cancellationToken);
                 return await Result<Guid>.SuccessAsync(item.Id);
             }
