@@ -10,7 +10,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
 {
     public static class ApplicationHelper
     {
-
+ 
         public static string RootDirectory;
         public static string RootNamespace;
         public static string DomainProjectName;

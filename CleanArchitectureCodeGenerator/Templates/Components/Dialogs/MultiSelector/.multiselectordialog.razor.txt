@@ -15,7 +15,7 @@
     <div class="selected-items-list">
         @foreach (var item in SelectedItems)
         {
-            <MudChip T="{{ modelname }}">@item.{{ inverseproperty }}</MudChip>
+            <MudChip T="{{ modelname }}">@item.{{ identifierproperty }}</MudChip>
         }
     </div>
 }
@@ -63,16 +63,7 @@ else
                 </ToolBarContent>
                 <Columns>
                     <SelectColumn T="{{ modelname }}" />
-                    <PropertyColumn Property="x => x.{{ inverseproperty }}" Title="{{ inverseproperty }}">
-                        <CellTemplate>
-                            <MudText>@context.Item.{{ inverseproperty }}</MudText>
-                        </CellTemplate>
-                    </PropertyColumn>
-                    <PropertyColumn Property="x => x.Description" Title="Description">
-                        <CellTemplate>
-                            <MudText>@context.Item.Description</MudText>
-                        </CellTemplate>
-                    </PropertyColumn>
+                    {{ muddatagridpropertycolumns }}
                 </Columns>
                 <PagerContent>
                     <MudDataGridPager T="{{ modelname }}" RowsPerPageString="" DisableRowsPerPage />
@@ -86,7 +77,7 @@ else
 </MudDialog>
 
 @code {
-    [Inject] private IDemoService DataProvider { get; set; } = default!;
+    [Inject] private I{{ modelname }}Service DataProvider { get; set; } = default!;
     [Parameter] public HashSet<{{ modelname }}> SelectedItems { get; set; } = new HashSet<{{ modelname }}>();
     [Parameter] public EventCallback<HashSet<{{ modelname }}>> SelectedItemsChanged { get; set; }
     [Parameter] public EventCallback OnDialogClose { get; set; }
@@ -100,10 +91,10 @@ else
 
     private DialogOptions dialogOptions = new DialogOptions
         {
-            maxwidth = MaxWidth.Medium,
-            fullwidth = true,
-            closebutton = false,
-            position = DialogPosition.TopCenter
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
+            CloseButton = false,
+            Position = DialogPosition.TopCenter
         };
 
     private void OpenDialog()
@@ -126,27 +117,21 @@ else
     private async Task LoadItems()
     {
         IsLoading = true;
-        var demoDtoList = DataProvider.DataSource.ToList();
-        AllItems = Mapper.Map<List<{{ modelname }}>>(demoDtoList);
+        var dataDtoList = DataProvider.DataSource.ToList();
+        AllItems = Mapper.Map<List<{{ modelname }}>>(dataDtoList);
         FilterItems();
         IsLoading = false;
     }
 
     private void FilterItems()
     {
-        // Search filtering logic
-        FilteredItems = string.IsNullOrEmpty(SearchText)
-            ? AllItems
-            : AllItems.Where(x =>
-                x.{{ inverseproperty }}.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
-            ).ToList();
+        {{ filtereditemsquery }}
 
         UpdateFilteredItemsSelection();
     }
 
     private void UpdateFilteredItemsSelection()
     {
-        // Ensure selected items are synced with FilteredItems
         foreach (var item in AllItems)
         {
             if (SelectedItems.Any(x => x.Id == item.Id))

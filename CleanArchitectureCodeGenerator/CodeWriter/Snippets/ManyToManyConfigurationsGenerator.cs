@@ -1,6 +1,7 @@
 ﻿using CleanArchitecture.CodeGenerator.Configuration;
 using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
+using CleanArchitecture.CodeGenerator.ScribanCoder;
 using CleanArchitecture.CodeGenerator.ScribanCoder.UI.Components.Dialogs.MultiSelector;
 using System.Text;
 
@@ -20,12 +21,26 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
 
                         AddToDatabaseContext(property.ScaffoldingAtt.LinkingTable);
 
-                        MultipleSelectorDialog.Generate(classObject, property,
-                            $"Components/Dialogs/MultiSelector/{property.PropertyName}MultipleSelectorDialog.razor",
-                            ApplicationHelper.UiProjectDirectory);
+                        CSharpClassObject RelatedTableObject = GetRelatedTableObject(property);
+
+                        if(RelatedTableObject != null)
+                        {
+                            MultipleSelectorDialog.Generate(RelatedTableObject, 
+                               $"Components/Dialogs/MultiSelector/{RelatedTableObject.Name}MultiSelectorDialog.razor",
+                               ApplicationHelper.UiProjectDirectory);
+                        }
+   
                     }
                 }
             }
+        }
+
+        private static CSharpClassObject GetRelatedTableObject(ClassProperty property)
+        {
+            string propertytype = property.Type.TypeName;
+            string propertydatatype = Helper.ExtractDataType(propertytype);
+            var relatedObject =  ApplicationHelper.ClassObjectList.Where(x=>x.Name == propertydatatype).FirstOrDefault();
+            return relatedObject;
         }
 
         private static void AddLinkingEntityConfiguration(ClassProperty property)
