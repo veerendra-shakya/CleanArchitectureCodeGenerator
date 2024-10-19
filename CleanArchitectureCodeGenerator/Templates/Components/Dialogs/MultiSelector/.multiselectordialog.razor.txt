@@ -8,25 +8,27 @@
     }
 </style>
 
-<MudButton OnClick="OpenDialog" Color="Color.Primary" Variant="Variant.Filled">Select {{ modelname }}</MudButton>
+<MudButton OnClick="OpenDialog" StartIcon="@Icons.Material.Filled.List" Color="Color.Default" Variant="Variant.Filled" FullWidth=true>Select @Label</MudButton>
 
-@if (SelectedItems.Any())
-{
-    <div class="selected-items-list">
-        @foreach (var item in SelectedItems)
+<MudPaper Outlined="true" Class="border-dashed my-2">
+    <MudStack Justify="Justify.Center" Row="true" Wrap="Wrap.Wrap" StretchItems="StretchItems.All">
+        @if (SelectedItems.Any())
         {
-            <MudChip T="{{ modelname }}">@item.{{ identifierproperty }}</MudChip>
+            @foreach (var item in SelectedItems)
+            {
+                <MudChip T="{{ modelname }}" Color="Color.Primary">@item.{{ identifierproperty }}</MudChip>
+            }
         }
-    </div>
-}
-else
-{
-    <MudText>No items selected.</MudText>
-}
+        else
+        {
+            <MudChip T="string">No items selected.</MudChip>
+        }
+    </MudStack>
+</MudPaper>
 
 <MudDialog @bind-Visible="IsDialogVisible" OnBackdropClick="CloseDialog" Options="dialogOptions">
     <TitleContent>
-        <MudText Typo="Typo.h6">Select {{ modelnameplural }}</MudText>
+        <MudText Typo="Typo.h6">Select @Label</MudText>
     </TitleContent>
     <DialogContent>
         @if (IsLoading)
@@ -35,11 +37,15 @@ else
         }
         else
         {
-            <MudDataGrid T="{{ modelname }}" Items="@FilteredItems" Class="custom-grid"
-                         @bind-SelectedItems="SelectedItems" 
-                            MultiSelection="true" 
-                            Bordered="true" Dense="true" 
-                            Striped="true">
+            <MudDataGrid T="{{ modelname }}" Items="@FilteredItems" 
+                Class="custom-grid border-solid border-2 mud-border-primary pa-4"
+                SelectedItems="SelectedItemsInternal" 
+                MultiSelection="true" 
+                SelectedItemsChanged="@UpdateSelectedItems"
+                Bordered="true" Dense="true" 
+                Striped="true"
+                Elevation="0"
+                Height="500px">
                 <ToolBarContent>
                     <MudTextField T="string" @bind-Value="SearchText"
                             Placeholder="Search"
@@ -49,8 +55,8 @@ else
                             Immediate="true" IconSize="Size.Medium" Class="mt-0"
                             OnKeyUp="FilterItems" />
                     <MudSpacer />
-                    <MudButton Disabled="@_processing" OnClick="ProcessSomething" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Refresh">
-                        @if (_processing)
+                    <MudButton Disabled="@_processingDataRefresh" OnClick="RefreshData" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Refresh">
+                        @if (_processingDataRefresh)
                         {
                             <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
                             <MudText Class="ms-2">Processing</MudText>
@@ -78,15 +84,18 @@ else
 
 @code {
     [Inject] private I{{ modelname }}Service DataProvider { get; set; } = default!;
-    [Parameter] public HashSet<{{ modelname }}> SelectedItems { get; set; } = new HashSet<{{ modelname }}>();
-    [Parameter] public EventCallback<HashSet<{{ modelname }}>> SelectedItemsChanged { get; set; }
+    [Parameter] public ICollection<{{ modelname }}> SelectedItems { get; set; } = new List<{{ modelname }}>();
+    [Parameter] public EventCallback<ICollection<{{ modelname }}>> SelectedItemsChanged { get; set; }
     [Parameter] public EventCallback OnDialogClose { get; set; }
+    [Parameter] public string Label { get; set; } = string.Empty;
+
 
     private bool IsDialogVisible = false;
     private bool IsLoading = false;
-    private bool _processing = false;
+    private bool _processingDataRefresh = false;
     private List<{{ modelname }}> AllItems = new();
     private List<{{ modelname }}> FilteredItems = new();
+    private HashSet<{{ modelname }}> SelectedItemsInternal = new();
     private string SearchText = string.Empty;
 
     private DialogOptions dialogOptions = new DialogOptions
@@ -119,7 +128,8 @@ else
         IsLoading = true;
         var dataDtoList = DataProvider.DataSource.ToList();
         AllItems = Mapper.Map<List<{{ modelname }}>>(dataDtoList);
-        FilterItems();
+        SelectedItemsInternal = SelectedItems != null ? new HashSet<{{ modelname }}>(SelectedItems) : new HashSet<{{ modelname }}>();
+        StateHasChanged();
         IsLoading = false;
     }
 
@@ -134,19 +144,36 @@ else
     {
         foreach (var item in AllItems)
         {
-            if (SelectedItems.Any(x => x.Id == item.Id))
+            if (SelectedItemsInternal.Any(x => x.Id == item.Id))
             {
-                SelectedItems.RemoveWhere(x => x.Id == item.Id);
-                SelectedItems.Add(item);
+                SelectedItemsInternal.RemoveWhere(x => x.Id == item.Id);
+                SelectedItemsInternal.Add(item);
             }
         }
+        //SelectedItemsChanged.InvokeAsync(SelectedItems);
     }
 
-    async Task ProcessSomething()
+    private void UpdateSelectedItems(HashSet<{{ modelname }}> selectedItems)
     {
-        _processing = true;
+        // Update internal selected items HashSet
+        SelectedItemsInternal = selectedItems;
+
+        // Update external ICollection
+        SelectedItems.Clear();
+        foreach (var item in SelectedItemsInternal)
+        {
+            SelectedItems.Add(item);
+        }
+
+        SelectedItemsChanged.InvokeAsync(SelectedItems);
+    }
+    async Task RefreshData()
+    {
+        _processingDataRefresh = true;
         await Task.Delay(1000);
+        DataProvider.Refresh();
         await LoadItems();
-        _processing = false;
+        StateHasChanged();
+        _processingDataRefresh = false;
     }
 }

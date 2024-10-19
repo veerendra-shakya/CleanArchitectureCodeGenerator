@@ -340,7 +340,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
 
             #region Generate Additional Requirments
 
-            var menuItemAdder = new MenuItemManager();
+            var menuItemAdder = new RegisterMenuItemHelper();
             menuItemAdder.AddMenuItem(modalClassName, $"/pages/{modalClassNamePlural}");
 
             //check if any property having many to many relationship then create linking table configurations

@@ -3,6 +3,7 @@ using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
 using CleanArchitecture.CodeGenerator.ScribanCoder;
 using CleanArchitecture.CodeGenerator.ScribanCoder.UI.Components.Dialogs.MultiSelector;
+using Scriban;
 using System.Text;
 
 namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
@@ -17,11 +18,11 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                 {
                     if (property.ScaffoldingAtt.RelationshipType == "ManyToMany")
                     {
-                        AddLinkingEntityConfiguration(property);
+                        CSharpClassObject RelatedTableObject = GetRelatedTableObject(property);
+
+                        GenerateLinkingEntityConfiguration(property);
 
                         AddToDatabaseContext(property.ScaffoldingAtt.LinkingTable);
-
-                        CSharpClassObject RelatedTableObject = GetRelatedTableObject(property);
 
                         if(RelatedTableObject != null)
                         {
@@ -29,7 +30,6 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                                $"Components/Dialogs/MultiSelector/{RelatedTableObject.Name}MultiSelectorDialog.razor",
                                ApplicationHelper.UiProjectDirectory);
                         }
-   
                     }
                 }
             }
@@ -43,85 +43,82 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             return relatedObject;
         }
 
-        private static void AddLinkingEntityConfiguration(ClassProperty property)
+        private static void GenerateLinkingEntityConfiguration(ClassProperty property)
         {
             string EntityName = property.ScaffoldingAtt.LinkingTable;
             string key1 = $"{property.PropertyName.Singularize()}Id";
             string key2 = $"{property.ScaffoldingAtt.InverseProperty.Singularize()}Id";
+            CSharpClassObject modalClassObject = ApplicationHelper.ClassObjectList.Where(x => x.Name == EntityName).FirstOrDefault();
 
-            #region Init Variables
-            var configHandler = new ConfigurationHandler("appsettings.json");
-            var configSettings = configHandler.GetConfiguration();
-
-            string _rootDirectory = configSettings.RootDirectory;
-            string _rootNamespace = configSettings.RootNamespace;
-            string _domainProject = configSettings.DomainProject;
-            string _uiProject = configSettings.UiProject;
-            string _infrastructureProject = configSettings.InfrastructureProject;
-            string _applicationProject = configSettings.ApplicationProject;
-
-            string _domainProjectDir = Path.Combine(_rootDirectory, _domainProject);
-            string _infrastructureProjectDir = Path.Combine(_rootDirectory, _infrastructureProject);
-            string _uiProjectDir = Path.Combine(_rootDirectory, _uiProject);
-            string _applicationProjectDir = Path.Combine(_rootDirectory, _applicationProject);
-            #endregion
-
-
-            string Target = $"Persistence/Configurations/{EntityName}Configuration.cs";
-            string TargerFilePath = Path.Combine(_infrastructureProjectDir, Target);
-
-            // Check if the file already exists
-            if (File.Exists(TargerFilePath))
+            string relativeTargetPath = $"Persistence/Configurations/{EntityName}Configuration.cs";
+            FileInfo? targetFile = Helper.GetFileInfo(relativeTargetPath, ApplicationHelper.InfrastructureProjectDirectory);
+            if (targetFile == null)
             {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("\n");
-                Console.WriteLine("=============================================================");
-                Console.WriteLine($"Many to Many Linking Table Configuration file already exists: {TargerFilePath}");
-                Console.WriteLine("=============================================================");
-                Console.WriteLine("\n");
+                return;
+            }
+
+            try
+            {
+                var relativePath = Utility.MakeRelativePath(ApplicationHelper.RootDirectory, Path.GetDirectoryName(targetFile.FullName) ?? "");
+                string templateFilePath = Utility.GetTemplateFile(relativePath, targetFile.FullName);
+                string templateContent = File.ReadAllText(templateFilePath, Encoding.UTF8);
+                string NamespaceName = Helper.GetNamespace(relativePath);
+                string efConfigurations = GenerateConfigurations(modalClassObject,key1,key2);
+
+                // Initialize MasterData object
+                var masterdata = new
+                {
+                    rootdirectory = ApplicationHelper.RootDirectory,
+                    rootnamespace = ApplicationHelper.RootNamespace,
+                    namespacename = NamespaceName,
+                    domainprojectname = ApplicationHelper.DomainProjectName,
+                    uiprojectname = ApplicationHelper.UiProjectName,
+                    infrastructureprojectname = ApplicationHelper.InfrastructureProjectName,
+                    applicationprojectname = ApplicationHelper.ApplicationProjectName,
+                    domainprojectdirectory = ApplicationHelper.DomainProjectDirectory,
+                    infrastructureprojectdirectory = ApplicationHelper.InfrastructureProjectDirectory,
+                    uiprojectdirectory = ApplicationHelper.UiProjectDirectory,
+                    applicationprojectdirectory = ApplicationHelper.ApplicationProjectDirectory,
+                    modelnameplural = modalClassObject.Name.Pluralize(),
+                    modelname = modalClassObject.Name,
+                    efconfigurations = efConfigurations,
+                };
+
+                // Parse and render the class template
+                var classTemplate = Template.Parse(templateContent);
+                string generatedClass = classTemplate.Render(masterdata);
+                
+                generatedClass = generatedClass.Replace("builder.Ignore(e => e.DomainEvents);", "");
+
+                if (!string.IsNullOrEmpty(generatedClass))
+                {
+                    Utility.WriteToDiskAsync(targetFile.FullName, generatedClass);
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine($"Created file: {relativeTargetPath}");
+                    Console.ResetColor();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Error generating file '{relativeTargetPath}': {ex.Message}");
                 Console.ResetColor();
-                return; // Exit the function if file exists
             }
 
 
-            var RelativePath = Utility.MakeRelativePath(_rootDirectory, Path.GetDirectoryName(TargerFilePath) ?? "");
-            string TemplateFilePath = Utility.GetTemplateFile(RelativePath, TargerFilePath);
-            string content = File.ReadAllText(TemplateFilePath, Encoding.UTF8);
-
-            var ns = _rootNamespace;
-            if (!string.IsNullOrEmpty(RelativePath))
-            {
-                ns += "." + Utility.RelativePath_To_Namespace(RelativePath);
-            }
-            ns = ns.TrimEnd('.');
-
+        }
+        
+        private static string GenerateConfigurations(CSharpClassObject modalClassObject,string key1,string key2)
+        {
             // Build Configurations
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"builder.ToTable(\"{EntityName}\");");
+            sb.AppendLine($"builder.ToTable(\"{modalClassObject.Name}\");");
             sb.AppendLine($"builder.HasKey(x => new {{x.{key1},x.{key2}}});");
             string efConfigurations = sb.ToString();
 
-
-            // Replace tokens in the content
-            content = content.Replace("{rootnamespace}", _rootNamespace);
-            content = content.Replace("{selectns}", $"{_rootNamespace}.{Utility.GetProjectNameFromPath(_domainProjectDir)}");
-            content = content.Replace("{namespace}", ns);
-            content = content.Replace("{itemname}", EntityName);
-            content = content.Replace("{efConfigurations}", efConfigurations);
-            content = content.Replace("builder.Ignore(e => e.DomainEvents);", "");
-
-            Utility.WriteToDiskAsync(TargerFilePath, content);
-
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("\n");
-            Console.WriteLine("=============================================================");
-            Console.WriteLine($"Created Manay to Many Linking Table Configuration file: {TargerFilePath}");
-            Console.WriteLine("=============================================================");
-            Console.WriteLine("\n");
-            Console.ResetColor();
-
+            return efConfigurations;
         }
-
+        
         private static void AddToDatabaseContext(string LinkingEntityName)
         {
             Update_DbContext dbContextModifier = new Update_DbContext();

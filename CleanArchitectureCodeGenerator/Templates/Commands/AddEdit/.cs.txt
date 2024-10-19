@@ -42,8 +42,13 @@ public class AddEdit{{ modelname }}Command: ICacheInvalidatorRequest<Result<Guid
         {
             if (request.Id != Guid.Empty)
             {
-                var item = await _context.{{ modelnameplural }}.FindAsync(new object[] { request.Id }, cancellationToken) ?? throw new NotFoundException($"{{ modelname }} with id: [{request.Id}] not found.");
+                var item = await _context.{{ modelnameplural }}
+                //.Include(x => x.XXX) Replace Here
+                .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken) 
+                ?? throw new NotFoundException($"{{ modelname }} with id: [{request.Id}] not found.");
+
                 item = _mapper.Map(request, item);
+
                 {{ updatemanytomany }}
 				// raise a update domain event
 				item.AddDomainEvent(new {{ modelname }}UpdatedEvent(item));

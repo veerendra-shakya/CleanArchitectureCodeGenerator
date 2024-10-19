@@ -76,7 +76,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Components.Dialogs.Mul
             var output = new StringBuilder();
 
             // Loop through class properties and create PropertyColumn for each
-            foreach (var prop in classObject.ClassProperties)
+            foreach (var prop in classObject.ClassProperties.Where(x=>x.Type.IsKnownType))
             {
                 // Compose the PropertyColumn code using property name and title
                 output.AppendLine($"<PropertyColumn Property=\"x => x.{prop.PropertyName}\" Title=\"{prop.PropertyName}\">");
@@ -118,7 +118,8 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Components.Dialogs.Mul
             var output = new StringBuilder();
 
             // Start building the query
-            output.AppendLine("FilteredItems = string.IsNullOrEmpty(SearchText)");
+            output.AppendLine("// First filter the items based on the search text");
+            output.AppendLine("var filtered = string.IsNullOrEmpty(SearchText)");
             output.AppendLine("    ? AllItems");
             output.AppendLine("    : AllItems.Where(x =>");
 
@@ -139,6 +140,15 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Components.Dialogs.Mul
 
             // Finish the query
             output.AppendLine("    ).ToList();");
+
+            output.AppendLine();
+            output.AppendLine("// Prioritize selected items to appear on top");
+            output.AppendLine("var selectedItems = filtered.Where(x => SelectedItemsInternal.Any(s => s.Id == x.Id)).ToList();");
+            output.AppendLine("var unselectedItems = filtered.Where(x => !SelectedItemsInternal.Any(s => s.Id == x.Id)).ToList();");
+            output.AppendLine();
+            output.AppendLine("// Combine selected and unselected items, showing selected items on top");
+            output.AppendLine("FilteredItems = selectedItems.Concat(unselectedItems).ToList();");
+
 
             // Return the built query as a string
             return output.ToString();

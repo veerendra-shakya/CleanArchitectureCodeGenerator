@@ -7,6 +7,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages.Components;
 
 public static class FormDialog_razor
 {
+
     public static void Generate(CSharpClassObject modalClassObject, string relativeTargetPath, string targetProjectDirectory)
     {
         FileInfo? targetFile = Helper.GetFileInfo(relativeTargetPath, targetProjectDirectory);
@@ -68,13 +69,17 @@ public static class FormDialog_razor
     public static string CreateMudFormFieldDefinition(CSharpClassObject classObject)
     {
         var output = new StringBuilder();
-        foreach (var property in classObject.ClassProperties.Where(x => x.Type.IsKnownType))
+        foreach (var property in classObject.ClassProperties)//.Where(x => x.Type.IsKnownType)
         {
             if (property.PropertyName == "Id") continue;
 
             if (property.UIDesignAtt.Has)
             {
-                output.Append(CreateComponentWithMudItem(GenerateCustomComponent(property)));
+                output.Append(CreateComponentWithMudItem(GenerateCustomUIComponent(property)));
+            }
+            else if (property.ScaffoldingAtt.Has && property.ScaffoldingAtt.PropRole == "Relationship")
+            {
+                output.Append(CreateComponentWithMudItem(GenerateCustomRelationshipComponent(property)));
             }
             else
             {
@@ -83,6 +88,7 @@ public static class FormDialog_razor
         }
         return output.ToString();
     }
+
 
     private static string CreateComponentWithMudItem(string componentDefinition)
     {
@@ -93,7 +99,7 @@ public static class FormDialog_razor
         return output.ToString();
     }
 
-    private static string GenerateCustomComponent(ClassProperty property)
+    private static string GenerateCustomUIComponent(ClassProperty property)
     {
         var output = new StringBuilder();
         string CustomAutocompletePicker = $"{property.UIDesignAtt.RelateWith}Autocomplete";
@@ -177,6 +183,7 @@ public static class FormDialog_razor
     private static string GenerateDefaultComponent(ClassProperty property)
     {
         var output = new StringBuilder();
+
         switch (property.Type.TypeName.ToLower())
         {
             case "string" when property.PropertyName.Equals("Name", StringComparison.OrdinalIgnoreCase):
@@ -199,4 +206,32 @@ public static class FormDialog_razor
         }
         return output.ToString();
     }
+
+    private static string GenerateCustomRelationshipComponent(ClassProperty property)
+    {
+        var output = new StringBuilder();
+        if (property.ScaffoldingAtt.PropRole == "Relationship")
+        {
+            if (property.ScaffoldingAtt.RelationshipType == "OneToOne")
+            {
+
+            }
+            if (property.ScaffoldingAtt.RelationshipType == "OneToMany")
+            {
+
+            }
+            if (property.ScaffoldingAtt.RelationshipType == "ManyToOne")
+            {
+
+            }
+            if (property.ScaffoldingAtt.RelationshipType == "ManyToMany")
+            {
+                string datatype = Helper.ExtractDataType(property.Type.TypeName);
+                output.AppendLine($"<{datatype}MultiSelectorDialog @bind-SelectedItems=\"@model.{property.PropertyName}\" Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\"></{datatype}MultiSelectorDialog>");
+
+            }
+        }
+        return output.ToString();
+    }
+
 }

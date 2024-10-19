@@ -184,24 +184,36 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages
             sb.AppendLine("    <CellTemplate>");
             sb.AppendLine($"        @if (context.Item.{property.PropertyName} != null && context.Item.{property.PropertyName}.Count > 0)");
             sb.AppendLine("        {");
-            sb.AppendLine("            <MudChipSet>");
 
-            // Loop through display properties to show them inside chips for each item in the collection
-            sb.AppendLine($"            @foreach (var item in context.Item.{property.PropertyName})");
-            sb.AppendLine("            {");
+            //sb.AppendLine("            <MudChipSet>");
+            //sb.AppendLine($"            @foreach (var item in context.Item.{property.PropertyName})");
+            //sb.AppendLine("            {");
+            //foreach (var displayProperty in displayProperties)
+            //{
+            //    sb.AppendLine($"                <MudChip Color=\"Color.Primary\">{displayProperty.DisplayName}: @item.{displayProperty.PropertyName}</MudChip>");
+            //}
+            //sb.AppendLine("            }");
+            //sb.AppendLine("            </MudChipSet>");
 
-            // For each display property, generate a MudChip
-            foreach (var displayProperty in displayProperties)
+            sb.AppendLine("            <MudTooltip Arrow=\"true\" Placement=\"Placement.Left\">");
+            sb.AppendLine("                <ChildContent>");
+            sb.AppendLine($"                    <MudChip Color=\"Color.Default\">@context.Item.{property.PropertyName}.Count</MudChip>");
+            sb.AppendLine("                </ChildContent>");
+            sb.AppendLine("                <TooltipContent>");
+            sb.AppendLine($"                    @foreach (var item in context.Item.{property.PropertyName})");
+            sb.AppendLine("                    {");
+            if (masterProperty!= null)
             {
-                sb.AppendLine($"                <MudChip Color=\"Color.Primary\">{displayProperty.DisplayName}: @item.{displayProperty.PropertyName}</MudChip>");
+            sb.AppendLine($"                        <MudText Align=\"Align.Left\" Typo=\"Typo.body2\">- @item.{masterProperty.PropertyName}</MudText>");
             }
+            sb.AppendLine("                    }");
+            sb.AppendLine("                </TooltipContent>");
+            sb.AppendLine("            </MudTooltip>");
 
-            sb.AppendLine("            }");
-            sb.AppendLine("            </MudChipSet>");
             sb.AppendLine("        }");
             sb.AppendLine("        else");
             sb.AppendLine("        {");
-            sb.AppendLine($"            <MudText>No {relatedClass.Name}</MudText>");
+            sb.AppendLine($"            <MudChip Color=\"Color.Default\">0</MudChip>");
             sb.AppendLine("        }");
             sb.AppendLine("    </CellTemplate>");
             sb.AppendLine("</TemplateColumn>");

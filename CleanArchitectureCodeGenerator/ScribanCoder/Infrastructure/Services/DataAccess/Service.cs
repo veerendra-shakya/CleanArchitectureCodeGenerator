@@ -15,6 +15,10 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Infrastructure.Services.D
         public static void Generate(CSharpClassObject modalClassObject, string relativeTargetPath, string targetProjectDirectory)
         {
             FileInfo? targetFile = Helper.GetFileInfo(relativeTargetPath, targetProjectDirectory);
+            
+            RegisterServiceHelper registerServiceHelper = new RegisterServiceHelper();
+            registerServiceHelper.Register($"{modalClassObject.Name}Service", $"I{modalClassObject.Name}Service");
+
             if (targetFile == null)
             {
                 return;
@@ -56,6 +60,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Infrastructure.Services.D
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine($"Created file: {relativeTargetPath}");
                     Console.ResetColor();
+
                 }
             }
             catch (Exception ex)

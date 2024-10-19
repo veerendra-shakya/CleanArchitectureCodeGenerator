@@ -4,23 +4,19 @@ using System.Text;
 
 namespace CleanArchitecture.CodeGenerator.Helpers
 {
-    public class MenuItemManager
+    public class RegisterMenuItemHelper
     {
         private const string MenuFlag = "//#MenuFlag";  // Marker to insert the new item above this line.
 
-        // Single public method to add a new menu item
         public void AddMenuItem(string title, string href)
         {
-            // Construct the file path for MenuService.cs
             var menuFilePath = Path.Combine(ApplicationHelper.UiProjectDirectory, "Services", "Navigation", "MenuService.cs");
 
-            // Check if file exists
             if (!File.Exists(menuFilePath))
             {
                 throw new FileNotFoundException($"MenuService.cs file not found at path: {menuFilePath}");
             }
 
-            // Read the file content
             string fileContent = File.ReadAllText(menuFilePath);
 
             // Check if the Href already exists in the file

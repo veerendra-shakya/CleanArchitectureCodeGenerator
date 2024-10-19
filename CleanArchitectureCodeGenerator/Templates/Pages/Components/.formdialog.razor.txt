@@ -1,4 +1,5 @@
 ﻿@using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Commands.AddEdit
+@using {{ rootnamespace }}.{{ uiprojectname }}.Components.Dialogs.MultiSelector
 
 @inherits MudComponentBase
 @inject IValidationService Validator
@@ -33,6 +34,7 @@
         try
         {
             _saving = true;
+            {{ manytomanybinditems }}
             await _form!.Validate().ConfigureAwait(false);
             if (!_form!.IsValid)
                 return;
@@ -57,6 +59,7 @@
         try
         {
             _savingnew = true;
+            {{ manytomanybinditems }}
             await _form!.Validate().ConfigureAwait(false);
             if (!_form!.IsValid)
                return;
@@ -79,3 +82,5 @@
     }
     void Cancel() => MudDialog.Cancel();
 }
+
+{{ maytomanycodeblock }}

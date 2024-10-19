@@ -122,7 +122,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Comm
                         string propertyType = property.Type.TypeName;
                         string dataType = Helper.ExtractDataType(propertyType);
 
-                        output.AppendLine();
+                        output.AppendLine($"#warning if auto-inclusion is Disabled on this side of many-to-many relationship. ADD \".Include(x => x.{property.PropertyName})\" in item query above'.\r\n");
                         output.AppendLine($"// Updating the related {property.PropertyName} (many-to-many relationship)");
                         output.AppendLine($"var current{property.PropertyName}Ids = item.{property.PropertyName}.Select(x => x.Id).ToList();");
                         output.AppendLine($"var updated{property.PropertyName}Ids = request.{property.PropertyName}.Select(x => x.Id).ToList();");
