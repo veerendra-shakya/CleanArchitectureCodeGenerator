@@ -189,15 +189,17 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Comm
 
         private static string GetMapIgnore(CSharpClassObject classObject)
         {
-            var Unknown = classObject.ClassProperties.Where(x => x.Type.IsKnownType == false).ToList();
+            var Unknown = classObject.ClassProperties
+                .Where(x => x.Type.IsKnownType == false
+                  && !x.Type.TypeName.Contains("JsonImage") 
+                  && !x.Type.TypeName.Contains("JsonFile"))
+                .ToList();
             var output = new StringBuilder();
             foreach (var property in Unknown)
             {
                 output.Append($".ForMember(x => x.{property.PropertyName}, y => y.Ignore())");
             }
-
             return output.ToString();
         }
-
     }
 }

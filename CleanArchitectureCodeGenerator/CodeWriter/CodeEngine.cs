@@ -344,7 +344,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             menuItemAdder.AddMenuItem(modalClassName, $"/pages/{modalClassNamePlural}");
 
             //check if any property having many to many relationship then create linking table configurations
-            ManyToManyConfigurationsGenerator.GenerateConfigurations(modalClassObject);
+            RelationshipConfigurationsGenerator.GenerateConfigurations(modalClassObject);
 
             #endregion
 

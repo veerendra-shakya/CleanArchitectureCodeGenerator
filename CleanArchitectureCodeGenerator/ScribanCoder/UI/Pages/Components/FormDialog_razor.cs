@@ -1,6 +1,7 @@
 ﻿using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
 using Scriban;
+using System.ComponentModel;
 using System.Text;
 
 namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages.Components;
@@ -79,7 +80,11 @@ public static class FormDialog_razor
             }
             else if (property.ScaffoldingAtt.Has && property.ScaffoldingAtt.PropRole == "Relationship")
             {
-                output.Append(CreateComponentWithMudItem(GenerateCustomRelationshipComponent(property)));
+                output.Append(CreateComponentWithMudItem(GenerateCustomRelationshipComponent(property, classObject)));
+            }
+            else if(property.Type.TypeName.Contains("JsonImage") || property.Type.TypeName.Contains("JsonFile"))
+            {
+                output.Append(CreateComponentWithMudItem(GenerateUploadComponent(property)));
             }
             else
             {
@@ -120,7 +125,7 @@ public static class FormDialog_razor
 
         if (component == CustomAutocompletePicker)
         {
-            output.AppendLine($"<{component} For=\"@(() => model.{property.PropertyName})\" @bind-Value=\"model.{property.PropertyName}\" Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" Placeholder=\"Select...\"></{component}>");
+           // output.AppendLine($"<{component} For=\"@(() => model.{property.PropertyName})\" @bind-Value=\"model.{property.PropertyName}\" Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" Placeholder=\"Select...\"></{component}>");
             return output.ToString();
         }
 
@@ -207,14 +212,28 @@ public static class FormDialog_razor
         return output.ToString();
     }
 
-    private static string GenerateCustomRelationshipComponent(ClassProperty property)
+    private static string GenerateCustomRelationshipComponent(ClassProperty property, CSharpClassObject model)
     {
         var output = new StringBuilder();
         if (property.ScaffoldingAtt.PropRole == "Relationship")
         {
             if (property.ScaffoldingAtt.RelationshipType == "OneToOne")
             {
-
+                if (property.ScaffoldingAtt.IsForeignKey)
+                {
+                    // Scaffold AutoComplete Component
+                    string refPropName = property.PropertyName;
+                    if (refPropName.EndsWith("Id", StringComparison.Ordinal))
+                    {
+                        refPropName = refPropName.Substring(0, refPropName.Length - 2);
+                        ClassProperty? refProperty = model.ClassProperties.Where(x => x.PropertyName == refPropName).FirstOrDefault();
+                        if (refProperty != null)
+                        {
+                            string CustomAutocompletePicker = $"{refProperty.Type.TypeName}Autocomplete";
+                            output.AppendLine($"<{CustomAutocompletePicker} For=\"@(() => model.{property.PropertyName})\" @bind-Value=\"model.{property.PropertyName}\" Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" Placeholder=\"Select...\"></{CustomAutocompletePicker}>");
+                        }
+                    }
+                }
             }
             if (property.ScaffoldingAtt.RelationshipType == "OneToMany")
             {
@@ -222,7 +241,21 @@ public static class FormDialog_razor
             }
             if (property.ScaffoldingAtt.RelationshipType == "ManyToOne")
             {
-
+                if(property.ScaffoldingAtt.IsForeignKey)
+                {
+                    // Scaffold AutoComplete Component
+                    string refPropName = property.PropertyName;
+                    if (refPropName.EndsWith("Id", StringComparison.Ordinal))
+                    {
+                        refPropName = refPropName.Substring(0, refPropName.Length - 2);
+                        ClassProperty? refProperty = model.ClassProperties.Where(x=>x.PropertyName == refPropName).FirstOrDefault();
+                        if (refProperty != null)
+                        {
+                            string CustomAutocompletePicker = $"{refProperty.Type.TypeName}Autocomplete";
+                            output.AppendLine($"<{CustomAutocompletePicker} For=\"@(() => model.{property.PropertyName})\" @bind-Value=\"model.{property.PropertyName}\" Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" Placeholder=\"Select...\"></{CustomAutocompletePicker}>");
+                        }
+                    }
+                }
             }
             if (property.ScaffoldingAtt.RelationshipType == "ManyToMany")
             {
@@ -231,6 +264,30 @@ public static class FormDialog_razor
 
             }
         }
+        return output.ToString();
+    }
+
+    private static string GenerateUploadComponent(ClassProperty property)
+    {
+        var output = new StringBuilder();
+  
+        if (property.Type.TypeName.Contains("List<JsonImage>?"))
+        {
+            output.AppendLine($"<ImagesUpload @bind-Images=\"model.{property.PropertyName}\" AccessPermission=\"AccessPermission.Public\" MaxAllowedSize=\"5242880\" Label=\"Upload {property.DisplayName}\" />\r\n");
+        }
+        if (property.Type.TypeName.Contains("List<JsonFile>?"))
+        {
+
+        }
+        if (property.Type.TypeName.Contains("JsonImage?"))
+        {
+
+        }
+        if (property.Type.TypeName.Contains("JsonFile?"))
+        {
+
+        }
+        
         return output.ToString();
     }
 

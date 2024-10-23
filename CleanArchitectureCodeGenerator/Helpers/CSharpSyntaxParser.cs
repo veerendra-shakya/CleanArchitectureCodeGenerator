@@ -290,6 +290,17 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 }
             }
 
+            // Assign IsForeignKey value
+            var isForeignKeyArgument = attribute.ArgumentList.Arguments
+                .FirstOrDefault(arg => arg.ToString().Contains("isForeignKey"));
+            if (isForeignKeyArgument != null)
+            {
+                string isKeystr = isForeignKeyArgument.ToString();
+                isKeystr = isKeystr.Replace("isForeignKey:", "");
+                bool isKey = Convert.ToBoolean(isKeystr);
+                classProperty.ScaffoldingAtt.IsForeignKey = isKey;
+            }
+
             // Assign InverseProperty value
             var navPropertyArgument = attribute.ArgumentList.Arguments
                 .FirstOrDefault(arg => arg.ToString().Contains("inverseProperty"));

@@ -22,7 +22,9 @@ public class {itemname} : BaseAuditableEntity
     public virtual DemoProfile Profile { get; set; }
 
     // Foreign Key for Many-to-One Relationship with DemoSchool
+    [Scaffolding(role: PropRole.Relationship, relationship: RelationshipType.ManyToOne, isForeignKey:true )]
     public Guid SchoolId { get; set; }
+    
     [Scaffolding(role: PropRole.Relationship, relationship: RelationshipType.ManyToOne, inverseProperty: "Students", foreignKeyProperty: "SchoolId",deleteAction: DeleteBehavior.Restrict)]
     public virtual DemoSchool School { get; set; }
 
@@ -30,4 +32,11 @@ public class {itemname} : BaseAuditableEntity
     // Many-to-Many Relationship with DemoCourse
     [Scaffolding(role: PropRole.Relationship, relationship: RelationshipType.ManyToMany, inverseProperty: "Students", linkingTable: "DemoStudentCourse")]
     public virtual ICollection<DemoCourse> Courses { get; set; } = new HashSet<DemoCourse>(); // Initialized to avoid null reference
+
+    public JsonImage? Picture { get; set; }
+    public List<JsonImage>? Pictures { get; set; }
+
+    public JsonFile? File { get; set; }
+    public List<JsonFile>? Files { get; set; }
+
 }

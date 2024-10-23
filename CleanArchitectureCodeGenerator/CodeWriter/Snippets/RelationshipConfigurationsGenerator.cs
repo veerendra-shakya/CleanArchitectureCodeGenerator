@@ -3,12 +3,13 @@ using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
 using CleanArchitecture.CodeGenerator.ScribanCoder;
 using CleanArchitecture.CodeGenerator.ScribanCoder.UI.Components.Dialogs.MultiSelector;
+using CleanArchitecture.CodeGenerator.ScribanCoder.UI.Components.Dialogs.SingleSelector;
 using Scriban;
 using System.Text;
 
 namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
 {
-    public static class ManyToManyConfigurationsGenerator
+    public static class RelationshipConfigurationsGenerator
     {
         public static void GenerateConfigurations(CSharpClassObject classObject)
         {
@@ -16,14 +17,30 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             {
                 if (property.ScaffoldingAtt.PropRole == "Relationship")
                 {
+                    if (property.ScaffoldingAtt.RelationshipType == "OneToOne")
+                    {
+                        string _rObject = property.Type.TypeName;
+                        CSharpClassObject? RelatedTableObject = ApplicationHelper.ClassObjectList.Where(x => x.Name == _rObject).FirstOrDefault();
+                        if (RelatedTableObject != null)
+                        {
+                            SingleSelectorDialog.Generate(RelatedTableObject,
+                               $"Components/Dialogs/SingleSelector/{RelatedTableObject.Name}SingleSelectorDialog.razor",
+                               ApplicationHelper.UiProjectDirectory);
+                        }
+                    }
+                    if (property.ScaffoldingAtt.RelationshipType == "OneToMany")
+                    {
+                        // We are generating Autocompletes for all tables for code reusability.
+                    }
+                    if (property.ScaffoldingAtt.RelationshipType == "ManyToOne")
+                    {
+                       // We are generating Autocompletes for all tables for code reusability.
+                    }
                     if (property.ScaffoldingAtt.RelationshipType == "ManyToMany")
                     {
-                        CSharpClassObject RelatedTableObject = GetRelatedTableObject(property);
-
+                        CSharpClassObject? RelatedTableObject = GetRelatedTableObject(property);
                         GenerateLinkingEntityConfiguration(property);
-
                         AddToDatabaseContext(property.ScaffoldingAtt.LinkingTable);
-
                         if(RelatedTableObject != null)
                         {
                             MultipleSelectorDialog.Generate(RelatedTableObject, 
@@ -35,7 +52,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             }
         }
 
-        private static CSharpClassObject GetRelatedTableObject(ClassProperty property)
+        private static CSharpClassObject? GetRelatedTableObject(ClassProperty property)
         {
             string propertytype = property.Type.TypeName;
             string propertydatatype = Helper.ExtractDataType(propertytype);

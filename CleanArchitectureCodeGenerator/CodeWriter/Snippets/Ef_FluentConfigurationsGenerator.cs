@@ -21,11 +21,16 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                 var propertyType = property.Type;
 
                 // Start the builder for the property configuration
-                if (property.ScaffoldingAtt.PropRole == "Relationship")
+                if (property.ScaffoldingAtt.PropRole == "Relationship" && !property.ScaffoldingAtt.IsForeignKey)
                 {
                     // Handle relationships
                     GenerateRelationshipFluentApi(sb, property);
                     sb.AppendLine("\n"); // Newline between properties
+                }
+                else if (propertyType.TypeName.Contains("JsonImage") || propertyType.TypeName.Contains("JsonFile"))
+                {
+                    HandleJsonFileOrImage(sb, property, propertyType.TypeName);
+                    continue; // Skip further processing for this property
                 }
                 else
                 {
@@ -245,6 +250,35 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             var attributeNames = attributes.Select(a => a.Name.ToString());
             var hasAttribute = attributeNames.Any(name => name.Contains(attributeName));
             return hasAttribute;
+        }
+
+        private static void HandleJsonFileOrImage(StringBuilder sb, ClassProperty property, string propertyType)
+        {
+            if(property.Type.TypeName.Contains("List"))
+            {
+                sb.AppendLine($"builder.Property(e => e.{property.PropertyName})")
+                  .AppendLine($".HasConversion(")
+                  .AppendLine($"    v => JsonSerializer.Serialize(v, DefaultJsonSerializerOptions.Options),")
+                  .AppendLine($"    v => JsonSerializer.Deserialize<{property.Type.TypeName.Replace("?", "")}>(v, DefaultJsonSerializerOptions.Options),")
+                  .AppendLine($"    new ValueComparer<{property.Type.TypeName.Replace("?", "")}>(")
+                  .AppendLine($"        (c1, c2) => c1.SequenceEqual(c2),")
+                  .AppendLine($"        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),")
+                  .AppendLine($"        c => c.ToList()));");
+            }
+            else
+            {
+                sb.AppendLine($"builder.Property(e => e.{property.PropertyName})")
+                  .AppendLine($".HasConversion(")
+                  .AppendLine($"    v => JsonSerializer.Serialize(v, DefaultJsonSerializerOptions.Options),")
+                  .AppendLine($"    v => JsonSerializer.Deserialize<{property.Type.TypeName.Replace("?", "")}>(v, DefaultJsonSerializerOptions.Options),")
+                  .AppendLine($"    new ValueComparer<{property.Type.TypeName.Replace("?", "")}>(")
+                  .AppendLine($"        (c1, c2) => c1.Equals(c2),")
+                  .AppendLine($"        c => c == null ? 0 : c.GetHashCode(),")
+                  .AppendLine($"        c => c == null ? null : JsonSerializer.Deserialize<{property.Type.TypeName.Replace("?", "")}>(JsonSerializer.Serialize(c, DefaultJsonSerializerOptions.Options), DefaultJsonSerializerOptions.Options)));");
+
+            }
+
+            sb.AppendLine("\n");
         }
 
     }

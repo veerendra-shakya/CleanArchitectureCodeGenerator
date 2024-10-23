@@ -99,6 +99,7 @@ namespace CleanArchitecture.CodeGenerator.Models
         public bool Has { get; set; } = false;
         public string PropRole { get; set; }
         public string RelationshipType { get; set; }
+        public bool IsForeignKey { get; set; }
         public string InverseProperty { get; set; }
         public string ForeignKeyProperty { get; set; }
         public string LinkingTable { get; set; }

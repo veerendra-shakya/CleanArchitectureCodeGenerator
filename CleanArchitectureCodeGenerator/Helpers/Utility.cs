@@ -519,6 +519,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 "Services",
                 "Components\\Autocompletes",
                 "Components\\Dialogs\\MultiSelector",
+                "Components\\Dialogs\\SingleSelector",
                 "Controllers"
             };
 
