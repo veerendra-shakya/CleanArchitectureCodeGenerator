@@ -3,14 +3,17 @@ using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
 {
     public static class Ef_FluentConfigurationsGenerator
     {
+
         public static string GenerateConfigurations(CSharpClassObject classObject)
         {
             var sb = new StringBuilder();
@@ -29,7 +32,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                 }
                 else if (propertyType.TypeName.Contains("JsonImage") || propertyType.TypeName.Contains("JsonFile"))
                 {
-                    HandleJsonFileOrImage(sb, property, propertyType.TypeName);
+                    HandleJsonFileOrImage(sb, property);
                     continue; // Skip further processing for this property
                 }
                 else
@@ -37,6 +40,19 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
 
                     // Start the builder for the property configuration
                     sb.Append($"builder.Property(x => x.{propertyName})");
+
+                    if(propertyType.TypeName.Contains("Enum"))
+                    {
+                        sb.Append($".HasConversion<string>()");
+                    }
+                    if(property.Type.IsList)
+                    {
+                        sb.Append($".HasStringListConversion()");
+                    }
+                    if (property.Type.IsDictionary)
+                    {
+                        sb.Append($".HasJsonConversion()");
+                    }
 
                     // Check for data type (HasColumnType)
                     if (HasAttribute(property, "HasColumnType", out string columnType))
@@ -61,6 +77,11 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                         {
                             sb.Append(".IsRequired()");
                         }
+                    }
+
+                    if(HasAttribute(property, "DataType"))
+                    {
+                        HandleDataType(sb, property);
                     }
 
                     // Check for HasPrecision (for decimal types)
@@ -252,7 +273,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             return hasAttribute;
         }
 
-        private static void HandleJsonFileOrImage(StringBuilder sb, ClassProperty property, string propertyType)
+        private static void HandleJsonFileOrImage(StringBuilder sb, ClassProperty property)
         {
             if(property.Type.TypeName.Contains("List"))
             {
@@ -281,5 +302,91 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             sb.AppendLine("\n");
         }
 
+        private static void HandleDataType(StringBuilder sb, ClassProperty property)
+        {
+            var attribute = property.propertyDeclarationSyntax.AttributeLists
+                .SelectMany(a => a.Attributes)
+                .FirstOrDefault(a => a.Name.ToString().Contains("DataType"));
+
+            if (attribute != null && attribute.ArgumentList?.Arguments.Count >= 1)
+            {
+                var arg = attribute.ArgumentList.Arguments[0].ToString(); // gets argument as string
+
+                // Remove DataType. prefix if present
+                if (arg.StartsWith("DataType."))
+                {
+                    arg = arg.Replace("DataType.", string.Empty);
+                }
+
+                switch (arg)
+                {
+                    case "Currency":
+                        sb.Append(".HasColumnType(\"decimal(18, 2)\")");
+                        break;
+
+                    case "Date":
+                        sb.Append(".HasColumnType(\"date\")");
+                        break;
+
+                    case "DateTime":
+                        sb.Append(".HasColumnType(\"datetime\")");
+                        break;
+
+                    case "Time":
+                        sb.Append(".HasColumnType(\"time\")");
+                        break;
+
+                    case "PhoneNumber":
+                        sb.Append(".HasColumnType(\"varchar(15)\")");
+                        break;
+
+                    case "EmailAddress":
+                        sb.Append(".HasColumnType(\"varchar(255)\")");
+                        break;
+
+                    case "Url":
+                        sb.Append(".HasColumnType(\"varchar(2083)\")"); // Max URL length in most browsers
+                        break;
+
+                    case "CreditCard":
+                        sb.Append(".HasColumnType(\"varchar(19)\")");
+                        break;
+
+                    case "PostalCode":
+                        sb.Append(".HasColumnType(\"varchar(10)\")");
+                        break;
+
+                    case "Html":
+                        sb.Append(".HasColumnType(\"text\")"); // Long text type for HTML content
+                        break;
+
+                    case "Text":
+                        sb.Append(".HasColumnType(\"nvarchar(max)\")"); // Supports large text content
+                        break;
+
+                    case "MultilineText":
+                        sb.Append(".HasColumnType(\"nvarchar(max)\")"); // Allows for multi-line text data
+                        break;
+
+                    case "Upload":
+                        sb.Append(".HasColumnType(\"varbinary(max)\")"); // Suitable for file uploads
+                        break;
+
+                    case "Password":
+                        sb.Append(".HasColumnType(\"nvarchar(255)\")"); // Allows storage of encrypted passwords
+                        break;
+
+                    case "Custom":
+                    case "Duration":
+                        sb.Append(".HasColumnType(\"time\")"); // Duration as a time value
+                        break;
+
+                    default:
+                        sb.Append(".HasColumnType(\"nvarchar(max)\")"); // Default for unspecified data types
+                        break;
+                }
+
+            }
+        }
     }
 }

@@ -9,7 +9,7 @@ using System.Text;
 
 namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
 {
-    public static class RelationshipConfigurationsGenerator
+    public static class Ef_RelationshipConfigurationsGenerator
     {
         public static void GenerateConfigurations(CSharpClassObject classObject)
         {

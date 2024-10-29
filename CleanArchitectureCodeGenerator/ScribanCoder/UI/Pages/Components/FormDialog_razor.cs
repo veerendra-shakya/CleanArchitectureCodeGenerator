@@ -1,7 +1,6 @@
 ﻿using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
 using Scriban;
-using System.ComponentModel;
 using System.Text;
 
 namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages.Components;
@@ -76,29 +75,28 @@ public static class FormDialog_razor
 
             if (property.UIDesignAtt.Has)
             {
-                output.Append(CreateComponentWithMudItem(GenerateCustomUIComponent(property)));
+                output.Append(CreateComponentWithMudItem(GenerateCustomUIComponent(property),"6"));
             }
             else if (property.ScaffoldingAtt.Has && property.ScaffoldingAtt.PropRole == "Relationship")
             {
-                output.Append(CreateComponentWithMudItem(GenerateCustomRelationshipComponent(property, classObject)));
+                output.Append(CreateComponentWithMudItem(GenerateCustomRelationshipComponent(property, classObject), "12"));
             }
             else if(property.Type.TypeName.Contains("JsonImage") || property.Type.TypeName.Contains("JsonFile"))
             {
-                output.Append(CreateComponentWithMudItem(GenerateUploadComponent(property)));
+                output.Append(CreateComponentWithMudItem(GenerateUploadComponent(property), "12"));
             }
             else
             {
-                output.Append(CreateComponentWithMudItem(GenerateDefaultComponent(property)));
+                output.Append(CreateComponentWithMudItem(GenerateDefaultComponent(property), "6"));
             }
         }
         return output.ToString();
     }
 
-
-    private static string CreateComponentWithMudItem(string componentDefinition)
+    private static string CreateComponentWithMudItem(string componentDefinition, string size)
     {
         var output = new StringBuilder();
-        output.AppendLine("<MudItem xs=\"12\" md=\"6\">");
+        output.AppendLine($"<MudItem xs=\"12\" md=\"{size}\">");
         output.Append($"    {componentDefinition}");
         output.AppendLine("</MudItem>");
         return output.ToString();
@@ -273,21 +271,21 @@ public static class FormDialog_razor
   
         if (property.Type.TypeName.Contains("List<JsonImage>?"))
         {
-            output.AppendLine($"<ImagesUpload @bind-Images=\"model.{property.PropertyName}\" AccessPermission=\"AccessPermission.Public\" MaxAllowedSize=\"5242880\" Label=\"Upload {property.DisplayName}\" />\r\n");
+            output.AppendLine($"<MultipleImagesUpload @bind-Images=\"model.{property.PropertyName}\" AccessPermission=\"AccessPermission.Public\" Label=\"Upload {property.DisplayName}\" />");
         }
         if (property.Type.TypeName.Contains("List<JsonFile>?"))
         {
-
+            output.AppendLine($"<MultipleFilesUpload @bind-Files=\"model.{property.PropertyName}\" AccessPermission=\"AccessPermission.Public\" Label=\"Upload {property.DisplayName}\" />");
         }
         if (property.Type.TypeName.Contains("JsonImage?"))
         {
-
+            output.AppendLine($"<SingleImageUpload @bind-Image=\"model.{property.PropertyName}\" AccessPermission=\"AccessPermission.Public\" Label=\"Upload {property.DisplayName}\" />");
         }
         if (property.Type.TypeName.Contains("JsonFile?"))
         {
-
+            output.AppendLine($"<SingleFileUpload @bind-File=\"model.{property.PropertyName}\" AccessPermission=\"AccessPermission.Public\" Label=\"Upload {property.DisplayName}\" />");
         }
-        
+
         return output.ToString();
     }
 

@@ -67,6 +67,10 @@ namespace CleanArchitecture.CodeGenerator
                         Console.WriteLine("------- Relationship Demo Models/Entities (\"DemoStudent.cs\", \"DemoProfile.cs\", \"DemoSchool.cs\", \"DemoCourse.cs\") are Added to Entities folder of Domain Project !! ---------");
                         Pause();
                         break;
+                    case "51":
+                        ScribanCoder.Infrastructure.Persistence.Configurations.Configuration.GenerateAll();
+                        Pause();
+                        break;
                     case "100":
                         await Test();
                         break;

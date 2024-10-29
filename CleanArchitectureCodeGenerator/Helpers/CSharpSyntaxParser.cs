@@ -497,6 +497,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             return summaryMatch.Success ? summaryMatch.Groups[1].Value.Trim() : trivia.Trim();
         }
 
+    
         private PropertyType ExtractPropertyType(PropertyDeclarationSyntax propertyDeclaration)
         {
             TypeSyntax typeSyntax = propertyDeclaration.Type;
@@ -508,6 +509,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             bool isList = false;
             bool isICollection = false;
             bool isIEnumerable = false;
+          
 
             TypeSyntax actualTypeSyntax;
             // Check if it's a nullable type and get the underlying type if needed
@@ -529,6 +531,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 isICollection = genericTypeName == "ICollection";
                 isIEnumerable = genericTypeName == "IEnumerable";
             }
+
 
 
             // Create and populate the PropertyType instance

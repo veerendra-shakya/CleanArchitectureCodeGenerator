@@ -11,7 +11,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder
 {
     public static class Helper
     {
-        public static FileInfo? GetFileInfo(string relativeTargetPath, string targetProjectDirectory)
+        public static FileInfo? GetFileInfo(string relativeTargetPath, string targetProjectDirectory, bool force = false)
         {
             FileInfo targetFile = new FileInfo(Path.Combine(targetProjectDirectory, relativeTargetPath));
 
@@ -23,6 +23,10 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder
                 return null;
             }
 
+            if(force)
+            {
+                return targetFile;
+            }
 
             if (targetFile.Exists)
             {

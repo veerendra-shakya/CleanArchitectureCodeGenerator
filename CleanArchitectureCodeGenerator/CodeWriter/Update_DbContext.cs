@@ -13,7 +13,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                 .Where(file => file.EndsWith("IApplicationDbContext.cs") || file.EndsWith("ApplicationDbContext.cs"))
                 .ToList();
 
-            Console.WriteLine($"Found {filePaths.Count} DbContext files.");
+           // Console.WriteLine($"Found {filePaths.Count} DbContext files.");
             return filePaths;
         }
 
@@ -23,7 +23,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             {
                 try
                 {
-                    Console.WriteLine($"Processing file: {filePath}");
+                    //Console.WriteLine($"Processing file: {filePath}");
                     var code = File.ReadAllText(filePath);
                     var tree = CSharpSyntaxTree.ParseText(code);
                     var root = tree.GetRoot() as CompilationUnitSyntax;
@@ -83,11 +83,15 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                     var newRoot = root.ReplaceNode(interfaceDeclaration, newInterfaceDeclaration);
 
                     File.WriteAllText(filePath, newRoot.NormalizeWhitespace().ToFullString());
+                    Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine($"Added property {pluralizedEntityName} to interface {interfaceDeclaration.Identifier.Text} in {filePath}");
+                    Console.ResetColor();
                 }
                 else
                 {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.WriteLine($"Property {pluralizedEntityName} already exists in interface {interfaceDeclaration.Identifier.Text}.");
+                    Console.ResetColor();
                 }
             }
         }
@@ -127,11 +131,15 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                     var newRoot = root.ReplaceNode(classDeclaration, newClassDeclaration);
 
                     File.WriteAllText(filePath, newRoot.NormalizeWhitespace().ToFullString());
+                    Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine($"Added property {pluralizedEntityName} to class {classDeclaration.Identifier.Text} in {filePath}");
+                    Console.ResetColor();
                 }
                 else
                 {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.WriteLine($"Property {pluralizedEntityName} already exists in class {classDeclaration.Identifier.Text}.");
+                    Console.ResetColor();
                 }
             }
         }

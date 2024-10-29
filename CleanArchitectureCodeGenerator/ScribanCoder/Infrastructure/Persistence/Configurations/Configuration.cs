@@ -1,4 +1,5 @@
-﻿using CleanArchitecture.CodeGenerator.CodeWriter.Snippets;
+﻿using CleanArchitecture.CodeGenerator.CodeWriter;
+using CleanArchitecture.CodeGenerator.CodeWriter.Snippets;
 using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
 using Scriban;
@@ -12,9 +13,34 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Infrastructure.Persistenc
 {
     public static class Configuration
     {
-        public static void Generate(CSharpClassObject modalClassObject, string relativeTargetPath, string targetProjectDirectory)
+
+        public static void GenerateAll(bool force = false)
         {
-            FileInfo? targetFile = Helper.GetFileInfo(relativeTargetPath, targetProjectDirectory);
+            List<CSharpClassObject> KnownModelsList = new List<CSharpClassObject>();
+            string[] includes = { "IEntity", "BaseEntity", "BaseAuditableEntity", "BaseAuditableSoftDeleteEntity", "AuditTrail", "OwnerPropertyEntity", "KeyValue" };
+            KnownModelsList = ApplicationHelper.ClassObjectList?
+            .Where(x => x.BaseClassNames != null && includes != null && includes.Any(baseName => x.BaseClassNames.Contains(baseName)) && !includes.Contains(x.Name))
+            .ToList();
+
+            foreach (var model in KnownModelsList)
+            {
+                Console.WriteLine($"{model.Name}");
+
+                Generate(model, $"Persistence/Configurations/{model.Name}Configuration.cs", ApplicationHelper.InfrastructureProjectDirectory,true);
+                //check if any property having many to many relationship then create linking table configurations
+                Ef_RelationshipConfigurationsGenerator.GenerateConfigurations(model);
+
+                Update_DbContext dbContextModifier = new Update_DbContext();
+                var paths = dbContextModifier.SearchDbContextFiles(ApplicationHelper.RootDirectory);
+                dbContextModifier.AddEntityProperty(paths, model.Name);
+
+                Console.WriteLine($"\n");
+            }
+        }
+
+        public static void Generate(CSharpClassObject modalClassObject, string relativeTargetPath, string targetProjectDirectory, bool force = false)
+        {
+            FileInfo? targetFile = Helper.GetFileInfo(relativeTargetPath, targetProjectDirectory, force);
             if (targetFile == null)
             {
                 return;

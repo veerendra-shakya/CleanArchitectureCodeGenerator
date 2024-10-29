@@ -222,7 +222,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             Console.WriteLine($"---------------------  Update DbContext Completed...  --------------------\n");
 
             //check if any property having many to many relationship then create linking table configurations
-            RelationshipConfigurationsGenerator.RemoveConfigurations(modalClassObject);
+            Ef_RelationshipConfigurationsGenerator.RemoveConfigurations(modalClassObject);
 
 
 
