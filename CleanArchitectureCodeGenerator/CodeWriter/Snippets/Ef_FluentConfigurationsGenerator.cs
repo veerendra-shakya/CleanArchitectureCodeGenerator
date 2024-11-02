@@ -361,19 +361,19 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                         break;
 
                     case "Text":
-                        sb.Append(".HasColumnType(\"nvarchar(max)\")"); // Supports large text content
+                        sb.Append(".HasColumnType(\"text\")"); // Supports large text content
                         break;
 
                     case "MultilineText":
-                        sb.Append(".HasColumnType(\"nvarchar(max)\")"); // Allows for multi-line text data
+                        sb.Append(".HasColumnType(\"text\")"); // Allows for multi-line text data
                         break;
 
-                    case "Upload":
-                        sb.Append(".HasColumnType(\"varbinary(max)\")"); // Suitable for file uploads
-                        break;
+                    //case "Upload":
+                    //    sb.Append(".HasColumnType(\"varbinary(max)\")"); // Suitable for file uploads
+                    //    break;
 
                     case "Password":
-                        sb.Append(".HasColumnType(\"nvarchar(255)\")"); // Allows storage of encrypted passwords
+                        sb.Append(".HasColumnType(\"varchar(50)\")"); // Allows storage of encrypted passwords
                         break;
 
                     case "Custom":
@@ -382,7 +382,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                         break;
 
                     default:
-                        sb.Append(".HasColumnType(\"nvarchar(max)\")"); // Default for unspecified data types
+                        sb.Append(".HasColumnType(\"text\")"); // Default for unspecified data types
                         break;
                 }
 
