@@ -1,4 +1,5 @@
 ﻿using CleanArchitecture.CodeGenerator.Models;
+using Humanizer;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -80,6 +81,8 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             var classObject = new CSharpClassObject
             {
                 Name = enumDeclaration.Identifier.Text,
+                NamePlural = enumDeclaration.Identifier.Text.Pluralize(),
+                NameSingular = enumDeclaration.Identifier.Text.Singularize(),
                 IsEnumType = true,
                 FullyQualifiedName = $"{namespaceName}.{enumDeclaration.Identifier.Text}",
                 ClassNamespace = namespaceName,
@@ -121,6 +124,9 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             var classObject = new CSharpClassObject
             {
                 Name = classDeclaration.Identifier.Text,
+                NameSingular = classDeclaration.Identifier.Text.Singularize(),
+                NamePlural = classDeclaration.Identifier.Text.Pluralize(),
+
                 FullyQualifiedName = $"{namespaceName}.{classDeclaration.Identifier.Text}",
                 ClassNamespace = namespaceName,
                 Summary = ExtractSummaryFromNode(classDeclaration),
@@ -169,6 +175,9 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 var classProperty = new ClassProperty
                 {
                     PropertyName = member.Identifier.Text,
+                    PropertyNamePlural = member.Identifier.Text.Pluralize(),
+                    PropertyNameSingular = member.Identifier.Text.Singularize(),
+
                     Type = ExtractPropertyType(member),
                     Summary = ExtractSummaryFromNode(member),
                     propertyDeclarationSyntax = member

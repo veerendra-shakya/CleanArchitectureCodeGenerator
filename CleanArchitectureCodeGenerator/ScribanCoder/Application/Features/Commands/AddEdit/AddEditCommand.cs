@@ -1,6 +1,7 @@
 ﻿using CleanArchitecture.CodeGenerator.CodeWriter.Snippets;
 using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
+using Humanizer;
 using Scriban;
 using System;
 using System.Collections.Generic;
@@ -13,9 +14,10 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Comm
 {
     public static class AddEditCommand
     {
-        public static void Generate(CSharpClassObject modalClassObject, string relativeTargetPath, string targetProjectDirectory)
+        public static void Generate(CSharpClassObject modalClassObject, string relativeTargetPath, string targetProjectDirectory, bool force = false)
         {
-            FileInfo? targetFile = Helper.GetFileInfo(relativeTargetPath, targetProjectDirectory);
+            if (!Helper.IsValidModel(modalClassObject)) return;
+            FileInfo? targetFile = Helper.GetFileInfo(relativeTargetPath, targetProjectDirectory, force);
             if (targetFile == null)
             {
                 return;
@@ -46,7 +48,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Comm
                     infrastructureprojectdirectory = ApplicationHelper.InfrastructureProjectDirectory,
                     uiprojectdirectory = ApplicationHelper.UiProjectDirectory,
                     applicationprojectdirectory = ApplicationHelper.ApplicationProjectDirectory,
-                    modelnameplural = modalClassObject.Name.Pluralize(),
+                    modelnameplural = modalClassObject.NamePlural,
                     modelname = modalClassObject.Name,
                     commandfielddefinition = CommandFieldDefinition,
                     mapignore,
@@ -85,17 +87,17 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Comm
                     if (property.ScaffoldingAtt.RelationshipType == "ManyToMany")
                     {
                         string LinkingTableName = property.ScaffoldingAtt.LinkingTable;
-                        string key1 = $"{property.PropertyName.Singularize()}Id";
+                        string key1 = $"{property.PropertyNameSingular}Id";
                         string key2 = $"{property.ScaffoldingAtt.InverseProperty.Singularize()}Id";
                         string PropertyType = property.Type.TypeName;
                         string DataType = Helper.ExtractDataType(PropertyType);
                         output.AppendLine();
                         output.AppendLine($"var related{property.PropertyName} = await _context.{DataType.Pluralize()}.Where(x => x.Id == request.Id).ToListAsync();");
-                        output.AppendLine($"foreach (var {property.PropertyName.Singularize().ToLower()} in request.{property.PropertyName})");
+                        output.AppendLine($"foreach (var {property.PropertyNameSingular.ToLower()} in request.{property.PropertyName})");
                         output.AppendLine($"{{");
-                        output.AppendLine($"    if (!related{property.PropertyName}.Any(x => x.Id == {property.PropertyName.Singularize().ToLower()}.Id))");
+                        output.AppendLine($"    if (!related{property.PropertyName}.Any(x => x.Id == {property.PropertyNameSingular.ToLower()}.Id))");
                         output.AppendLine($"    {{");
-                        output.AppendLine($"        var additem = new {LinkingTableName}() {{{key2} = item.Id,{key1} = {property.PropertyName.Singularize().ToLower()}.Id}};");
+                        output.AppendLine($"        var additem = new {LinkingTableName}() {{{key2} = item.Id,{key1} = {property.PropertyNameSingular.ToLower()}.Id}};");
                         output.AppendLine($"        _context.{LinkingTableName.Pluralize()}.Add(additem);");
                         output.AppendLine($"    }}");
                         output.AppendLine($"}}");
@@ -117,7 +119,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Comm
                     if (property.ScaffoldingAtt.RelationshipType == "ManyToMany")
                     {
                         string linkingTableName = property.ScaffoldingAtt.LinkingTable;
-                        string key1 = $"{property.PropertyName.Singularize()}Id";
+                        string key1 = $"{property.PropertyNameSingular}Id";
                         string key2 = $"{property.ScaffoldingAtt.InverseProperty.Singularize()}Id";
                         string propertyType = property.Type.TypeName;
                         string dataType = Helper.ExtractDataType(propertyType);
@@ -131,9 +133,9 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Comm
                         output.AppendLine();
                         output.AppendLine($"// Find {property.PropertyName} to add");
                         output.AppendLine($"var {property.PropertyName.ToLower()}ToAdd = updated{property.PropertyName}Ids.Except(current{property.PropertyName}Ids).ToList();");
-                        output.AppendLine($"foreach (var {property.PropertyName.Singularize().ToLower()}Id in {property.PropertyName.ToLower()}ToAdd)");
+                        output.AppendLine($"foreach (var {property.PropertyNameSingular.ToLower()}Id in {property.PropertyName.ToLower()}ToAdd)");
                         output.AppendLine($"{{");
-                        output.AppendLine($"    var addItem = new {linkingTableName}() {{ {key2} = item.Id, {key1} = {property.PropertyName.Singularize().ToLower()}Id }};");
+                        output.AppendLine($"    var addItem = new {linkingTableName}() {{ {key2} = item.Id, {key1} = {property.PropertyNameSingular.ToLower()}Id }};");
                         output.AppendLine($"    _context.{linkingTableName.Pluralize()}.Add(addItem);");
                         output.AppendLine($"}}");
 
@@ -141,10 +143,10 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Comm
                         output.AppendLine();
                         output.AppendLine($"// Find {property.PropertyName} to remove");
                         output.AppendLine($"var {property.PropertyName.ToLower()}ToRemove = current{property.PropertyName}Ids.Except(updated{property.PropertyName}Ids).ToList();");
-                        output.AppendLine($"foreach (var {property.PropertyName.Singularize().ToLower()}Id in {property.PropertyName.ToLower()}ToRemove)");
+                        output.AppendLine($"foreach (var {property.PropertyNameSingular.ToLower()}Id in {property.PropertyName.ToLower()}ToRemove)");
                         output.AppendLine($"{{");
                         output.AppendLine($"    var removeItem = await _context.{linkingTableName.Pluralize()}")
-                              .AppendLine($"        .FirstOrDefaultAsync(x => x.{key2} == item.Id && x.{key1} == {property.PropertyName.Singularize().ToLower()}Id, cancellationToken);");
+                              .AppendLine($"        .FirstOrDefaultAsync(x => x.{key2} == item.Id && x.{key1} == {property.PropertyNameSingular.ToLower()}Id, cancellationToken);");
                         output.AppendLine($"    if (removeItem != null)");
                         output.AppendLine($"    {{");
                         output.AppendLine($"        _context.{linkingTableName.Pluralize()}.Remove(removeItem);");
@@ -168,15 +170,15 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Comm
                     if (property.ScaffoldingAtt.RelationshipType == "ManyToMany")
                     {
                         string linkingTableName = property.ScaffoldingAtt.LinkingTable;
-                        string key1 = $"{property.PropertyName.Singularize()}Id";
+                        string key1 = $"{property.PropertyNameSingular}Id";
                         string key2 = $"{property.ScaffoldingAtt.InverseProperty.Singularize()}Id";
 
                         // Add new items
                         output.AppendLine();
                         output.AppendLine($"// Add new {property.PropertyName.ToLower()} if any");
-                        output.AppendLine($"foreach (var {property.PropertyName.Singularize().ToLower()} in request.{property.PropertyName})");
+                        output.AppendLine($"foreach (var {property.PropertyNameSingular.ToLower()} in request.{property.PropertyName})");
                         output.AppendLine($"{{");
-                        output.AppendLine($"    var addItem = new {linkingTableName}() {{ {key2} = item.Id, {key1} = {property.PropertyName.Singularize().ToLower()}.Id }};");
+                        output.AppendLine($"    var addItem = new {linkingTableName}() {{ {key2} = item.Id, {key1} = {property.PropertyNameSingular.ToLower()}.Id }};");
                         output.AppendLine($"    _context.{linkingTableName.Pluralize()}.Add(addItem);");
                         output.AppendLine($"}}");
                         output.AppendLine();

@@ -7,9 +7,10 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Components.Autocomplet
 
 public static class AutocompleteRazorComponent
 {
-    public static void Generate(CSharpClassObject modalClassObject, string relativeTargetPath, string targetProjectDirectory)
+    public static void Generate(CSharpClassObject modalClassObject, string relativeTargetPath, string targetProjectDirectory, bool force = false)
     {
-        FileInfo? targetFile = Helper.GetFileInfo(relativeTargetPath, targetProjectDirectory);
+        if (!Helper.IsValidModel(modalClassObject)) return;
+        FileInfo? targetFile = Helper.GetFileInfo(relativeTargetPath, targetProjectDirectory, force);
         if (targetFile == null)
         {
             return;
@@ -38,7 +39,7 @@ public static class AutocompleteRazorComponent
                 infrastructureprojectdirectory = ApplicationHelper.InfrastructureProjectDirectory,
                 uiprojectdirectory = ApplicationHelper.UiProjectDirectory,
                 applicationprojectdirectory = ApplicationHelper.ApplicationProjectDirectory,
-                modelnameplural = modalClassObject.Name.Pluralize(),
+                modelnameplural = modalClassObject.NamePlural,
                 modelname = modalClassObject.Name,
                 querystring,
                 returnstring,

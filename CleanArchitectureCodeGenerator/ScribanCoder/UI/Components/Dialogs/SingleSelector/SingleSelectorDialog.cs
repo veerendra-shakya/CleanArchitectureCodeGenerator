@@ -11,9 +11,10 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Components.Dialogs.Sin
 {
     public static class SingleSelectorDialog
     {
-        public static void Generate(CSharpClassObject modal, string relativeTargetPath, string targetProjectDirectory)
+        public static void Generate(CSharpClassObject modal, string relativeTargetPath, string targetProjectDirectory, bool force = false)
         {
-            FileInfo? targetFile = Helper.GetFileInfo(relativeTargetPath, targetProjectDirectory);
+            if (!Helper.IsValidModel(modal)) return;
+            FileInfo? targetFile = Helper.GetFileInfo(relativeTargetPath, targetProjectDirectory, force);
             if (targetFile == null)
             {
                 return;
@@ -46,7 +47,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Components.Dialogs.Sin
                     infrastructureprojectdirectory = ApplicationHelper.InfrastructureProjectDirectory,
                     uiprojectdirectory = ApplicationHelper.UiProjectDirectory,
                     applicationprojectdirectory = ApplicationHelper.ApplicationProjectDirectory,
-                    modelnameplural = modal.Name.Pluralize(),
+                    modelnameplural = modal.NamePlural,
                     modelname = modal.Name,
 
                     //identifierproperty,

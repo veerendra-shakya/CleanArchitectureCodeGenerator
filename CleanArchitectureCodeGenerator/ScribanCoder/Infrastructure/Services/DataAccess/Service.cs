@@ -12,9 +12,10 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Infrastructure.Services.D
 {
     public static class Service
     {
-        public static void Generate(CSharpClassObject modalClassObject, string relativeTargetPath, string targetProjectDirectory)
+        public static void Generate(CSharpClassObject modalClassObject, string relativeTargetPath, string targetProjectDirectory, bool force = false)
         {
-            FileInfo? targetFile = Helper.GetFileInfo(relativeTargetPath, targetProjectDirectory);
+            if (!Helper.IsValidModel(modalClassObject)) return;
+            FileInfo? targetFile = Helper.GetFileInfo(relativeTargetPath, targetProjectDirectory, force);
             
             RegisterServiceHelper registerServiceHelper = new RegisterServiceHelper();
             registerServiceHelper.Register($"{modalClassObject.Name}Service", $"I{modalClassObject.Name}Service");
@@ -45,7 +46,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Infrastructure.Services.D
                     infrastructureprojectdirectory = ApplicationHelper.InfrastructureProjectDirectory,
                     uiprojectdirectory = ApplicationHelper.UiProjectDirectory,
                     applicationprojectdirectory = ApplicationHelper.ApplicationProjectDirectory,
-                    modelnameplural = modalClassObject.Name.Pluralize(),
+                    modelnameplural = modalClassObject.NamePlural,
                     modelname = modalClassObject.Name,
 
                 };

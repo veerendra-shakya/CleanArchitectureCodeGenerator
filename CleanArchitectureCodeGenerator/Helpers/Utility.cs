@@ -38,34 +38,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             return name[0].ToString(CultureInfo.CurrentCulture).ToLower(CultureInfo.CurrentCulture) + name.Substring(1);
         }
 
-        public static string Pluralize(this string name)
-        {
-            if (name.EndsWith("y", StringComparison.OrdinalIgnoreCase))
-            {
-                return name.Substring(0, name.Length - 1) + "ies";
-            }
-            else
-            {
-                return name + "s";
-            }
-        }
-
-        public static string Singularize(this string name)
-        {
-            if (name.EndsWith("ies", StringComparison.OrdinalIgnoreCase))
-            {
-                return name.Substring(0, name.Length - 3) + "y";
-            }
-            else if (name.EndsWith("s", StringComparison.OrdinalIgnoreCase) && name.Length > 1)
-            {
-                return name.Substring(0, name.Length - 1);
-            }
-            else
-            {
-                return name;
-            }
-        }
-
+    
 
         public static string NormalizeLineEndings(string content)
         {

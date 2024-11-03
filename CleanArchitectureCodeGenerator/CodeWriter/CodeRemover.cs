@@ -3,6 +3,7 @@ using CleanArchitecture.CodeGenerator.Configuration;
 using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
 using CleanArchitecture.CodeGenerator.ScribanCoder;
+using Humanizer;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -144,7 +145,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                 try
                 {
                     string modalClassName = Path.GetFileNameWithoutExtension(inputName);
-                    string modalClassNamePlural = Utility.Pluralize(modalClassName);
+                    string modalClassNamePlural =modalClassName.Pluralize();
                     var modalClassObject = objectList.First(x => x.Name == modalClassName);
 
                     DeleteFiles(modalClassObject, modalClassName, modalClassNamePlural, domainProjectDir, infrastructureProjectDir, applicationProjectDir, uiProjectDir);

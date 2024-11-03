@@ -1,4 +1,5 @@
 ﻿using CleanArchitecture.CodeGenerator.Helpers;
+using Humanizer;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -54,7 +55,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             var interfaceDeclaration = root.DescendantNodes().OfType<InterfaceDeclarationSyntax>().FirstOrDefault();
             if (interfaceDeclaration != null)
             {
-                var pluralizedEntityName = Utility.Pluralize(entityName);
+                var pluralizedEntityName = entityName.Pluralize();
 
                 // Check if the property already exists
                 var existingProperty = interfaceDeclaration.Members.OfType<PropertyDeclarationSyntax>()
@@ -101,7 +102,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             var classDeclaration = root.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault();
             if (classDeclaration != null)
             {
-                var pluralizedEntityName = Utility.Pluralize(entityName);
+                var pluralizedEntityName = entityName.Pluralize();
 
                 // Check if the property already exists
                 var existingProperty = classDeclaration.Members.OfType<PropertyDeclarationSyntax>()
@@ -181,7 +182,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             var interfaceDeclaration = root.DescendantNodes().OfType<InterfaceDeclarationSyntax>().FirstOrDefault();
             if (interfaceDeclaration != null)
             {
-                var pluralizedEntityName = Utility.Pluralize(entityName);
+                var pluralizedEntityName = entityName.Pluralize();
 
                 var propertyToRemove = interfaceDeclaration.Members.OfType<PropertyDeclarationSyntax>()
                     .FirstOrDefault(prop => prop.Identifier.Text == pluralizedEntityName);
@@ -206,7 +207,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
             var classDeclaration = root.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault();
             if (classDeclaration != null)
             {
-                var pluralizedEntityName = Utility.Pluralize(entityName);
+                var pluralizedEntityName = entityName.Pluralize();
 
                 var propertyToRemove = classDeclaration.Members.OfType<PropertyDeclarationSyntax>()
                     .FirstOrDefault(prop => prop.Identifier.Text == pluralizedEntityName);

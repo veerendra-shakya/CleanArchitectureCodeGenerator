@@ -3,6 +3,7 @@ using CleanArchitecture.CodeGenerator.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -11,6 +12,22 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder
 {
     public static class Helper
     {
+        public static bool IsValidModel(CSharpClassObject Model)
+        {
+            var IdentifierProperty = Model.ClassProperties.FirstOrDefault(p => p.ScaffoldingAtt.PropRole == "Identifier");
+            var searchableProperties = Model.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Searchable").ToList();
+
+            if (IdentifierProperty == null)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Error: Scaffolding 'Identifier' Attribute not defined in model:'{Model.Name}'.");
+                Console.ResetColor();
+                return false;
+            }
+           
+            return true;
+        }
+
         public static FileInfo? GetFileInfo(string relativeTargetPath, string targetProjectDirectory, bool force = false)
         {
             FileInfo targetFile = new FileInfo(Path.Combine(targetProjectDirectory, relativeTargetPath));

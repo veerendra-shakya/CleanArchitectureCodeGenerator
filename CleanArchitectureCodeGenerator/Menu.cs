@@ -2,6 +2,7 @@
 using CleanArchitecture.CodeGenerator.Configuration;
 using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
+using CleanArchitecture.CodeGenerator.ScribanCoder;
 
 namespace CleanArchitecture.CodeGenerator
 {
@@ -68,7 +69,11 @@ namespace CleanArchitecture.CodeGenerator
                         Pause();
                         break;
                     case "51":
-                        ScribanCoder.Infrastructure.Persistence.Configurations.Configuration.GenerateAll();
+                        ScribanEngine.GenerateAll_EF_Configurations(force: true);
+                        Pause();
+                        break;
+                    case "52":
+                        ScribanEngine.GenerateAll_Features(force: true);
                         Pause();
                         break;
                     case "100":

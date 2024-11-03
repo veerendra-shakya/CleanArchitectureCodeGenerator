@@ -1,6 +1,7 @@
 ﻿using CleanArchitecture.CodeGenerator.Configuration;
 using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
+using Humanizer;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -82,6 +83,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                     if(HasAttribute(property, "DataType"))
                     {
                         HandleDataType(sb, property);
+                       // continue; // Skip further processing for this property
                     }
 
                     // Check for HasPrecision (for decimal types)
@@ -185,9 +187,9 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                     sb.AppendLine($"builder.HasMany(e => e.{property.PropertyName})")
                       .AppendLine($"    .WithMany(p => p.{property.ScaffoldingAtt.InverseProperty})")
                       .AppendLine($"    .UsingEntity<{property.ScaffoldingAtt.LinkingTable}>(")
-                      .AppendLine($"        j => j.HasOne(y => y.{property.PropertyName.Singularize()})")
+                      .AppendLine($"        j => j.HasOne(y => y.{property.PropertyNameSingular})")
                       .AppendLine($"              .WithMany()")
-                      .AppendLine($"              .HasForeignKey(x => x.{property.PropertyName.Singularize()}Id),")
+                      .AppendLine($"              .HasForeignKey(x => x.{property.PropertyNameSingular}Id),")
                       .AppendLine($"        j => j.HasOne(y => y.{property.ScaffoldingAtt.InverseProperty.Singularize()})")
                       .AppendLine($"              .WithMany()")
                       .AppendLine($"              .HasForeignKey(x => x.{property.ScaffoldingAtt.InverseProperty.Singularize()}Id))");
@@ -377,6 +379,10 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                         break;
 
                     case "Custom":
+                        {
+                            HandleCustomDataType(sb, property);
+                            break;
+                        }
                     case "Duration":
                         sb.Append(".HasColumnType(\"time\")"); // Duration as a time value
                         break;
@@ -387,6 +393,37 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                 }
 
             }
+        }
+
+        private static void HandleCustomDataType(StringBuilder sb, ClassProperty property)
+        {
+            if (property.Type.TypeName.Contains("List"))
+            {
+                sb
+                  //.AppendLine($"builder.Property(e => e.{property.PropertyName})")
+                  .AppendLine($".HasConversion(")
+                  .AppendLine($"    v => JsonSerializer.Serialize(v, DefaultJsonSerializerOptions.Options),")
+                  .AppendLine($"    v => JsonSerializer.Deserialize<{property.Type.TypeName.Replace("?", "")}>(v, DefaultJsonSerializerOptions.Options),")
+                  .AppendLine($"    new ValueComparer<{property.Type.TypeName.Replace("?", "")}>(")
+                  .AppendLine($"        (c1, c2) => c1.SequenceEqual(c2),")
+                  .AppendLine($"        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),")
+                  .AppendLine($"        c => c.ToList()));");
+            }
+            else
+            {
+                sb
+                  //.AppendLine($"builder.Property(e => e.{property.PropertyName})")
+                  .AppendLine($".HasConversion(")
+                  .AppendLine($"    v => JsonSerializer.Serialize(v, DefaultJsonSerializerOptions.Options),")
+                  .AppendLine($"    v => JsonSerializer.Deserialize<{property.Type.TypeName.Replace("?", "")}>(v, DefaultJsonSerializerOptions.Options),")
+                  .AppendLine($"    new ValueComparer<{property.Type.TypeName.Replace("?", "")}>(")
+                  .AppendLine($"        (c1, c2) => c1.Equals(c2),")
+                  .AppendLine($"        c => c == null ? 0 : c.GetHashCode(),")
+                  .AppendLine($"        c => c == null ? null : JsonSerializer.Deserialize<{property.Type.TypeName.Replace("?", "")}>(JsonSerializer.Serialize(c, DefaultJsonSerializerOptions.Options), DefaultJsonSerializerOptions.Options)));");
+
+            }
+
+           
         }
     }
 }

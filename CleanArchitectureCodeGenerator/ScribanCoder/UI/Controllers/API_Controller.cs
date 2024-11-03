@@ -7,9 +7,10 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Controllers;
 
 public static class API_Controller
 {
-    public static void Generate(CSharpClassObject modalClassObject, string relativeTargetPath, string targetProjectDirectory)
+    public static void Generate(CSharpClassObject modalClassObject, string relativeTargetPath, string targetProjectDirectory, bool force = false)
     {
-        FileInfo? targetFile = Helper.GetFileInfo(relativeTargetPath, targetProjectDirectory);
+        if (!Helper.IsValidModel(modalClassObject)) return;
+        FileInfo? targetFile = Helper.GetFileInfo(relativeTargetPath, targetProjectDirectory, force);
         if (targetFile == null)
         {
             return;
@@ -39,8 +40,8 @@ public static class API_Controller
                 infrastructureprojectdirectory = ApplicationHelper.InfrastructureProjectDirectory,
                 uiprojectdirectory = ApplicationHelper.UiProjectDirectory,
                 applicationprojectdirectory = ApplicationHelper.ApplicationProjectDirectory,
-                modelnameplural = modalClassObject.Name.Pluralize(),
-                // modelnameplurallower = modalClassObject.Name.Pluralize().ToLower(),
+                modelnameplural = modalClassObject.NamePlural,
+                // modelnameplurallower = modalClassObject.NamePlural.ToLower(),
                 modelname = modalClassObject.Name,
                 modelnamelower = modalClassObject.Name.ToLower(),
                 codeofgetfunction,
@@ -97,7 +98,7 @@ public static class API_Controller
 
         // Begin method body
         sb.AppendLine("    {");
-        sb.AppendLine($"        var query = new {model.Name.Pluralize()}WithPaginationQuery");
+        sb.AppendLine($"        var query = new {model.NamePlural}WithPaginationQuery");
         sb.AppendLine("        {");
 
         // Assign parameters to the query object

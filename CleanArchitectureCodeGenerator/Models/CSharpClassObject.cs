@@ -18,11 +18,15 @@ namespace CleanArchitecture.CodeGenerator.Models
         /// <summary>
         /// Gets or sets the name of the C# class.
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
-        public string DisplayName { get; set; }
+        public string NamePlural { get; set; } = string.Empty;
 
-        public string Description { get; set; }
+        public string NameSingular { get; set; } = string.Empty;
+
+        public string DisplayName { get; set; } = string.Empty;
+
+        public string Description { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets the namespace of the base class, if any.
@@ -64,7 +68,11 @@ namespace CleanArchitecture.CodeGenerator.Models
         /// <summary>
         /// Gets or sets the name of the property.
         /// </summary>
-        public string PropertyName { get; set; }
+        public string PropertyName { get; set; } = string.Empty;
+
+        public string PropertyNamePlural { get; set; } = string.Empty;
+
+        public string PropertyNameSingular { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets the type of the property, represented by the <see cref="PropertyType"/> class.

@@ -2,6 +2,7 @@
 using CleanArchitecture.CodeGenerator.Configuration;
 using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
+using Humanizer;
 
 
 
@@ -94,7 +95,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                 try
                 {
                     string modalClassName = Path.GetFileNameWithoutExtension(inputName);
-                    string modalClassNamePlural = Utility.Pluralize(modalClassName);
+                    string modalClassNamePlural = modalClassName.Pluralize();
                     var modalClassObject = KnownModelsList.First(x => x.Name == modalClassName);
 
                     // Validate the class & properties before generating files

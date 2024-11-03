@@ -4,6 +4,7 @@ using CleanArchitecture.CodeGenerator.Models;
 using CleanArchitecture.CodeGenerator.ScribanCoder;
 using CleanArchitecture.CodeGenerator.ScribanCoder.UI.Components.Dialogs.MultiSelector;
 using CleanArchitecture.CodeGenerator.ScribanCoder.UI.Components.Dialogs.SingleSelector;
+using Humanizer;
 using Scriban;
 using System.Text;
 
@@ -63,7 +64,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
         private static void GenerateLinkingEntityConfiguration(ClassProperty property)
         {
             string EntityName = property.ScaffoldingAtt.LinkingTable;
-            string key1 = $"{property.PropertyName.Singularize()}Id";
+            string key1 = $"{property.PropertyNameSingular}Id";
             string key2 = $"{property.ScaffoldingAtt.InverseProperty.Singularize()}Id";
             CSharpClassObject modalClassObject = ApplicationHelper.ClassObjectList.Where(x => x.Name == EntityName).FirstOrDefault();
 
@@ -96,7 +97,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                     infrastructureprojectdirectory = ApplicationHelper.InfrastructureProjectDirectory,
                     uiprojectdirectory = ApplicationHelper.UiProjectDirectory,
                     applicationprojectdirectory = ApplicationHelper.ApplicationProjectDirectory,
-                    modelnameplural = modalClassObject.Name.Pluralize(),
+                    modelnameplural = modalClassObject.NamePlural,
                     modelname = modalClassObject.Name,
                     efconfigurations = efConfigurations,
                 };

@@ -1,6 +1,7 @@
 ﻿using CleanArchitecture.CodeGenerator.CodeWriter.Snippets;
 using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
+using Humanizer;
 using Scriban;
 using System;
 using System.Collections.Generic;
@@ -12,9 +13,10 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Cach
 {
     public static class CacheKey
     {
-        public static void Generate(CSharpClassObject modalClassObject, string relativeTargetPath, string targetProjectDirectory)
+        public static void Generate(CSharpClassObject modalClassObject, string relativeTargetPath, string targetProjectDirectory, bool force = false)
         {
-            FileInfo? targetFile = Helper.GetFileInfo(relativeTargetPath, targetProjectDirectory);
+            if (!Helper.IsValidModel(modalClassObject)) return;
+            FileInfo? targetFile = Helper.GetFileInfo(relativeTargetPath, targetProjectDirectory, force);
             if (targetFile == null)
             {
                 return;
@@ -42,7 +44,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Cach
                     infrastructureprojectdirectory = ApplicationHelper.InfrastructureProjectDirectory,
                     uiprojectdirectory = ApplicationHelper.UiProjectDirectory,
                     applicationprojectdirectory = ApplicationHelper.ApplicationProjectDirectory,
-                    modelnameplural = modalClassObject.Name.Pluralize(),
+                    modelnameplural = modalClassObject.NamePlural,
                     modelname = modalClassObject.Name,
                 };
 
