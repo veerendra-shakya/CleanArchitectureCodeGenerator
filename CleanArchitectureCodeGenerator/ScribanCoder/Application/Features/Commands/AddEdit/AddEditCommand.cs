@@ -199,6 +199,19 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Comm
             var output = new StringBuilder();
             foreach (var property in Unknown)
             {
+                if (property.Type.TypeName.Contains("Enum"))
+                {
+                    continue;
+                }
+                if (property.Type.IsList)
+                {
+                    continue;
+                }
+                if (property.Type.IsDictionary)
+                {
+                    continue;
+                }
+
                 output.Append($".ForMember(x => x.{property.PropertyName}, y => y.Ignore())");
             }
             return output.ToString();

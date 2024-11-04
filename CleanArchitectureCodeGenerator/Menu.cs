@@ -76,6 +76,11 @@ namespace CleanArchitecture.CodeGenerator
                         ScribanEngine.GenerateAll_Features(force: true);
                         Pause();
                         break;
+                    case "53":
+                        ScribanEngine.GenerateAll_UI(force: true);
+                        Pause();
+                        break;
+                        
                     case "100":
                         await Test();
                         break;

@@ -12,7 +12,7 @@ public class {{ modelname }}Autocomplete : MudAutocomplete<Guid>
     [Inject]
     private I{{ modelname }}Service DataProvider { get; set; } = default!;
 
-    private List<{{ modelname }}Dto>? _list_{{ modelname }};
+    private List<{{ modelname }}>? _list_{{ modelname }};
     private bool _isLoading = false;
     
     public {{ modelname }}Autocomplete()

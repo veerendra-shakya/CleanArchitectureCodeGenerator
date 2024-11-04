@@ -9,7 +9,7 @@
 @using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Queries.Export
 @using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Queries.Pagination
 @using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Commands.AddEdit
-@using CleanArchitecture.Blazor.Server.UI.Pages.{{ modelnameplural }}.Components
+@using {{ rootnamespace }}.{{ uiprojectname }}.Pages.{{ modelnameplural }}.Components
 
 @inject IStringLocalizer<{{ modelnameplural }}> L
 @attribute [Authorize(Policy = Permissions.{{ modelnameplural }}.View)]

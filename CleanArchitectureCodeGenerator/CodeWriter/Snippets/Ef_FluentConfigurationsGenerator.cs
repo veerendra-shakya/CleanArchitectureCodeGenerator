@@ -139,7 +139,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                     sb.AppendLine("\n");
                     
                     // Add AutoInclude() for the navigation property
-                    sb.AppendLine($"builder.Navigation(e => e.{property.PropertyName}).AutoInclude();");
+                    sb.AppendLine($"builder.Navigation(e => e.{property.PropertyName}).AutoInclude(false);");
                     break;
 
                 case "OneToMany":
@@ -159,7 +159,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                     sb.Append("; ");
                     sb.AppendLine("\n");
                     // Add AutoInclude() for the navigation property
-                    sb.AppendLine($"builder.Navigation(e => e.{property.PropertyName}).AutoInclude();");
+                    sb.AppendLine($"builder.Navigation(e => e.{property.PropertyName}).AutoInclude(false);");
                     break;
 
                 case "ManyToOne":
@@ -178,7 +178,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                     sb.Append("; ");
                     sb.AppendLine("\n");
                     // Add AutoInclude() for the navigation property
-                    sb.AppendLine($"builder.Navigation(e => e.{property.PropertyName}).AutoInclude();");
+                    sb.AppendLine($"builder.Navigation(e => e.{property.PropertyName}).AutoInclude(false);");
                     break;
 
                 case "ManyToMany":
@@ -198,8 +198,8 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                     sb.AppendLine($"; ");
                     sb.AppendLine("\n");
                     // Add AutoInclude() for the navigation property
-                    sb.AppendLine($"#warning Disable auto-inclusion on one side of a many-to-many relationship to avoid cyclic references with 'AutoInclude(false)'.");
-                    sb.AppendLine($"builder.Navigation(e => e.{property.PropertyName}).AutoInclude();");
+                    //sb.AppendLine($"#warning Disable auto-inclusion on one side of a many-to-many relationship to avoid cyclic references with 'AutoInclude(false)'.");
+                    sb.AppendLine($"builder.Navigation(e => e.{property.PropertyName}).AutoInclude(false);");
                     break;
 
                 default:
@@ -425,5 +425,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
 
            
         }
+
+   
     }
 }

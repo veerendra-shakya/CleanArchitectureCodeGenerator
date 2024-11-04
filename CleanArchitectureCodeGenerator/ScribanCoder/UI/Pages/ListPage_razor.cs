@@ -72,32 +72,35 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages
         private static string CreateMudTdHeaderDefinition(CSharpClassObject classObject)
         {
             var output = new StringBuilder();
-            var defaultFieldNames = new string[] { "Name", "Description" };
+            //var defaultFieldNames = new string[] { "Name", "Description" };
 
             // Handling the default "Name" and "Description" properties
-            if (classObject.ClassProperties.Any(x => x.Type.IsKnownType && defaultFieldNames.Contains(x.PropertyName)))
-            {
-                output.AppendLine("<PropertyColumn Property=\"x => x.Name\" Title=\"@L[_currentDto.GetMemberDescription(x=>x.Name)]\">");
-                output.AppendLine("   <CellTemplate>");
-                output.AppendLine("      <div class=\"d-flex flex-column\">");
+            //if (classObject.ClassProperties.Any(x => x.Type.IsKnownType && defaultFieldNames.Contains(x.PropertyName)))
+            //{
+            //    output.AppendLine("<PropertyColumn Property=\"x => x.Name\" Title=\"@L[_currentDto.GetMemberDescription(x=>x.Name)]\">");
+            //    output.AppendLine("   <CellTemplate>");
+            //    output.AppendLine("      <div class=\"d-flex flex-column\">");
 
-                if (classObject.ClassProperties.Any(x => x.Type.IsKnownType && x.PropertyName == defaultFieldNames.First()))
-                {
-                    output.AppendLine("        <MudText Typo=\"Typo.body2\">@context.Item.Name</MudText>");
-                }
-                if (classObject.ClassProperties.Any(x => x.Type.IsKnownType && x.PropertyName == defaultFieldNames.Last()))
-                {
-                    output.AppendLine("        <MudText Typo=\"Typo.body2\" Class=\"mud-text-secondary\">@context.Item.Description</MudText>");
-                }
-                output.AppendLine("     </div>");
-                output.AppendLine("    </CellTemplate>");
-                output.AppendLine("</PropertyColumn>");
-            }
+            //    if (classObject.ClassProperties.Any(x => x.Type.IsKnownType && x.PropertyName == defaultFieldNames.First()))
+            //    {
+            //        output.AppendLine("        <MudText Typo=\"Typo.body2\">@context.Item.Name</MudText>");
+            //    }
+            //    if (classObject.ClassProperties.Any(x => x.Type.IsKnownType && x.PropertyName == defaultFieldNames.Last()))
+            //    {
+            //        output.AppendLine("        <MudText Typo=\"Typo.body2\" Class=\"mud-text-secondary\">@context.Item.Description</MudText>");
+            //    }
+            //    output.AppendLine("     </div>");
+            //    output.AppendLine("    </CellTemplate>");
+            //    output.AppendLine("</PropertyColumn>");
+            //}
 
             // Loop through other properties
-            foreach (var property in classObject.ClassProperties.Where(x => !defaultFieldNames.Contains(x.PropertyName)))
+            foreach (var property in classObject.ClassProperties)
             {
                 if (property.PropertyName == "Id" || property.PropertyName.EndsWith("Id")) continue;
+
+             
+
 
                 // Handle relationship properties
                 if (property.ScaffoldingAtt.PropRole == "Relationship")
@@ -221,8 +224,6 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages
 
             return sb.ToString();
         }
-
-
 
 
     }

@@ -47,8 +47,6 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder
                 {
                     Console.WriteLine($"---> Start - Creating Feature Files for: {model.Name}");
 
-                    Infrastructure.Persistence.Configurations.Configuration.Generate(model, $"Persistence/Configurations/{model.Name}Configuration.cs", ApplicationHelper.InfrastructureProjectDirectory, force);
-
                     #region Scriban Coder Domain
                     Domain.Events.CreatedEvent.Generate(
                         model,$"Events/{model.Name}CreatedEvent.cs",
@@ -227,5 +225,56 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder
                 }
             }
         }
+
+        public static void GenerateAll_UI(bool force = false)
+        {
+            if (KnownModelsList != null)
+            {
+                foreach (var model in KnownModelsList)
+                {
+                    Console.WriteLine($"---> Start - Creating Feature Files for: {model.Name}");
+
+                    #region Scriban Coder UiProject
+                    ScribanCoder.UI.Controllers.API_Controller.Generate(
+                        model,
+                        $"Controllers/{model.Name}Controller.cs",
+                        ApplicationHelper.UiProjectDirectory, force);
+
+
+                    ScribanCoder.UI.Components.Autocompletes.AutocompleteRazorComponent.Generate(
+                        model,
+                        $"Components/Autocompletes/{model.Name}Autocomplete.razor.cs",
+                        ApplicationHelper.UiProjectDirectory, force);
+
+
+                    ScribanCoder.UI.Pages.ListPage_razor.Generate(
+                        model,
+                        $"Pages/{model.NamePlural}/{model.NamePlural}.razor",
+                        ApplicationHelper.UiProjectDirectory, force);
+
+
+                    ScribanCoder.UI.Pages.Components.AdvancedSearch_razor.Generate(
+                        model,
+                        $"Pages/{model.NamePlural}/Components/{model.NamePlural}AdvancedSearchComponent.razor",
+                        ApplicationHelper.UiProjectDirectory, force);
+
+
+
+                    ScribanCoder.UI.Pages.Components.FormDialog_razor.Generate(
+                        model,
+                        $"Pages/{model.NamePlural}/Components/{model.Name}FormDialog.razor",
+                        ApplicationHelper.UiProjectDirectory, force);
+
+
+                    var menuItemAdder = new RegisterMenuItemHelper();
+                    menuItemAdder.AddMenuItem(model.Name, $"/pages/{model.NamePlural}");
+
+                    #endregion
+
+                    Console.WriteLine($"---X End - of Feature Files for: {model.Name}\n");
+                }
+            }
+        }
+
     }
 }

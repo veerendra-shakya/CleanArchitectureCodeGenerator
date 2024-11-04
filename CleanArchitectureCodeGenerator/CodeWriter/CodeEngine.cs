@@ -329,6 +329,10 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                 $"Pages/{modalClassNamePlural}/Components/{modalClassName}FormDialog.razor",
                 ApplicationHelper.UiProjectDirectory
                 );
+
+            var menuItemAdder = new RegisterMenuItemHelper();
+            menuItemAdder.AddMenuItem(modalClassName, $"/pages/{modalClassNamePlural}");
+
             #endregion
 
             #region Update DbContext
@@ -341,8 +345,6 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
 
             #region Generate Additional Requirments
 
-            var menuItemAdder = new RegisterMenuItemHelper();
-            menuItemAdder.AddMenuItem(modalClassName, $"/pages/{modalClassNamePlural}");
 
             //check if any property having many to many relationship then create linking table configurations
             Ef_RelationshipConfigurationsGenerator.GenerateConfigurations(modalClassObject);

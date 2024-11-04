@@ -17,7 +17,7 @@ public class {{ modelname }}Service : I{{ modelname }}Service
     private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(30);
 
     public event Action? OnChange;
-    public List<{{ modelname }}Dto> DataSource { get; private set; } = new();
+    public List<{{ modelname }}> DataSource { get; private set; } = new();
 
     public {{ modelname }}Service(
         IFusionCache fusionCache,
@@ -32,26 +32,38 @@ public class {{ modelname }}Service : I{{ modelname }}Service
 
     public void Initialize()
     {
+        var cacheOptions = new FusionCacheEntryOptions
+        {
+            Duration = CacheDuration,
+            JitterMaxDuration = TimeSpan.FromSeconds(15), // Add jitter to avoid thundering herd problem
+            LockTimeout = TimeSpan.FromSeconds(20) // Adjust timeout based on expected operation time
+        };
+
         DataSource = _fusionCache.GetOrSet(CacheKey,
             _ => _context.{{ modelnameplural }}
-                .ProjectTo<{{ modelname }}Dto>(_mapper.ConfigurationProvider)
                 .AsNoTracking()
                 .ToList(),
-                 CacheDuration
-        ) ?? new List<{{ modelname }}Dto>();
+                 cacheOptions
+        ) ?? new List<{{ modelname }}>();
     }
 
     public void Refresh()
     {
         _fusionCache.Remove(CacheKey);
         
+        var cacheOptions = new FusionCacheEntryOptions
+        {
+            Duration = CacheDuration,
+            JitterMaxDuration = TimeSpan.FromSeconds(15), // Add jitter to avoid thundering herd problem
+            LockTimeout = TimeSpan.FromSeconds(20) // Adjust timeout based on expected operation time
+        };
+
         DataSource = _fusionCache.GetOrSet(CacheKey,
             _ => _context.{{ modelnameplural }}
-                .ProjectTo<{{ modelname }}Dto>(_mapper.ConfigurationProvider)
                 .AsNoTracking()
                 .ToList(),
-                 CacheDuration
-        ) ?? new List<{{ modelname }}Dto>();
+                 cacheOptions
+        ) ?? new List<{{ modelname }}>();
         
         OnChange?.Invoke();
     }

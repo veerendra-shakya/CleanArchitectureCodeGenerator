@@ -74,22 +74,34 @@ public static class FormDialog_razor
         {
             if (property.PropertyName == "Id") continue;
 
+            if (property.Type.TypeName.Contains("Enum"))
+            {
+                output.Append(CreateComponentWithMudItem(GenerateEnumSelectComponent(property), "6"));
+                continue;
+            }
+
+            if (property.Type.TypeName.Contains("JsonImage") || property.Type.TypeName.Contains("JsonFile"))
+            {
+                output.Append(CreateComponentWithMudItem(GenerateUploadComponent(property), "12"));
+                continue;
+            }
+
             if (property.UIDesignAtt.Has)
             {
                 output.Append(CreateComponentWithMudItem(GenerateCustomUIComponent(property),"6"));
+                continue;
             }
-            else if (property.ScaffoldingAtt.Has && property.ScaffoldingAtt.PropRole == "Relationship")
+            
+            if (property.ScaffoldingAtt.Has && property.ScaffoldingAtt.PropRole == "Relationship")
             {
                 output.Append(CreateComponentWithMudItem(GenerateCustomRelationshipComponent(property, classObject), "12"));
+                continue;
             }
-            else if(property.Type.TypeName.Contains("JsonImage") || property.Type.TypeName.Contains("JsonFile"))
-            {
-                output.Append(CreateComponentWithMudItem(GenerateUploadComponent(property), "12"));
-            }
-            else
-            {
-                output.Append(CreateComponentWithMudItem(GenerateDefaultComponent(property), "6"));
-            }
+
+    
+           
+            output.Append(CreateComponentWithMudItem(GenerateDefaultComponent(property), "6"));
+               
         }
         return output.ToString();
     }
@@ -243,14 +255,16 @@ public static class FormDialog_razor
                 if(property.ScaffoldingAtt.IsForeignKey)
                 {
                     // Scaffold AutoComplete Component
-                    string refPropName = property.PropertyName;
-                    if (refPropName.EndsWith("Id", StringComparison.Ordinal))
+                    string Id_PropName = property.PropertyName;
+                    if (Id_PropName.EndsWith("Id", StringComparison.Ordinal))
                     {
-                        refPropName = refPropName.Substring(0, refPropName.Length - 2);
-                        ClassProperty? refProperty = model.ClassProperties.Where(x=>x.PropertyName == refPropName).FirstOrDefault();
+                        Id_PropName = Id_PropName.Substring(0, Id_PropName.Length - 2);
+                        ClassProperty? refProperty = model.ClassProperties.Where(x => x.PropertyName == Id_PropName).FirstOrDefault();
                         if (refProperty != null)
                         {
-                            string CustomAutocompletePicker = $"{refProperty.Type.TypeName}Autocomplete";
+                            //  output.AppendLine(GenerateManyToOneSelectComponent(property,refProperty));
+
+                            string CustomAutocompletePicker = $"{refProperty.Type.TypeName.Replace("?", "")}Autocomplete";
                             output.AppendLine($"<{CustomAutocompletePicker} For=\"@(() => model.{property.PropertyName})\" @bind-Value=\"model.{property.PropertyName}\" Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" Placeholder=\"Select...\"></{CustomAutocompletePicker}>");
                         }
                     }
@@ -285,6 +299,52 @@ public static class FormDialog_razor
         if (property.Type.TypeName.Contains("JsonFile?"))
         {
             output.AppendLine($"<SingleFileUpload @bind-File=\"model.{property.PropertyName}\" AccessPermission=\"AccessPermission.Public\" Label=\"Upload {property.DisplayName}\" />");
+        }
+
+        return output.ToString();
+    }
+
+    private static string GenerateEnumSelectComponent(ClassProperty property)
+    {
+        var output = new StringBuilder();
+
+        output.AppendLine($"<MudSelect @bind-Value=\"model.{property.PropertyName}\" Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\">");
+        output.AppendLine($"    @foreach ({property.Type.TypeName.Replace("?","")} item in Enum.GetValues(typeof({property.Type.TypeName.Replace("?", "")})))");
+        output.AppendLine("    {");
+        output.AppendLine("        <MudSelectItem Value=\"@item\">@item.GetDescription()</MudSelectItem>");
+        output.AppendLine("    }");
+        output.AppendLine("</MudSelect>");
+
+        return output.ToString();
+    }
+
+    private static string GenerateManyToOneSelectComponent(ClassProperty propertyId, ClassProperty refproperty)
+    {
+        var output = new StringBuilder();
+
+        string refpropType = refproperty.Type.TypeName.Replace("?", "");
+        CSharpClassObject? model = ApplicationHelper.ClassObjectList.Where(x => x.Name == refpropType).FirstOrDefault();
+        if(model != null)
+        {
+            var masterProperty = model.ClassProperties.FirstOrDefault(p => p.ScaffoldingAtt.PropRole == "Identifier");
+            var displayProperties = model.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Searchable").ToList();
+
+            if (masterProperty != null)
+            {
+                // Insert masterProperty at the beginning of the list
+                displayProperties.Insert(0, masterProperty);
+            }
+
+            output.AppendLine($"<MudSelect For=\"@(() => model.{propertyId.PropertyName})\"");
+            output.AppendLine($"           Label=\"@L[model.GetMemberDescription(x=>x.{propertyId.PropertyName})]\"");
+            output.AppendLine($"           Required=\"true\"");
+            output.AppendLine($"           RequiredError=\"@L[\"{propertyId.DisplayName} is required.\"]\"");
+            output.AppendLine($"           @bind-Value=\"@model.{propertyId.PropertyName}\">");
+            output.AppendLine($"    @foreach (var item in {refproperty.Type.TypeName.Replace("?", "")}Service.DataSource)");
+            output.AppendLine("    {");
+            output.AppendLine($"        <MudSelectItem T=\"{propertyId.Type.TypeName}\" Value=\"@item.Id\">@item.{masterProperty.PropertyName}</MudSelectItem>");
+            output.AppendLine("    }");
+            output.AppendLine("</MudSelect>");
         }
 
         return output.ToString();
