@@ -77,7 +77,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages
             // Handling the default "Name" and "Description" properties
             //if (classObject.ClassProperties.Any(x => x.Type.IsKnownType && defaultFieldNames.Contains(x.PropertyName)))
             //{
-            //    output.AppendLine("<PropertyColumn Property=\"x => x.Name\" Title=\"@L[_currentDto.GetMemberDescription(x=>x.Name)]\">");
+            //    output.AppendLine("<PropertyColumn Property=\"x => x.Name\" Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.Name)]\">");
             //    output.AppendLine("   <CellTemplate>");
             //    output.AppendLine("      <div class=\"d-flex flex-column\">");
 
@@ -126,10 +126,10 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages
                 else
                 {
                     // Regular property
-                    output.AppendLine($"<PropertyColumn Property=\"x => x.{property.PropertyName}\" Title=\"@L[_currentDto.GetMemberDescription(x=>x.{property.PropertyName})]\" />");
+                    output.AppendLine($"<PropertyColumn Property=\"x => x.{property.PropertyName}\" Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.{property.PropertyName})]\" />");
                 }
 
-                // output.AppendLine($"<PropertyColumn Property=\"x => x.{property.PropertyName}\" Title=\"@L[_currentDto.GetMemberDescription(x=>x.{property.PropertyName})]\" />");
+                // output.AppendLine($"<PropertyColumn Property=\"x => x.{property.PropertyName}\" Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.{property.PropertyName})]\" />");
             }
             return output.ToString();
         }
@@ -144,7 +144,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages
             var sb = new StringBuilder();
 
 
-            sb.AppendLine($"<TemplateColumn Title=\"@L[_currentDto.GetMemberDescription(x=>x.{property.PropertyName})]\">");
+            sb.AppendLine($"<TemplateColumn Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.{property.PropertyName})]\">");
             sb.AppendLine("    <CellTemplate>");
             sb.AppendLine($"        @if(context.Item.{property.PropertyName} != null)");
             sb.AppendLine("        {");
@@ -184,7 +184,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages
 
             var sb = new StringBuilder();
 
-            sb.AppendLine($"<TemplateColumn Title=\"@L[_currentDto.GetMemberDescription(x=>x.{property.PropertyName})]\">");
+            sb.AppendLine($"<TemplateColumn Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.{property.PropertyName})]\">");
             sb.AppendLine("    <CellTemplate>");
             sb.AppendLine($"        @if (context.Item.{property.PropertyName} != null && context.Item.{property.PropertyName}.Count > 0)");
             sb.AppendLine("        {");

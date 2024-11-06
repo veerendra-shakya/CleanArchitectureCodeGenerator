@@ -267,7 +267,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder
 
 
                     var menuItemAdder = new RegisterMenuItemHelper();
-                    menuItemAdder.AddMenuItem(model.Name, $"/pages/{model.NamePlural}");
+                    menuItemAdder.AddMenuItem(model.DisplayName, $"/pages/{model.NamePlural}");
 
                     #endregion
 

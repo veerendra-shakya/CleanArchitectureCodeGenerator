@@ -28,6 +28,8 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.DTOs
                 string templateContent = File.ReadAllText(templateFilePath, Encoding.UTF8);
                 string NamespaceName = Helper.GetNamespace(relativePath);
                 var dtoFieldDefinition = CreateDtoFieldDefinition(modalClassObject);
+                string modeldisplaydame = modalClassObject.DisplayName;
+                string modeldescription = modalClassObject.Description;
 
                 // Initialize MasterData object
                 var masterdata = new
@@ -46,6 +48,8 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.DTOs
                     modelnameplural = modalClassObject.NamePlural,
                     modelname = modalClassObject.Name,
                     dtofielddefinition = dtoFieldDefinition,
+                    modeldisplaydame,
+                    modeldescription
                 };
 
                 // Parse and render the class template
@@ -74,7 +78,8 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.DTOs
 
             foreach (var property in classObject.ClassProperties)
             {
-                output.AppendLine($"    [Description(\"{property.DisplayName}\")]");
+                output.AppendLine($"    [DisplayName(\"{property.DisplayName}\")]");
+                output.AppendLine($"    [Description(\"{property.Description}\")]");
                 if (property.PropertyName == "Id")
                 {
                     output.AppendLine($"    public {property.Type.TypeName} {property.PropertyName} {{get;set;}}");
@@ -118,6 +123,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.DTOs
                     }
 
                 }
+                output.AppendLine();
             }
             return output.ToString();
         }

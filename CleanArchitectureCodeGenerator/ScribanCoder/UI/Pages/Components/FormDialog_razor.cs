@@ -1,6 +1,7 @@
 ﻿using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
 using Scriban;
+using System.Drawing;
 using System.Text;
 
 namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages.Components;
@@ -73,18 +74,39 @@ public static class FormDialog_razor
         foreach (var property in classObject.ClassProperties)//.Where(x => x.Type.IsKnownType)
         {
             if (property.PropertyName == "Id") continue;
+            if (property.PropertyName == "Deleted") continue;
+            if (property.PropertyName == "DeletedOn") continue;
+            if (property.PropertyName == "DeletedBy") continue;
+
+            if (HasAttribute(property, "DataEditor"))
+            {
+                output.Append(HandleDataEditor(property));
+                continue;
+            }
 
             if (property.Type.TypeName.Contains("Enum"))
             {
                 output.Append(CreateComponentWithMudItem(GenerateEnumSelectComponent(property), "6"));
                 continue;
             }
+            if (property.Type.IsList && property.Type.TypeName == "List<string>?")
+            {
+                output.Append(CreateComponentWithMudItem(GenerateListStringTextEditorComponent(property), "6"));
+                continue;
+            }
+            //if (property.Type.IsDictionary)
+            //{
+
+            //    continue;
+            //}
 
             if (property.Type.TypeName.Contains("JsonImage") || property.Type.TypeName.Contains("JsonFile"))
             {
-                output.Append(CreateComponentWithMudItem(GenerateUploadComponent(property), "12"));
+                output.Append(CreateComponentWithMudItem(GenerateUploadComponent(property,"Default"), "12"));
                 continue;
             }
+
+         
 
             if (property.UIDesignAtt.Has)
             {
@@ -280,25 +302,25 @@ public static class FormDialog_razor
         return output.ToString();
     }
 
-    private static string GenerateUploadComponent(ClassProperty property)
+    private static string GenerateUploadComponent(ClassProperty property,string directoryName)
     {
         var output = new StringBuilder();
   
         if (property.Type.TypeName.Contains("List<JsonImage>?"))
         {
-            output.AppendLine($"<MultipleImagesUpload @bind-Images=\"model.{property.PropertyName}\" AccessPermission=\"AccessPermission.Public\" Label=\"Upload {property.DisplayName}\" />");
+            output.AppendLine($"<UploadMultipleImages @bind-Images=\"model.{property.PropertyName}\" AccessPermission=\"AccessPermission.Public\" Label=\"Upload {property.DisplayName}\" DirectoryName=\"{directoryName}\"/>");
         }
         if (property.Type.TypeName.Contains("List<JsonFile>?"))
         {
-            output.AppendLine($"<MultipleFilesUpload @bind-Files=\"model.{property.PropertyName}\" AccessPermission=\"AccessPermission.Public\" Label=\"Upload {property.DisplayName}\" />");
+            output.AppendLine($"<UploadMultipleFiles @bind-Files=\"model.{property.PropertyName}\" AccessPermission=\"AccessPermission.Public\" Label=\"Upload {property.DisplayName}\" DirectoryName=\"{directoryName}\"/>");
         }
         if (property.Type.TypeName.Contains("JsonImage?"))
         {
-            output.AppendLine($"<SingleImageUpload @bind-Image=\"model.{property.PropertyName}\" AccessPermission=\"AccessPermission.Public\" Label=\"Upload {property.DisplayName}\" />");
+            output.AppendLine($"<UploadSingleImage @bind-Image=\"model.{property.PropertyName}\" AccessPermission=\"AccessPermission.Public\" Label=\"Upload {property.DisplayName}\" DirectoryName=\"{directoryName}\"/>");
         }
         if (property.Type.TypeName.Contains("JsonFile?"))
         {
-            output.AppendLine($"<SingleFileUpload @bind-File=\"model.{property.PropertyName}\" AccessPermission=\"AccessPermission.Public\" Label=\"Upload {property.DisplayName}\" />");
+            output.AppendLine($"<UploadSingleFile @bind-File=\"model.{property.PropertyName}\" AccessPermission=\"AccessPermission.Public\" Label=\"Upload {property.DisplayName}\" DirectoryName=\"{directoryName}\"/>");
         }
 
         return output.ToString();
@@ -315,6 +337,34 @@ public static class FormDialog_razor
         output.AppendLine("    }");
         output.AppendLine("</MudSelect>");
 
+        return output.ToString();
+    }
+
+    private static string GenerateListStringTextEditorComponent(ClassProperty property)
+    {
+        var output = new StringBuilder();
+        output.AppendLine($"<ListStringTextEditor @bind-Items=\"model.{property.PropertyName}\" Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\"></ListStringTextEditor>");
+        return output.ToString();
+    }
+
+    private static string GenerateListStringCheckBoxMultiSelection(ClassProperty property,string enumName)
+    {
+        var output = new StringBuilder();
+        output.AppendLine($"<ListStringCheckBoxMultiSelection @bind-Items=\"model.{property.PropertyName}\" DataSource=\"typeof({enumName})\" Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\"></ListStringCheckBoxMultiSelection>");
+        return output.ToString();
+    }
+
+    private static string GenerateListStringMudSelectMultiSelection(ClassProperty property, string enumName)
+    {
+        var output = new StringBuilder();
+        output.AppendLine($"<ListStringMudSelectMultiSelection @bind-Items=\"model.{property.PropertyName}\" DataSource=\"typeof({enumName})\" Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\"></ListStringMudSelectMultiSelection>");
+        return output.ToString();
+    }
+
+    private static string GenerateHtmlEditor(ClassProperty property)
+    {
+        var output = new StringBuilder();
+        output.AppendLine($"<HtmlEditor Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Value=\"model.{property.PropertyName}\"></HtmlEditor>");
         return output.ToString();
     }
 
@@ -348,6 +398,77 @@ public static class FormDialog_razor
         }
 
         return output.ToString();
+    }
+
+    private static string HandleDataEditor(ClassProperty property)
+    {
+        var output = new StringBuilder();
+        
+        var attribute = property.propertyDeclarationSyntax.AttributeLists
+            .SelectMany(a => a.Attributes)
+            .FirstOrDefault(a => a.Name.ToString().Contains("DataEditor"));
+
+        if (attribute != null && attribute.ArgumentList?.Arguments.Count >= 1)
+        {
+            var directoryName = string.Empty;
+            var enumName = string.Empty;
+            var arg = attribute.ArgumentList.Arguments[0].ToString(); 
+
+            // Remove DataType. prefix if present
+            if (arg.StartsWith("EditorType."))
+            {
+                arg = arg.Replace("EditorType.", string.Empty);
+            }
+
+            switch (arg)
+            {
+                case "UploadSingleImage":
+                    directoryName = attribute.ArgumentList.Arguments[1].ToString().Replace("directoryName:","").Trim().Trim('"');
+                    output.Append(CreateComponentWithMudItem(GenerateUploadComponent(property, directoryName),"12"));
+                    break;
+                case "UploadMultipleImages":
+                    directoryName = attribute.ArgumentList.Arguments[1].ToString().Replace("directoryName:", "").Trim().Trim('"');
+                    output.Append(CreateComponentWithMudItem(GenerateUploadComponent(property, directoryName), "12"));
+                    break;
+                case "UploadSingleFile":
+                    directoryName = attribute.ArgumentList.Arguments[1].ToString().Replace("directoryName:", "").Trim().Trim('"');
+                    output.Append(CreateComponentWithMudItem(GenerateUploadComponent(property, directoryName), "12"));
+                    break;
+                case "UploadMultipleFiles":
+                    directoryName = attribute.ArgumentList.Arguments[1].ToString().Replace("directoryName:", "").Trim().Trim('"');
+                    output.Append(CreateComponentWithMudItem(GenerateUploadComponent(property, directoryName), "12"));
+                    break;
+                case "ListStringTextEditor":
+                    output.Append(CreateComponentWithMudItem(GenerateListStringTextEditorComponent(property), "6"));
+                    break;
+                case "ListStringCheckBoxMultiSelection":
+                    enumName = attribute.ArgumentList.Arguments[1].ToString().Replace("enumName:", "").Trim().Trim('"');
+                    output.Append(CreateComponentWithMudItem(GenerateListStringCheckBoxMultiSelection(property, enumName), "12"));
+                    break;
+                case "ListStringMudSelectMultiSelection":
+                    enumName = attribute.ArgumentList.Arguments[1].ToString().Replace("enumName:", "").Trim().Trim('"');
+                    output.Append(CreateComponentWithMudItem(GenerateListStringMudSelectMultiSelection(property, enumName), "6"));
+                    break;
+                case "HtmlEditor":
+                    output.Append(CreateComponentWithMudItem(GenerateHtmlEditor(property), "12"));
+                    break;
+                default:
+                    output.Append(""); 
+                    break;
+            }
+
+        }
+
+        return output.ToString();
+    }
+
+    private static bool HasAttribute(ClassProperty property, string attributeName)
+    {
+        var attributeLists = property.propertyDeclarationSyntax.AttributeLists;
+        var attributes = attributeLists.SelectMany(a => a.Attributes);
+        var attributeNames = attributes.Select(a => a.Name.ToString());
+        var hasAttribute = attributeNames.Any(name => name.Contains(attributeName));
+        return hasAttribute;
     }
 
 }

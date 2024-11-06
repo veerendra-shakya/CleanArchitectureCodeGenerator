@@ -2,7 +2,7 @@
 @using {{ rootnamespace }}.{{ domainprojectname }}.Common.Entities
 @using {{ rootnamespace }}.{{ uiprojectname }}.Components.Dialogs.MultiSelector
 @using {{ rootnamespace }}.{{ uiprojectname }}.Components.Dialogs.SingleSelector
-@using {{ rootnamespace }}.{{ uiprojectname }}.Components.Upload
+@using {{ rootnamespace }}.{{ uiprojectname }}.Components.DataEditor
 
 @inherits MudComponentBase
 @inject IValidationService Validator
