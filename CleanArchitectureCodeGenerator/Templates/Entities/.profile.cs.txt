@@ -6,20 +6,20 @@ namespace {namespace};
 
 public class {itemname} : BaseAuditableEntity
 {
-    [Scaffolding(PropRole.Identifier)]
+    [DataUses(PrimaryRole.Identifier)]
     public string ProfileName { get; set; }
 
-    [Scaffolding(PropRole.Searchable)]
+    [DataUses(PrimaryRole.Searchable)]
     public string SkinColor { get; set; }
 
-    [Scaffolding(PropRole.Searchable)]
+    [DataUses(PrimaryRole.Searchable)]
     public string BloodGroup { get; set; }
 
     public int Height { get; set; }
 
-    [Scaffolding(role: PropRole.Relationship, relationship: RelationshipType.OneToOne, isForeignKey: true)]
+    [DataUses(role: PrimaryRole.Relationship, relationship: RelationshipType.OneToOne, isForeignKey: true)]
     public Guid StudentId { get; set; }
 
-    [Scaffolding(PropRole.Relationship, RelationshipType.OneToOne, inverseProperty: "Profile", foreignKeyProperty: "Id", deleteAction: DeleteBehavior.Cascade)]
+    [DataUses(PrimaryRole.Relationship, RelationshipType.OneToOne, inverseProperty: "Profile", foreignKeyProperty: "Id", deleteAction: DeleteBehavior.Cascade)]
     public virtual DemoStudent Student { get; set; }
 }

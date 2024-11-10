@@ -30,7 +30,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Comm
 
                 string importFuncExpression = CreateImportFuncExpression(modalClassObject);
                 string templateFieldDefinition = CreateTemplateFieldDefinition(modalClassObject);
-                var masterProperty = modalClassObject.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Identifier").Select(p => p.PropertyName).FirstOrDefault();
+                var masterProperty = modalClassObject.ClassProperties.Where(p => p.DataUsesAtt.PrimaryRole == "Identifier").Select(p => p.PropertyName).FirstOrDefault();
 
                 // Initialize MasterData object
                 var masterdata = new

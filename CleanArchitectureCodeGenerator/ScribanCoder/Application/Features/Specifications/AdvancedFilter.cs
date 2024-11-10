@@ -69,8 +69,8 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Spec
 
         private static string CreateSearchableProperties(CSharpClassObject model)
         {
-            var masterProperty = model.ClassProperties.FirstOrDefault(p => p.ScaffoldingAtt.PropRole == "Identifier");
-            var searchableProperties = model.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Searchable").ToList();
+            var masterProperty = model.ClassProperties.FirstOrDefault(p => p.DataUsesAtt.PrimaryRole == "Identifier");
+            var searchableProperties = model.ClassProperties.Where(p => p.DataUsesAtt.PrimaryRole == "Searchable").ToList();
 
             if (masterProperty != null)
             {

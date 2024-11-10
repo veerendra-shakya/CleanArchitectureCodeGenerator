@@ -27,7 +27,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages
                 string templateContent = File.ReadAllText(templateFilePath, Encoding.UTF8);
                 string NamespaceName = Helper.GetNamespace(relativePath);
                 string mudTdHeaderDefinition = CreateMudTdHeaderDefinition(modalClassObject);
-                string? masterProperty = modalClassObject.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Identifier").Select(p => p.PropertyName).FirstOrDefault();
+                string? masterProperty = modalClassObject.ClassProperties.Where(p => p.DataUsesAtt.PrimaryRole == "Identifier").Select(p => p.PropertyName).FirstOrDefault();
 
                 // Initialize MasterData object
                 var masterdata = new
@@ -72,38 +72,23 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages
         private static string CreateMudTdHeaderDefinition(CSharpClassObject classObject)
         {
             var output = new StringBuilder();
-            //var defaultFieldNames = new string[] { "Name", "Description" };
-
-            // Handling the default "Name" and "Description" properties
-            //if (classObject.ClassProperties.Any(x => x.Type.IsKnownType && defaultFieldNames.Contains(x.PropertyName)))
-            //{
-            //    output.AppendLine("<PropertyColumn Property=\"x => x.Name\" Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.Name)]\">");
-            //    output.AppendLine("   <CellTemplate>");
-            //    output.AppendLine("      <div class=\"d-flex flex-column\">");
-
-            //    if (classObject.ClassProperties.Any(x => x.Type.IsKnownType && x.PropertyName == defaultFieldNames.First()))
-            //    {
-            //        output.AppendLine("        <MudText Typo=\"Typo.body2\">@context.Item.Name</MudText>");
-            //    }
-            //    if (classObject.ClassProperties.Any(x => x.Type.IsKnownType && x.PropertyName == defaultFieldNames.Last()))
-            //    {
-            //        output.AppendLine("        <MudText Typo=\"Typo.body2\" Class=\"mud-text-secondary\">@context.Item.Description</MudText>");
-            //    }
-            //    output.AppendLine("     </div>");
-            //    output.AppendLine("    </CellTemplate>");
-            //    output.AppendLine("</PropertyColumn>");
-            //}
 
             // Loop through other properties
             foreach (var property in classObject.ClassProperties)
             {
                 if (property.PropertyName == "Id" || property.PropertyName.EndsWith("Id")) continue;
+                if (property.PropertyName == "Deleted") continue;
+                if (property.PropertyName == "DeletedOn") continue;
+                if (property.PropertyName == "DeletedBy") continue;
 
-             
-
+                if (HasAttribute(property, "DataEditor"))
+                {
+                    output.Append(HandleDataEditor(property));
+                    continue;
+                }
 
                 // Handle relationship properties
-                if (property.ScaffoldingAtt.PropRole == "Relationship")
+                if (property.DataUsesAtt.PrimaryRole == "Relationship")
                 {
                     // Extract the related class name from the type (handle collections and direct references)
                     var relatedClassName = Utility.ExtractClassNameFromType(property.Type.TypeName);
@@ -122,23 +107,104 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages
 
                         }
                     }
+                    continue;
                 }
-                else
-                {
-                    // Regular property
-                    output.AppendLine($"<PropertyColumn Property=\"x => x.{property.PropertyName}\" Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.{property.PropertyName})]\" />");
-                }
+      
 
-                // output.AppendLine($"<PropertyColumn Property=\"x => x.{property.PropertyName}\" Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.{property.PropertyName})]\" />");
+                // Regular property
+                output.AppendLine($"<PropertyColumn Property=\"x => x.{property.PropertyName}\" Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.{property.PropertyName})]\" />");
+
             }
             return output.ToString();
+        }
+
+
+        private static string HandleDataEditor(ClassProperty property)
+        {
+            var output = new StringBuilder();
+
+            var attribute = property.propertyDeclarationSyntax.AttributeLists
+                .SelectMany(a => a.Attributes)
+                .FirstOrDefault(a => a.Name.ToString().Contains("DataEditor"));
+
+            if (attribute != null && attribute.ArgumentList?.Arguments.Count >= 1)
+            {
+                var arg = attribute.ArgumentList.Arguments[0].ToString();
+
+                // Remove EditorType. prefix if present
+                if (arg.StartsWith("EditorType."))
+                {
+                    arg = arg.Replace("EditorType.", string.Empty);
+                }
+
+                switch (arg)
+                {
+                    case "Upload":
+                        output.Append(GenerateUploadColumn(property));
+                        break;
+                  
+                    case "ListStringTextEditor":
+                        output.AppendLine($"<PropertyColumn Property=\"x => x.{property.PropertyName} != null ? x.{property.PropertyName}.Count : 0\" Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.{property.PropertyName})]\" />");
+                        break;
+                    case "ListStringCheckBoxMultiSelection":
+                        output.AppendLine($"<PropertyColumn Property=\"x => x.{property.PropertyName} != null ? x.{property.PropertyName}.Count : 0\" Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.{property.PropertyName})]\" />");
+                        break;
+                    case "ListStringMudSelectMultiSelection":
+                        output.AppendLine($"<PropertyColumn Property=\"x => x.{property.PropertyName} != null ? x.{property.PropertyName}.Count : 0\" Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.{property.PropertyName})]\" />");
+                        break;
+                    case "HtmlEditor":
+                        output.AppendLine($"<PropertyColumn Property=\"x => x.{property.PropertyName} != null ? x.{property.PropertyName}.Length : 0\" Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.{property.PropertyName})]\" />");
+                        break;
+                    case "SlugTextField":
+                        output.AppendLine($"<PropertyColumn Property=\"x => x.{property.PropertyName}\" Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.{property.PropertyName})]\" />");
+                        break;
+                    default:
+                        output.AppendLine($"<PropertyColumn Property=\"x => x.{property.PropertyName}\" Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.{property.PropertyName})]\" />");
+                        break;
+                }
+
+            }
+            return output.ToString();
+        }
+
+        private static string GenerateUploadColumn(ClassProperty property)
+        {
+            var output = new StringBuilder();
+            if (property.Type.TypeName.Contains("List<JsonImage>?"))
+            {
+                output.AppendLine($"<PropertyColumn Property=\"x => x.{property.PropertyName} != null ? x.{property.PropertyName}.Count : 0\" Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.{property.PropertyName})]\" />");
+            }
+            if (property.Type.TypeName.Contains("List<JsonFile>?"))
+            {
+                output.AppendLine($"<PropertyColumn Property=\"x => x.{property.PropertyName} != null ? x.{property.PropertyName}.Count : 0\" Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.{property.PropertyName})]\" />");
+            }
+            if (property.Type.TypeName.Contains("JsonImage?"))
+            {
+                output.AppendLine($"<PropertyColumn Property=\"x => x.{property.PropertyName}\" Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.{property.PropertyName})]\" />");
+            }
+            if (property.Type.TypeName.Contains("JsonFile?"))
+            {
+                output.AppendLine($"<PropertyColumn Property=\"x => x.{property.PropertyName}\" Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.{property.PropertyName})]\" />");
+            }
+            return output.ToString();
+        }
+
+
+        #region Helper Functions
+        private static bool HasAttribute(ClassProperty property, string attributeName)
+        {
+            var attributeLists = property.propertyDeclarationSyntax.AttributeLists;
+            var attributes = attributeLists.SelectMany(a => a.Attributes);
+            var attributeNames = attributes.Select(a => a.Name.ToString());
+            var hasAttribute = attributeNames.Any(name => name.Contains(attributeName));
+            return hasAttribute;
         }
 
         // Generates a TemplateColumn for OneToOne relationships using StringBuilder
         private static string GenerateTemplateColumnForOneToOne(ClassProperty property, CSharpClassObject relatedClass)
         {
-            var masterProperty = relatedClass.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Identifier").FirstOrDefault();
-            var displayProperties = relatedClass.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Searchable").ToList();
+            var masterProperty = relatedClass.ClassProperties.Where(p => p.DataUsesAtt.PrimaryRole == "Identifier").FirstOrDefault();
+            var displayProperties = relatedClass.ClassProperties.Where(p => p.DataUsesAtt.PrimaryRole == "Searchable").ToList();
             if (masterProperty != null) { displayProperties.Add(masterProperty); }
 
             var sb = new StringBuilder();
@@ -175,8 +241,8 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages
         // Generates a TemplateColumn for relationships that have collections (OneToMany, ManyToMany) using StringBuilder
         private static string GenerateTemplateColumnForOtherRelationships(ClassProperty property, CSharpClassObject relatedClass)
         {
-            var masterProperty = relatedClass.ClassProperties.FirstOrDefault(p => p.ScaffoldingAtt.PropRole == "Identifier");
-            var displayProperties = relatedClass.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Searchable").ToList();
+            var masterProperty = relatedClass.ClassProperties.FirstOrDefault(p => p.DataUsesAtt.PrimaryRole == "Identifier");
+            var displayProperties = relatedClass.ClassProperties.Where(p => p.DataUsesAtt.PrimaryRole == "Searchable").ToList();
             if (masterProperty != null)
             {
                 displayProperties.Add(masterProperty);
@@ -206,9 +272,9 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages
             sb.AppendLine("                <TooltipContent>");
             sb.AppendLine($"                    @foreach (var item in context.Item.{property.PropertyName})");
             sb.AppendLine("                    {");
-            if (masterProperty!= null)
+            if (masterProperty != null)
             {
-            sb.AppendLine($"                        <MudText Align=\"Align.Left\" Typo=\"Typo.body2\">- @item.{masterProperty.PropertyName}</MudText>");
+                sb.AppendLine($"                        <MudText Align=\"Align.Left\" Typo=\"Typo.body2\">- @item.{masterProperty.PropertyName}</MudText>");
             }
             sb.AppendLine("                    }");
             sb.AppendLine("                </TooltipContent>");
@@ -225,6 +291,6 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages
             return sb.ToString();
         }
 
-
+        #endregion
     }
 }

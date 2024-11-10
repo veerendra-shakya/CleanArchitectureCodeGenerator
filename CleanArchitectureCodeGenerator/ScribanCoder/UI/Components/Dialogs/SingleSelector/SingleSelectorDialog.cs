@@ -27,7 +27,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Components.Dialogs.Sin
                 string templateContent = File.ReadAllText(templateFilePath, Encoding.UTF8);
                 string NamespaceName = Helper.GetNamespace(relativePath);
 
-                var masterProperty = modal.ClassProperties.FirstOrDefault(p => p.ScaffoldingAtt.PropRole == "Identifier");
+                var masterProperty = modal.ClassProperties.FirstOrDefault(p => p.DataUsesAtt.PrimaryRole == "Identifier");
                 //string identifierproperty = masterProperty.PropertyName;
                 //string FilteredItemsQuery = CreateFilteredItemsQuery(modal);
                 //string MudDataGridPropertyColumns = CreateMudDataGridPropertyColumns(modal);

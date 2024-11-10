@@ -135,7 +135,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             };
 
 
-            // Step 2: Extract Class-Level DisplayName and Description Attributes
+            #region Step 2: Extract Class-Level DisplayName and Description Attributes
             foreach (var attributeListSyntax in classDeclaration.AttributeLists)
             {
                 foreach (var attribute in attributeListSyntax.Attributes)
@@ -168,8 +168,9 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                     }
                 }
             }
+            #endregion
 
-            // Step 3: Process Class Members (Properties)
+            #region Step 3: Process Class Members (Properties)
             foreach (var member in classDeclaration.Members.OfType<PropertyDeclarationSyntax>())
             {
                 var classProperty = new ClassProperty
@@ -217,11 +218,11 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                             }
                         }
 
-                        // Handle Scaffolding attributes
-                        if (attribute.Name.ToString().Contains("Scaffolding"))
+                        // Handle DataUses attributes
+                        if (attribute.Name.ToString().Contains("DataUses"))
                         {
-                            classProperty.ScaffoldingAtt.Has = true;
-                            HandleScaffoldingAttributes(attribute, classProperty);
+                            classProperty.DataUsesAtt.Has = true;
+                            HandleDataUsesAttributes(attribute, classProperty);
                         }
 
                         // Handle UI Design attributes
@@ -240,62 +241,63 @@ namespace CleanArchitecture.CodeGenerator.Helpers
 
                 classObject.ClassProperties.Add(classProperty);
             }
+            #endregion
 
             list.Add(classObject);
             return list;
         }
 
-        private void HandleScaffoldingAttributes(AttributeSyntax attribute, ClassProperty classProperty)
+        private void HandleDataUsesAttributes(AttributeSyntax attribute, ClassProperty classProperty)
         {
             foreach (var argument in attribute.ArgumentList.Arguments)
             {
                 var argumentName = argument.Expression.ToString();
 
-                if (argumentName.Contains("PropRole.Identifier"))
+                if (argumentName.Contains("PrimaryRole.Identifier"))
                 {
-                    classProperty.ScaffoldingAtt.PropRole = "Identifier";
+                    classProperty.DataUsesAtt.PrimaryRole = "Identifier";
                 }
-                else if (argumentName.Contains("PropRole.Searchable"))
+                else if (argumentName.Contains("PrimaryRole.Searchable"))
                 {
-                    classProperty.ScaffoldingAtt.PropRole = "Searchable";
+                    classProperty.DataUsesAtt.PrimaryRole = "Searchable";
                 }
-                else if (argumentName.Contains("PropRole.Relationship"))
+                else if (argumentName.Contains("PrimaryRole.Relationship"))
                 {
-                    classProperty.ScaffoldingAtt.PropRole = "Relationship";
+                    classProperty.DataUsesAtt.PrimaryRole = "Relationship";
                 }
 
                 if (argumentName.Contains("RelationshipType.OneToOne"))
                 {
-                    classProperty.ScaffoldingAtt.RelationshipType = "OneToOne";
+                    classProperty.DataUsesAtt.RelationshipType = "OneToOne";
                 }
                 else if (argumentName.Contains("RelationshipType.OneToMany"))
                 {
-                    classProperty.ScaffoldingAtt.RelationshipType = "OneToMany";
+                    classProperty.DataUsesAtt.RelationshipType = "OneToMany";
                 }
                 else if (argumentName.Contains("RelationshipType.ManyToOne"))
                 {
-                    classProperty.ScaffoldingAtt.RelationshipType = "ManyToOne";
+                    classProperty.DataUsesAtt.RelationshipType = "ManyToOne";
                 }
                 else if (argumentName.Contains("RelationshipType.ManyToMany"))
                 {
-                    classProperty.ScaffoldingAtt.RelationshipType = "ManyToMany";
+                    classProperty.DataUsesAtt.RelationshipType = "ManyToMany";
                 }
 
                 if (argumentName.Contains("DeleteBehavior.Cascade"))
                 {
-                    classProperty.ScaffoldingAtt.DeleteBehavior = "Cascade";
+                    classProperty.DataUsesAtt.DeleteBehavior = "Cascade";
                 }
                 else if (argumentName.Contains("DeleteBehavior.Restrict"))
                 {
-                    classProperty.ScaffoldingAtt.DeleteBehavior = "Restrict";
+                    classProperty.DataUsesAtt.DeleteBehavior = "Restrict";
                 }
                 else if (argumentName.Contains("DeleteBehavior.SetNull"))
                 {
-                    classProperty.ScaffoldingAtt.DeleteBehavior = "SetNull";
+                    classProperty.DataUsesAtt.DeleteBehavior = "SetNull";
                 }
                 else if (argumentName.Contains("DeleteBehavior.NoAction"))
                 {
-                    classProperty.ScaffoldingAtt.DeleteBehavior = "NoAction";
+                    classProperty.DataUsesAtt.DeleteBehavior = "NoAction";
                 }
             }
 
@@ -307,7 +309,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 string isKeystr = isForeignKeyArgument.ToString();
                 isKeystr = isKeystr.Replace("isForeignKey:", "");
                 bool isKey = Convert.ToBoolean(isKeystr);
-                classProperty.ScaffoldingAtt.IsForeignKey = isKey;
+                classProperty.DataUsesAtt.IsForeignKey = isKey;
             }
 
             // Assign InverseProperty value
@@ -319,7 +321,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 _temp = navPropertyArgument.ToString();
                 _temp = _temp.Replace("inverseProperty: \"", "");
                 _temp = _temp.Replace("\"", "");
-                classProperty.ScaffoldingAtt.InverseProperty = _temp;
+                classProperty.DataUsesAtt.InverseProperty = _temp;
             }
 
             //Assign ForeignKeyProperty value
@@ -331,7 +333,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 _temp = foreignKeyArgument.ToString();
                 _temp = _temp.Replace("foreignKeyProperty: \"", "");
                 _temp = _temp.Replace("\"", "");
-                classProperty.ScaffoldingAtt.ForeignKeyProperty = _temp;
+                classProperty.DataUsesAtt.ForeignKeyProperty = _temp;
             }
 
             //Assign LinkingTable value
@@ -343,7 +345,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 _temp = linkingArgument.ToString();
                 _temp = _temp.Replace("linkingTable: \"", "");
                 _temp = _temp.Replace("\"", "");
-                classProperty.ScaffoldingAtt.LinkingTable = _temp;
+                classProperty.DataUsesAtt.LinkingTable = _temp;
             }
         }
 
@@ -457,7 +459,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             }
         }
 
-        
+        #region Helper Functions
         private string? ExtractEnumValue(string argumentName)
         {
             string value = argumentName.Split('.').LastOrDefault()?.Replace("\"", "").Trim();
@@ -506,7 +508,6 @@ namespace CleanArchitecture.CodeGenerator.Helpers
             return summaryMatch.Success ? summaryMatch.Groups[1].Value.Trim() : trivia.Trim();
         }
 
-    
         private PropertyType ExtractPropertyType(PropertyDeclarationSyntax propertyDeclaration)
         {
             TypeSyntax typeSyntax = propertyDeclaration.Type;
@@ -557,5 +558,6 @@ namespace CleanArchitecture.CodeGenerator.Helpers
 
             return type;
         }
+        #endregion
     }
 }

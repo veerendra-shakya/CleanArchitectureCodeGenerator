@@ -16,7 +16,7 @@ public class {itemname} : BaseAuditableEntity, IAuditTrial
     [Required]
     [MaxLength(50)]
     [RegularExpression(@"^[a-zA-Z]*$", ErrorMessage = "Only alphabetic characters are allowed.")]
-    [Scaffolding(PropRole.Identifier)]
+    [DataUses(PrimaryRole.Identifier)]
     public string FirstName { get; set; } 
 
     [Display(Name = "Last Name")]
@@ -24,7 +24,7 @@ public class {itemname} : BaseAuditableEntity, IAuditTrial
     [Required]
     [MaxLength(50)]
     [RegularExpression(@"^[a-zA-Z]*$", ErrorMessage = "Only alphabetic characters are allowed.")]
-    [Scaffolding(PropRole.Searchable)]
+    [DataUses(PrimaryRole.Searchable)]
     public string LastName { get; set; } 
 
     [Display(Name = "Age")]

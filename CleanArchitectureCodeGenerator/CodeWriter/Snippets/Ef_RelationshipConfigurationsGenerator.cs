@@ -16,9 +16,9 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
         {
             foreach (var property in classObject.ClassProperties)
             {
-                if (property.ScaffoldingAtt.PropRole == "Relationship")
+                if (property.DataUsesAtt.PrimaryRole == "Relationship")
                 {
-                    if (property.ScaffoldingAtt.RelationshipType == "OneToOne")
+                    if (property.DataUsesAtt.RelationshipType == "OneToOne")
                     {
                         string _rObject = property.Type.TypeName;
                         CSharpClassObject? RelatedTableObject = ApplicationHelper.ClassObjectList.Where(x => x.Name == _rObject).FirstOrDefault();
@@ -29,19 +29,19 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                                ApplicationHelper.UiProjectDirectory);
                         }
                     }
-                    if (property.ScaffoldingAtt.RelationshipType == "OneToMany")
+                    if (property.DataUsesAtt.RelationshipType == "OneToMany")
                     {
                         // We are generating Autocompletes for all tables for code reusability.
                     }
-                    if (property.ScaffoldingAtt.RelationshipType == "ManyToOne")
+                    if (property.DataUsesAtt.RelationshipType == "ManyToOne")
                     {
                        // We are generating Autocompletes for all tables for code reusability.
                     }
-                    if (property.ScaffoldingAtt.RelationshipType == "ManyToMany")
+                    if (property.DataUsesAtt.RelationshipType == "ManyToMany")
                     {
                         CSharpClassObject? RelatedTableObject = GetRelatedTableObject(property);
                         GenerateLinkingEntityConfiguration(property);
-                        AddToDatabaseContext(property.ScaffoldingAtt.LinkingTable);
+                        AddToDatabaseContext(property.DataUsesAtt.LinkingTable);
                         if(RelatedTableObject != null)
                         {
                             MultipleSelectorDialog.Generate(RelatedTableObject, 
@@ -63,9 +63,9 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
 
         private static void GenerateLinkingEntityConfiguration(ClassProperty property)
         {
-            string EntityName = property.ScaffoldingAtt.LinkingTable;
+            string EntityName = property.DataUsesAtt.LinkingTable;
             string key1 = $"{property.PropertyNameSingular}Id";
-            string key2 = $"{property.ScaffoldingAtt.InverseProperty.Singularize()}Id";
+            string key2 = $"{property.DataUsesAtt.InverseProperty.Singularize()}Id";
             CSharpClassObject modalClassObject = ApplicationHelper.ClassObjectList.Where(x => x.Name == EntityName).FirstOrDefault();
 
             string relativeTargetPath = $"Persistence/Configurations/{EntityName}Configuration.cs";
@@ -148,11 +148,11 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
         {
             foreach (var property in classObject.ClassProperties)
             {
-                if (property.ScaffoldingAtt.PropRole == "Relationship")
+                if (property.DataUsesAtt.PrimaryRole == "Relationship")
                 {
-                    if (property.ScaffoldingAtt.RelationshipType == "ManyToMany")
+                    if (property.DataUsesAtt.RelationshipType == "ManyToMany")
                     {
-                        string EntityName = property.ScaffoldingAtt.LinkingTable;
+                        string EntityName = property.DataUsesAtt.LinkingTable;
                         var configHandler = new ConfigurationHandler("appsettings.json");
                         var configSettings = configHandler.GetConfiguration();
 

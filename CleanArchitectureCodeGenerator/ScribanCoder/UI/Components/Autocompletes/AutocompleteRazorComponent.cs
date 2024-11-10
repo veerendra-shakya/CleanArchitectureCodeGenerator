@@ -69,8 +69,8 @@ public static class AutocompleteRazorComponent
 
     private static string ComposeQueryString(CSharpClassObject model)
     {
-        var masterProperty = model.ClassProperties.FirstOrDefault(p => p.ScaffoldingAtt.PropRole == "Identifier");
-        var displayProperties = model.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Searchable").ToList();
+        var masterProperty = model.ClassProperties.FirstOrDefault(p => p.DataUsesAtt.PrimaryRole == "Identifier");
+        var displayProperties = model.ClassProperties.Where(p => p.DataUsesAtt.PrimaryRole == "Searchable").ToList();
 
         if (masterProperty != null)
         {
@@ -107,8 +107,8 @@ public static class AutocompleteRazorComponent
 
     private static string ComposeReturnString(CSharpClassObject model)
     {
-        var masterProperty = model.ClassProperties.FirstOrDefault(p => p.ScaffoldingAtt.PropRole == "Identifier");
-        var displayProperties = model.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Searchable").ToList();
+        var masterProperty = model.ClassProperties.FirstOrDefault(p => p.DataUsesAtt.PrimaryRole == "Identifier");
+        var displayProperties = model.ClassProperties.Where(p => p.DataUsesAtt.PrimaryRole == "Searchable").ToList();
 
         if (masterProperty != null)
         {

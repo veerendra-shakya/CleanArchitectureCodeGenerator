@@ -80,63 +80,136 @@ public static class FormDialog_razor
 
             if (HasAttribute(property, "DataEditor"))
             {
-                output.Append(HandleDataEditor(property));
+                output.Append(HandleDataEditorAttribute(property));
                 continue;
             }
 
             if (property.Type.TypeName.Contains("Enum"))
             {
-                output.Append(CreateComponentWithMudItem(GenerateEnumSelectComponent(property), "6"));
+                output.Append(MudItem(GenerateEnumSelectComponent(property), 6));
                 continue;
             }
             if (property.Type.IsList && property.Type.TypeName == "List<string>?")
             {
-                output.Append(CreateComponentWithMudItem(GenerateListStringTextEditorComponent(property), "6"));
+                output.Append(MudItem(GenerateListStringTextEditorComponent(property), 6));
                 continue;
             }
-            //if (property.Type.IsDictionary)
-            //{
-
-            //    continue;
-            //}
-
             if (property.Type.TypeName.Contains("JsonImage") || property.Type.TypeName.Contains("JsonFile"))
             {
-                output.Append(CreateComponentWithMudItem(GenerateUploadComponent(property,"Default"), "12"));
+                output.Append(MudItem(GenerateUploadComponent(property,"Default"), 12));
                 continue;
             }
-
-         
-
-            if (property.UIDesignAtt.Has)
+            if (property.DataUsesAtt.Has && property.DataUsesAtt.PrimaryRole == "Relationship")
             {
-                output.Append(CreateComponentWithMudItem(GenerateCustomUIComponent(property),"6"));
-                continue;
-            }
-            
-            if (property.ScaffoldingAtt.Has && property.ScaffoldingAtt.PropRole == "Relationship")
-            {
-                output.Append(CreateComponentWithMudItem(GenerateCustomRelationshipComponent(property, classObject), "12"));
+                output.Append(MudItem(GenerateCustomRelationshipComponent(property, classObject), 12));
                 continue;
             }
 
-    
-           
-            output.Append(CreateComponentWithMudItem(GenerateDefaultComponent(property), "6"));
+            output.Append(MudItem(GenerateDefaultComponent(property), 6));
                
         }
         return output.ToString();
     }
 
-    private static string CreateComponentWithMudItem(string componentDefinition, string size)
+    private static string HandleDataEditorAttribute(ClassProperty property)
     {
         var output = new StringBuilder();
-        output.AppendLine($"<MudItem xs=\"12\" md=\"{size}\">");
-        output.Append($"    {componentDefinition}");
-        output.AppendLine("</MudItem>");
+        
+        var attribute = property.propertyDeclarationSyntax.AttributeLists
+            .SelectMany(a => a.Attributes)
+            .FirstOrDefault(a => a.Name.ToString().Contains("DataEditor"));
+
+        if (attribute != null && attribute.ArgumentList?.Arguments.Count >= 1)
+        {
+            string directoryName = string.Empty;
+            string enumName = string.Empty;
+            string refProperty = string.Empty;
+            int width = 6;
+            bool lineBreak = false; 
+
+            // Extract the main component type (first argument) without "EditorType." prefix
+            var componentArg = attribute.ArgumentList.Arguments[0].ToString();
+            if (componentArg.StartsWith("EditorType."))
+            {
+                componentArg = componentArg.Replace("EditorType.", string.Empty);
+            }
+
+            // Extract additional arguments based on their names or positions
+            foreach (var argument in attribute.ArgumentList.Arguments.Skip(1)) // Skip the first, which is the component
+            {
+                var argString = argument.ToString();
+
+                // Check if the argument is named and set the respective variable
+                if (argString.Contains("directoryName:"))
+                {
+                    directoryName = argument.ToString().Replace("directoryName:", "").Trim().Trim('"');
+                }
+                else if (argString.Contains("enumName:"))
+                {
+                    enumName = argument.ToString().Replace("enumName:", "").Trim().Trim('"');
+                }
+                else if (argString.Contains("refProperty:"))
+                {
+                    refProperty = argument.ToString().Replace("refProperty:", "").Trim().Trim('"');
+                }
+                else if (argString.Contains("width:"))
+                {
+                    if (int.TryParse(argument.ToString().Replace("width:", "").Trim(), out int parsedWidth))
+                    {
+                        width = parsedWidth;
+                    }
+                }
+                else if (argString.Contains("lineBreak:"))
+                {
+                    // Parse and assign to the lineBreak variable
+                    bool.TryParse(argument.ToString().Replace("lineBreak:", "").Trim(), out lineBreak);
+                }
+            }
+
+            // Generate the component output based on the component type
+            switch (componentArg)
+            {
+                case "EnumMudSelect":
+                    output.Append(MudItem(GenerateEnumSelectComponent(property), width, lineBreak));
+                    break;
+                case "SortOrder":
+                    output.Append(MudItem(GenerateDefaultComponent(property), width, lineBreak));
+                    break;
+                case "ListStringTextEditor":
+                    output.Append(MudItem(GenerateListStringTextEditorComponent(property), width, lineBreak));
+                    break;
+                case "ListStringCheckBoxMultiSelection":
+                    output.Append(MudItem(GenerateListStringCheckBoxMultiSelection(property, enumName), width, lineBreak));
+                    break;
+                case "ListStringMudSelectMultiSelection":
+                    output.Append(MudItem(GenerateListStringMudSelectMultiSelection(property, enumName), width, lineBreak));
+                    break;
+                case "HtmlEditor":
+                    output.Append(MudItem(GenerateHtmlEditor(property), width, lineBreak));
+                    break;
+                case "SlugTextField":
+                    output.Append(MudItem(GenerateSlugTextField(property, refProperty), width, lineBreak));
+                    break;
+                case "Upload":
+                    output.Append(MudItem(GenerateUploadComponent(property, directoryName), width, lineBreak));
+                    break;
+                case "DictionaryStringKeyValueEditor":
+                    output.Append(MudItem(GenerateDictionaryStringKeyValueEditor(property), width, lineBreak));
+                    break;
+                case "None":
+                    output.Append("");
+                    break;
+                    
+                default:
+                    output.Append(MudItem(GenerateDefaultComponent(property), width, lineBreak));
+                    break;
+            }
+        }
+
         return output.ToString();
     }
 
+    #region Component Generators 
     private static string GenerateCustomUIComponent(ClassProperty property)
     {
         var output = new StringBuilder();
@@ -158,7 +231,7 @@ public static class FormDialog_razor
 
         if (component == CustomAutocompletePicker)
         {
-           // output.AppendLine($"<{component} For=\"@(() => model.{property.PropertyName})\" @bind-Value=\"model.{property.PropertyName}\" Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" Placeholder=\"Select...\"></{component}>");
+            // output.AppendLine($"<{component} For=\"@(() => model.{property.PropertyName})\" @bind-Value=\"model.{property.PropertyName}\" Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" Placeholder=\"Select...\"></{component}>");
             return output.ToString();
         }
 
@@ -248,11 +321,11 @@ public static class FormDialog_razor
     private static string GenerateCustomRelationshipComponent(ClassProperty property, CSharpClassObject model)
     {
         var output = new StringBuilder();
-        if (property.ScaffoldingAtt.PropRole == "Relationship")
+        if (property.DataUsesAtt.PrimaryRole == "Relationship")
         {
-            if (property.ScaffoldingAtt.RelationshipType == "OneToOne")
+            if (property.DataUsesAtt.RelationshipType == "OneToOne")
             {
-                if (property.ScaffoldingAtt.IsForeignKey)
+                if (property.DataUsesAtt.IsForeignKey)
                 {
                     // Scaffold AutoComplete Component
                     string refPropName = property.PropertyName;
@@ -268,13 +341,13 @@ public static class FormDialog_razor
                     }
                 }
             }
-            if (property.ScaffoldingAtt.RelationshipType == "OneToMany")
+            if (property.DataUsesAtt.RelationshipType == "OneToMany")
             {
 
             }
-            if (property.ScaffoldingAtt.RelationshipType == "ManyToOne")
+            if (property.DataUsesAtt.RelationshipType == "ManyToOne")
             {
-                if(property.ScaffoldingAtt.IsForeignKey)
+                if (property.DataUsesAtt.IsForeignKey)
                 {
                     // Scaffold AutoComplete Component
                     string Id_PropName = property.PropertyName;
@@ -292,7 +365,7 @@ public static class FormDialog_razor
                     }
                 }
             }
-            if (property.ScaffoldingAtt.RelationshipType == "ManyToMany")
+            if (property.DataUsesAtt.RelationshipType == "ManyToMany")
             {
                 string datatype = Helper.ExtractDataType(property.Type.TypeName);
                 output.AppendLine($"<{datatype}MultiSelectorDialog @bind-SelectedItems=\"@model.{property.PropertyName}\" Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\"></{datatype}MultiSelectorDialog>");
@@ -302,10 +375,10 @@ public static class FormDialog_razor
         return output.ToString();
     }
 
-    private static string GenerateUploadComponent(ClassProperty property,string directoryName)
+    private static string GenerateUploadComponent(ClassProperty property, string directoryName)
     {
         var output = new StringBuilder();
-  
+
         if (property.Type.TypeName.Contains("List<JsonImage>?"))
         {
             output.AppendLine($"<UploadMultipleImages @bind-Images=\"model.{property.PropertyName}\" AccessPermission=\"AccessPermission.Public\" Label=\"Upload {property.DisplayName}\" DirectoryName=\"{directoryName}\"/>");
@@ -331,7 +404,7 @@ public static class FormDialog_razor
         var output = new StringBuilder();
 
         output.AppendLine($"<MudSelect @bind-Value=\"model.{property.PropertyName}\" Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\">");
-        output.AppendLine($"    @foreach ({property.Type.TypeName.Replace("?","")} item in Enum.GetValues(typeof({property.Type.TypeName.Replace("?", "")})))");
+        output.AppendLine($"    @foreach ({property.Type.TypeName.Replace("?", "")} item in Enum.GetValues(typeof({property.Type.TypeName.Replace("?", "")})))");
         output.AppendLine("    {");
         output.AppendLine("        <MudSelectItem Value=\"@item\">@item.GetDescription()</MudSelectItem>");
         output.AppendLine("    }");
@@ -347,7 +420,7 @@ public static class FormDialog_razor
         return output.ToString();
     }
 
-    private static string GenerateListStringCheckBoxMultiSelection(ClassProperty property,string enumName)
+    private static string GenerateListStringCheckBoxMultiSelection(ClassProperty property, string enumName)
     {
         var output = new StringBuilder();
         output.AppendLine($"<ListStringCheckBoxMultiSelection @bind-Items=\"model.{property.PropertyName}\" DataSource=\"typeof({enumName})\" Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\"></ListStringCheckBoxMultiSelection>");
@@ -361,10 +434,25 @@ public static class FormDialog_razor
         return output.ToString();
     }
 
+    private static string GenerateDictionaryStringKeyValueEditor(ClassProperty property)
+    {
+        var output = new StringBuilder();
+        output.AppendLine($"<DictionaryStringKeyValueEditor Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Items=\"model.{property.PropertyName}\" />");
+        return output.ToString();
+    }
+
+
     private static string GenerateHtmlEditor(ClassProperty property)
     {
         var output = new StringBuilder();
         output.AppendLine($"<HtmlEditor Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Value=\"model.{property.PropertyName}\"></HtmlEditor>");
+        return output.ToString();
+    }
+
+    private static string GenerateSlugTextField(ClassProperty property, string refProperty)
+    {
+        var output = new StringBuilder();
+        output.AppendLine($"<SlugTextField Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Value=\"model.{property.PropertyName}\" For=\"@(() => model.{property.PropertyName})\" @bind-InputText=\"model.{refProperty}\" Required=\"true\" RequiredError=\"@L[\"slug is required!\"]\"></SlugTextField>");
         return output.ToString();
     }
 
@@ -374,10 +462,10 @@ public static class FormDialog_razor
 
         string refpropType = refproperty.Type.TypeName.Replace("?", "");
         CSharpClassObject? model = ApplicationHelper.ClassObjectList.Where(x => x.Name == refpropType).FirstOrDefault();
-        if(model != null)
+        if (model != null)
         {
-            var masterProperty = model.ClassProperties.FirstOrDefault(p => p.ScaffoldingAtt.PropRole == "Identifier");
-            var displayProperties = model.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Searchable").ToList();
+            var masterProperty = model.ClassProperties.FirstOrDefault(p => p.DataUsesAtt.PrimaryRole == "Identifier");
+            var displayProperties = model.ClassProperties.Where(p => p.DataUsesAtt.PrimaryRole == "Searchable").ToList();
 
             if (masterProperty != null)
             {
@@ -400,68 +488,10 @@ public static class FormDialog_razor
         return output.ToString();
     }
 
-    private static string HandleDataEditor(ClassProperty property)
-    {
-        var output = new StringBuilder();
-        
-        var attribute = property.propertyDeclarationSyntax.AttributeLists
-            .SelectMany(a => a.Attributes)
-            .FirstOrDefault(a => a.Name.ToString().Contains("DataEditor"));
 
-        if (attribute != null && attribute.ArgumentList?.Arguments.Count >= 1)
-        {
-            var directoryName = string.Empty;
-            var enumName = string.Empty;
-            var arg = attribute.ArgumentList.Arguments[0].ToString(); 
+    #endregion
 
-            // Remove DataType. prefix if present
-            if (arg.StartsWith("EditorType."))
-            {
-                arg = arg.Replace("EditorType.", string.Empty);
-            }
-
-            switch (arg)
-            {
-                case "UploadSingleImage":
-                    directoryName = attribute.ArgumentList.Arguments[1].ToString().Replace("directoryName:","").Trim().Trim('"');
-                    output.Append(CreateComponentWithMudItem(GenerateUploadComponent(property, directoryName),"12"));
-                    break;
-                case "UploadMultipleImages":
-                    directoryName = attribute.ArgumentList.Arguments[1].ToString().Replace("directoryName:", "").Trim().Trim('"');
-                    output.Append(CreateComponentWithMudItem(GenerateUploadComponent(property, directoryName), "12"));
-                    break;
-                case "UploadSingleFile":
-                    directoryName = attribute.ArgumentList.Arguments[1].ToString().Replace("directoryName:", "").Trim().Trim('"');
-                    output.Append(CreateComponentWithMudItem(GenerateUploadComponent(property, directoryName), "12"));
-                    break;
-                case "UploadMultipleFiles":
-                    directoryName = attribute.ArgumentList.Arguments[1].ToString().Replace("directoryName:", "").Trim().Trim('"');
-                    output.Append(CreateComponentWithMudItem(GenerateUploadComponent(property, directoryName), "12"));
-                    break;
-                case "ListStringTextEditor":
-                    output.Append(CreateComponentWithMudItem(GenerateListStringTextEditorComponent(property), "6"));
-                    break;
-                case "ListStringCheckBoxMultiSelection":
-                    enumName = attribute.ArgumentList.Arguments[1].ToString().Replace("enumName:", "").Trim().Trim('"');
-                    output.Append(CreateComponentWithMudItem(GenerateListStringCheckBoxMultiSelection(property, enumName), "12"));
-                    break;
-                case "ListStringMudSelectMultiSelection":
-                    enumName = attribute.ArgumentList.Arguments[1].ToString().Replace("enumName:", "").Trim().Trim('"');
-                    output.Append(CreateComponentWithMudItem(GenerateListStringMudSelectMultiSelection(property, enumName), "6"));
-                    break;
-                case "HtmlEditor":
-                    output.Append(CreateComponentWithMudItem(GenerateHtmlEditor(property), "12"));
-                    break;
-                default:
-                    output.Append(""); 
-                    break;
-            }
-
-        }
-
-        return output.ToString();
-    }
-
+    #region Helper Functions
     private static bool HasAttribute(ClassProperty property, string attributeName)
     {
         var attributeLists = property.propertyDeclarationSyntax.AttributeLists;
@@ -470,5 +500,21 @@ public static class FormDialog_razor
         var hasAttribute = attributeNames.Any(name => name.Contains(attributeName));
         return hasAttribute;
     }
+
+    private static string MudItem(string componentDefinition, int size, bool lineBreak = false)
+    {
+        // Build the output with calculated sizes for xs, sm, and md
+        var output = new StringBuilder();
+        output.AppendLine($"<MudItem xs=\"12\" sm=\"{size}\" md=\"{size}\">");
+        output.Append($"    {componentDefinition}");
+        output.AppendLine("</MudItem>");
+        if(lineBreak)
+        {
+            output.AppendLine("<MudFlexBreak />");
+        }
+        return output.ToString();
+    }
+
+    #endregion
 
 }

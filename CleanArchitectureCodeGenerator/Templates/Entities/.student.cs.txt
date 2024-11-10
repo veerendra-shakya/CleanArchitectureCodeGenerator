@@ -8,29 +8,29 @@ namespace {namespace};
 
 public class {itemname} : BaseAuditableEntity
 {
-    [Scaffolding(PropRole.Identifier)]
+    [DataUses(PrimaryRole.Identifier)]
     public string FirstName { get; set; } = string.Empty;
 
-    [Scaffolding(PropRole.Searchable)]
+    [DataUses(PrimaryRole.Searchable)]
     public string LastName { get; set; }
 
     public string ContactNumber { get; set; }
 
 
     // One-to-One Relationship with DemoProfile
-    [Scaffolding(role: PropRole.Relationship, relationship: RelationshipType.OneToOne, inverseProperty: "Student", foreignKeyProperty: "StudentId", deleteAction: DeleteBehavior.Cascade)]
+    [DataUses(role: PrimaryRole.Relationship, relationship: RelationshipType.OneToOne, inverseProperty: "Student", foreignKeyProperty: "StudentId", deleteAction: DeleteBehavior.Cascade)]
     public virtual DemoProfile Profile { get; set; }
 
     // Foreign Key for Many-to-One Relationship with DemoSchool
-    [Scaffolding(role: PropRole.Relationship, relationship: RelationshipType.ManyToOne, isForeignKey:true )]
+    [DataUses(role: PrimaryRole.Relationship, relationship: RelationshipType.ManyToOne, isForeignKey:true )]
     public Guid SchoolId { get; set; }
     
-    [Scaffolding(role: PropRole.Relationship, relationship: RelationshipType.ManyToOne, inverseProperty: "Students", foreignKeyProperty: "SchoolId",deleteAction: DeleteBehavior.Restrict)]
+    [DataUses(role: PrimaryRole.Relationship, relationship: RelationshipType.ManyToOne, inverseProperty: "Students", foreignKeyProperty: "SchoolId",deleteAction: DeleteBehavior.Restrict)]
     public virtual DemoSchool School { get; set; }
 
     [Display(Name = "Assgned Courses")] // use display attribute this will be used in UI Grid and forms 
     // Many-to-Many Relationship with DemoCourse
-    [Scaffolding(role: PropRole.Relationship, relationship: RelationshipType.ManyToMany, inverseProperty: "Students", linkingTable: "DemoStudentCourse")]
+    [DataUses(role: PrimaryRole.Relationship, relationship: RelationshipType.ManyToMany, inverseProperty: "Students", linkingTable: "DemoStudentCourse")]
     public virtual ICollection<DemoCourse> Courses { get; set; } = new HashSet<DemoCourse>(); // Initialized to avoid null reference
 
     public JsonImage? Picture { get; set; }

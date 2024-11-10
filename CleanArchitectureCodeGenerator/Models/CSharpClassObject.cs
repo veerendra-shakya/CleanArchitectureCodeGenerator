@@ -84,7 +84,7 @@ namespace CleanArchitecture.CodeGenerator.Models
         /// </summary>
         public string Summary { get; set; }
 
-        public ScaffoldingAttribute ScaffoldingAtt { get; set; } = new();
+        public DataUsesAttribute DataUsesAtt { get; set; } = new();
 
         public UIDesignAttribute UIDesignAtt { get; set; } = new();
 
@@ -102,10 +102,10 @@ namespace CleanArchitecture.CodeGenerator.Models
 
     }
 
-    public class ScaffoldingAttribute
+    public class DataUsesAttribute
     {
         public bool Has { get; set; } = false;
-        public string PropRole { get; set; }
+        public string PrimaryRole { get; set; }
         public string RelationshipType { get; set; }
         public bool IsForeignKey { get; set; }
         public string InverseProperty { get; set; }

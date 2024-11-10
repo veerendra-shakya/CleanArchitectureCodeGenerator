@@ -12,13 +12,13 @@ public class {itemname} : BaseAuditableEntity
     [MaxLength(100)]
     [Description("Name of the entity, required and with a maximum length of 100 characters.")]
     [Display(Name = "Entity Name")]
-    [Scaffolding(PropRole.Identifier)]
+    [DataUses(PrimaryRole.Identifier)]
     public string Name { get; set; }  = string.Empty;
 
     [MaxLength(500)]
     [Description("Description of the entity, optional and with a maximum length of 500 characters.")]
     [Display(Name = "Entity Description")]
-    [Scaffolding(PropRole.Searchable)]
+    [DataUses(PrimaryRole.Searchable)]
     public string? Description { get; set; }
     
     [Required]

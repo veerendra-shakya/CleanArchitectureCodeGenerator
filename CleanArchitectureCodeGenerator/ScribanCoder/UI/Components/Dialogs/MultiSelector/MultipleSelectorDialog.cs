@@ -24,7 +24,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Components.Dialogs.Mul
                 string templateContent = File.ReadAllText(templateFilePath, Encoding.UTF8);
                 string NamespaceName = Helper.GetNamespace(relativePath);
 
-                var masterProperty = modal.ClassProperties.FirstOrDefault(p => p.ScaffoldingAtt.PropRole == "Identifier");
+                var masterProperty = modal.ClassProperties.FirstOrDefault(p => p.DataUsesAtt.PrimaryRole == "Identifier");
 
                 string identifierproperty = masterProperty.PropertyName;
 
@@ -99,13 +99,13 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Components.Dialogs.Mul
 
             // Get the master property for identifier role
             var masterProperty = classObject.ClassProperties
-                .Where(p => p.ScaffoldingAtt.PropRole == "Identifier")
+                .Where(p => p.DataUsesAtt.PrimaryRole == "Identifier")
                 .Select(p => p.PropertyName)
                 .FirstOrDefault();
 
             // Get the list of searchable properties
             var searchableProperties = classObject.ClassProperties
-                .Where(p => p.ScaffoldingAtt.PropRole == "Searchable")
+                .Where(p => p.DataUsesAtt.PrimaryRole == "Searchable")
                 .Select(p => p.PropertyName)
                 .ToList();
 

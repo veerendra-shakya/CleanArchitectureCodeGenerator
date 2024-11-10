@@ -82,13 +82,13 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Comm
 
             foreach (var property in modalClassObject.ClassProperties)
             {
-                if (property.ScaffoldingAtt.PropRole == "Relationship")
+                if (property.DataUsesAtt.PrimaryRole == "Relationship")
                 {
-                    if (property.ScaffoldingAtt.RelationshipType == "ManyToMany")
+                    if (property.DataUsesAtt.RelationshipType == "ManyToMany")
                     {
-                        string LinkingTableName = property.ScaffoldingAtt.LinkingTable;
+                        string LinkingTableName = property.DataUsesAtt.LinkingTable;
                         string key1 = $"{property.PropertyNameSingular}Id";
-                        string key2 = $"{property.ScaffoldingAtt.InverseProperty.Singularize()}Id";
+                        string key2 = $"{property.DataUsesAtt.InverseProperty.Singularize()}Id";
                         string PropertyType = property.Type.TypeName;
                         string DataType = Helper.ExtractDataType(PropertyType);
                         output.AppendLine();
@@ -114,13 +114,13 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Comm
 
             foreach (var property in modalClassObject.ClassProperties)
             {
-                if (property.ScaffoldingAtt.PropRole == "Relationship")
+                if (property.DataUsesAtt.PrimaryRole == "Relationship")
                 {
-                    if (property.ScaffoldingAtt.RelationshipType == "ManyToMany")
+                    if (property.DataUsesAtt.RelationshipType == "ManyToMany")
                     {
-                        string linkingTableName = property.ScaffoldingAtt.LinkingTable;
+                        string linkingTableName = property.DataUsesAtt.LinkingTable;
                         string key1 = $"{property.PropertyNameSingular}Id";
-                        string key2 = $"{property.ScaffoldingAtt.InverseProperty.Singularize()}Id";
+                        string key2 = $"{property.DataUsesAtt.InverseProperty.Singularize()}Id";
                         string propertyType = property.Type.TypeName;
                         string dataType = Helper.ExtractDataType(propertyType);
 
@@ -165,13 +165,13 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Comm
 
             foreach (var property in modalClassObject.ClassProperties)
             {
-                if (property.ScaffoldingAtt.PropRole == "Relationship")
+                if (property.DataUsesAtt.PrimaryRole == "Relationship")
                 {
-                    if (property.ScaffoldingAtt.RelationshipType == "ManyToMany")
+                    if (property.DataUsesAtt.RelationshipType == "ManyToMany")
                     {
-                        string linkingTableName = property.ScaffoldingAtt.LinkingTable;
+                        string linkingTableName = property.DataUsesAtt.LinkingTable;
                         string key1 = $"{property.PropertyNameSingular}Id";
-                        string key2 = $"{property.ScaffoldingAtt.InverseProperty.Singularize()}Id";
+                        string key2 = $"{property.DataUsesAtt.InverseProperty.Singularize()}Id";
 
                         // Add new items
                         output.AppendLine();

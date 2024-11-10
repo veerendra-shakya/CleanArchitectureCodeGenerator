@@ -14,13 +14,13 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder
     {
         public static bool IsValidModel(CSharpClassObject Model)
         {
-            var IdentifierProperty = Model.ClassProperties.FirstOrDefault(p => p.ScaffoldingAtt.PropRole == "Identifier");
-            var searchableProperties = Model.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Searchable").ToList();
+            var IdentifierProperty = Model.ClassProperties.FirstOrDefault(p => p.DataUsesAtt.PrimaryRole == "Identifier");
+            var searchableProperties = Model.ClassProperties.Where(p => p.DataUsesAtt.PrimaryRole == "Searchable").ToList();
 
             if (IdentifierProperty == null)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Error: Scaffolding 'Identifier' Attribute not defined in model:'{Model.Name}'.");
+                Console.WriteLine($"Error: DataUses 'Identifier' Attribute not defined in model:'{Model.Name}'.");
                 Console.ResetColor();
                 return false;
             }

@@ -25,7 +25,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                 var propertyType = property.Type;
 
                 // Start the builder for the property configuration
-                if (property.ScaffoldingAtt.PropRole == "Relationship" && !property.ScaffoldingAtt.IsForeignKey)
+                if (property.DataUsesAtt.PrimaryRole == "Relationship" && !property.DataUsesAtt.IsForeignKey)
                 {
                     // Handle relationships
                     GenerateRelationshipFluentApi(sb, property);
@@ -80,9 +80,9 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                         }
                     }
 
-                    if(HasAttribute(property, "DataType"))
+                    if(HasAttribute(property, "DataFormat"))
                     {
-                        HandleDataType(sb, property);
+                        HandleDataFormat(sb, property);
                        // continue; // Skip further processing for this property
                     }
 
@@ -114,11 +114,12 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             return sb.ToString().Trim(); // Trim to remove excess whitespace
         }
 
+        #region Code Generator Functions
         private static void GenerateRelationshipFluentApi(StringBuilder sb, ClassProperty property)
         {
             var relatedEntity = property.Type.TypeName; // The type name of the related entity
-            var relationshipType = property.ScaffoldingAtt.RelationshipType;
-            var deleteBehavior = property.ScaffoldingAtt.DeleteBehavior; // No default behavior, check if it's null
+            var relationshipType = property.DataUsesAtt.RelationshipType;
+            var deleteBehavior = property.DataUsesAtt.DeleteBehavior; // No default behavior, check if it's null
 
             switch (relationshipType)
             {
@@ -126,8 +127,8 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                     // Generate One-to-One relationship configuration
                     sb.AppendLine($"// One-to-One relationship with {property.PropertyName}");
                     sb.AppendLine($"builder.HasOne(e => e.{property.PropertyName})")
-                      .AppendLine($"    .WithOne(p => p.{property.ScaffoldingAtt.InverseProperty})")
-                      .AppendLine($"    .HasForeignKey<{property.Type.TypeName}>(p => p.{property.ScaffoldingAtt.ForeignKeyProperty})");
+                      .AppendLine($"    .WithOne(p => p.{property.DataUsesAtt.InverseProperty})")
+                      .AppendLine($"    .HasForeignKey<{property.Type.TypeName}>(p => p.{property.DataUsesAtt.ForeignKeyProperty})");
 
                     // Conditionally add OnDelete if deleteBehavior is not null
                     if (!string.IsNullOrEmpty(deleteBehavior))
@@ -146,8 +147,8 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                     // Generate One-to-Many relationship configuration
                     sb.AppendLine($"// One-to-Many relationship with {property.PropertyName}");
                     sb.AppendLine($"builder.HasMany(e => e.{property.PropertyName})")
-                      .AppendLine($"    .WithOne(p => p.{property.ScaffoldingAtt.InverseProperty})")
-                      .AppendLine($"    .HasForeignKey(p => p.{property.ScaffoldingAtt.ForeignKeyProperty})");
+                      .AppendLine($"    .WithOne(p => p.{property.DataUsesAtt.InverseProperty})")
+                      .AppendLine($"    .HasForeignKey(p => p.{property.DataUsesAtt.ForeignKeyProperty})");
 
                     // Conditionally add OnDelete if deleteBehavior is not null
                     if (!string.IsNullOrEmpty(deleteBehavior))
@@ -166,8 +167,8 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                     // Generate Many-to-One relationship configuration
                     sb.AppendLine($"// Many-to-One relationship with {property.PropertyName}");
                     sb.AppendLine($"builder.HasOne(e  => e.{property.PropertyName})")
-                      .AppendLine($"    .WithMany(p => p.{property.ScaffoldingAtt.InverseProperty})") 
-                      .AppendLine($"    .HasForeignKey(p => p.{property.ScaffoldingAtt.ForeignKeyProperty})");
+                      .AppendLine($"    .WithMany(p => p.{property.DataUsesAtt.InverseProperty})") 
+                      .AppendLine($"    .HasForeignKey(p => p.{property.DataUsesAtt.ForeignKeyProperty})");
 
                     // Conditionally add OnDelete if deleteBehavior is not null
                     if (!string.IsNullOrEmpty(deleteBehavior))
@@ -185,14 +186,14 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                     // Generate Many-to-Many relationship configuration
                     sb.AppendLine($"// Many-to-Many relationship with {property.PropertyName}");
                     sb.AppendLine($"builder.HasMany(e => e.{property.PropertyName})")
-                      .AppendLine($"    .WithMany(p => p.{property.ScaffoldingAtt.InverseProperty})")
-                      .AppendLine($"    .UsingEntity<{property.ScaffoldingAtt.LinkingTable}>(")
+                      .AppendLine($"    .WithMany(p => p.{property.DataUsesAtt.InverseProperty})")
+                      .AppendLine($"    .UsingEntity<{property.DataUsesAtt.LinkingTable}>(")
                       .AppendLine($"        j => j.HasOne(y => y.{property.PropertyNameSingular})")
                       .AppendLine($"              .WithMany()")
                       .AppendLine($"              .HasForeignKey(x => x.{property.PropertyNameSingular}Id),")
-                      .AppendLine($"        j => j.HasOne(y => y.{property.ScaffoldingAtt.InverseProperty.Singularize()})")
+                      .AppendLine($"        j => j.HasOne(y => y.{property.DataUsesAtt.InverseProperty.Singularize()})")
                       .AppendLine($"              .WithMany()")
-                      .AppendLine($"              .HasForeignKey(x => x.{property.ScaffoldingAtt.InverseProperty.Singularize()}Id))");
+                      .AppendLine($"              .HasForeignKey(x => x.{property.DataUsesAtt.InverseProperty.Singularize()}Id))");
 
                     sb.Length -= Environment.NewLine.Length;  // Removes the last newline
                     sb.AppendLine($"; ");
@@ -208,6 +209,134 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             }
         }
 
+        private static void HandleJsonFileOrImage(StringBuilder sb, ClassProperty property)
+        {
+            if (property.Type.TypeName.Contains("List"))
+            {
+                sb.AppendLine($"builder.Property(e => e.{property.PropertyName})")
+                  .AppendLine($".HasConversion(")
+                  .AppendLine($"    v => JsonSerializer.Serialize(v, DefaultJsonSerializerOptions.Options),")
+                  .AppendLine($"    v => JsonSerializer.Deserialize<{property.Type.TypeName.Replace("?", "")}>(v, DefaultJsonSerializerOptions.Options),")
+                  .AppendLine($"    new ValueComparer<{property.Type.TypeName.Replace("?", "")}>(")
+                  .AppendLine($"        (c1, c2) => c1.SequenceEqual(c2),")
+                  .AppendLine($"        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),")
+                  .AppendLine($"        c => c.ToList()));");
+            }
+            else
+            {
+                sb.AppendLine($"builder.Property(e => e.{property.PropertyName})")
+                  .AppendLine($".HasConversion(")
+                  .AppendLine($"    v => JsonSerializer.Serialize(v, DefaultJsonSerializerOptions.Options),")
+                  .AppendLine($"    v => JsonSerializer.Deserialize<{property.Type.TypeName.Replace("?", "")}>(v, DefaultJsonSerializerOptions.Options),")
+                  .AppendLine($"    new ValueComparer<{property.Type.TypeName.Replace("?", "")}>(")
+                  .AppendLine($"        (c1, c2) => c1.Equals(c2),")
+                  .AppendLine($"        c => c == null ? 0 : c.GetHashCode(),")
+                  .AppendLine($"        c => c == null ? null : JsonSerializer.Deserialize<{property.Type.TypeName.Replace("?", "")}>(JsonSerializer.Serialize(c, DefaultJsonSerializerOptions.Options), DefaultJsonSerializerOptions.Options)));");
+
+            }
+
+            sb.AppendLine("\n");
+        }
+
+        private static void HandleDataFormat(StringBuilder sb, ClassProperty property)
+        {
+            var attribute = property.propertyDeclarationSyntax.AttributeLists
+                .SelectMany(a => a.Attributes)
+                .FirstOrDefault(a => a.Name.ToString().Contains("DataFormat"));
+
+            if (attribute != null && attribute.ArgumentList?.Arguments.Count >= 1)
+            {
+                var arg = attribute.ArgumentList.Arguments[0].ToString(); // gets argument as string
+
+                // Remove DataFormat. prefix if present
+                if (arg.StartsWith("DataFormat."))
+                {
+                    arg = arg.Replace("DataFormat.", string.Empty);
+                }
+
+                switch (arg)
+                {
+                    case "Decimal_18_2":
+                        sb.Append(".HasColumnType(\"decimal(18, 2)\")");
+                        break;
+
+                    case "String_30":
+                        sb.Append(".HasColumnType(\"varchar(30)\")");
+                        break;
+                    case "String_50":
+                        sb.Append(".HasColumnType(\"varchar(50)\")");
+                        break;
+
+                    case "String_100":
+                        sb.Append(".HasColumnType(\"varchar(100)\")");
+                        break;
+
+                    case "String_160":
+                        sb.Append(".HasColumnType(\"varchar(160)\")");
+                        break;
+
+                    case "String_255":
+                        sb.Append(".HasColumnType(\"varchar(255)\")");
+                        break;
+
+                    case "String_500":
+                        sb.Append(".HasColumnType(\"varchar(500)\")");
+                        break;
+
+                    case "String_5000":
+                        sb.Append(".HasColumnType(\"varchar(5000)\")");
+                        break;
+                    case "String_Max":
+                        sb.Append(".HasColumnType(\"text\")");
+                        break;
+
+                    case "Json_String":
+                        HandleJsonString(sb, property);
+                        break;
+
+                    default:
+                        sb.Append(".HasColumnType(\"varchar(50)\")");
+                        break;
+                }
+
+            }
+        }
+
+        private static void HandleJsonString(StringBuilder sb, ClassProperty property)
+        {
+            if (property.Type.TypeName.Contains("List"))
+            {
+                sb
+                  //.AppendLine($"builder.Property(e => e.{property.PropertyName})")
+                  .AppendLine($".HasConversion(")
+                  .AppendLine($"    v => JsonSerializer.Serialize(v, DefaultJsonSerializerOptions.Options),")
+                  .AppendLine($"    v => JsonSerializer.Deserialize<{property.Type.TypeName.Replace("?", "")}>(v, DefaultJsonSerializerOptions.Options),")
+                  .AppendLine($"    new ValueComparer<{property.Type.TypeName.Replace("?", "")}>(")
+                  .AppendLine($"        (c1, c2) => c1.SequenceEqual(c2),")
+                  .AppendLine($"        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),")
+                  .AppendLine($"        c => c.ToList()));");
+            }
+            else
+            {
+                sb
+                  //.AppendLine($"builder.Property(e => e.{property.PropertyName})")
+                  .AppendLine($".HasConversion(")
+                  .AppendLine($"    v => JsonSerializer.Serialize(v, DefaultJsonSerializerOptions.Options),")
+                  .AppendLine($"    v => JsonSerializer.Deserialize<{property.Type.TypeName.Replace("?", "")}>(v, DefaultJsonSerializerOptions.Options),")
+                  .AppendLine($"    new ValueComparer<{property.Type.TypeName.Replace("?", "")}>(")
+                  .AppendLine($"        (c1, c2) => c1.Equals(c2),")
+                  .AppendLine($"        c => c == null ? 0 : c.GetHashCode(),")
+                  .AppendLine($"        c => c == null ? null : JsonSerializer.Deserialize<{property.Type.TypeName.Replace("?", "")}>(JsonSerializer.Serialize(c, DefaultJsonSerializerOptions.Options), DefaultJsonSerializerOptions.Options)));");
+
+            }
+
+
+        }
+
+
+        #endregion
+
+        #region Helper Functions
         private static bool HasAttribute(ClassProperty property, string attributeName, out string attributeValue)
         {
             attributeValue = string.Empty;
@@ -274,157 +403,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
             var hasAttribute = attributeNames.Any(name => name.Contains(attributeName));
             return hasAttribute;
         }
-
-        private static void HandleJsonFileOrImage(StringBuilder sb, ClassProperty property)
-        {
-            if(property.Type.TypeName.Contains("List"))
-            {
-                sb.AppendLine($"builder.Property(e => e.{property.PropertyName})")
-                  .AppendLine($".HasConversion(")
-                  .AppendLine($"    v => JsonSerializer.Serialize(v, DefaultJsonSerializerOptions.Options),")
-                  .AppendLine($"    v => JsonSerializer.Deserialize<{property.Type.TypeName.Replace("?", "")}>(v, DefaultJsonSerializerOptions.Options),")
-                  .AppendLine($"    new ValueComparer<{property.Type.TypeName.Replace("?", "")}>(")
-                  .AppendLine($"        (c1, c2) => c1.SequenceEqual(c2),")
-                  .AppendLine($"        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),")
-                  .AppendLine($"        c => c.ToList()));");
-            }
-            else
-            {
-                sb.AppendLine($"builder.Property(e => e.{property.PropertyName})")
-                  .AppendLine($".HasConversion(")
-                  .AppendLine($"    v => JsonSerializer.Serialize(v, DefaultJsonSerializerOptions.Options),")
-                  .AppendLine($"    v => JsonSerializer.Deserialize<{property.Type.TypeName.Replace("?", "")}>(v, DefaultJsonSerializerOptions.Options),")
-                  .AppendLine($"    new ValueComparer<{property.Type.TypeName.Replace("?", "")}>(")
-                  .AppendLine($"        (c1, c2) => c1.Equals(c2),")
-                  .AppendLine($"        c => c == null ? 0 : c.GetHashCode(),")
-                  .AppendLine($"        c => c == null ? null : JsonSerializer.Deserialize<{property.Type.TypeName.Replace("?", "")}>(JsonSerializer.Serialize(c, DefaultJsonSerializerOptions.Options), DefaultJsonSerializerOptions.Options)));");
-
-            }
-
-            sb.AppendLine("\n");
-        }
-
-        private static void HandleDataType(StringBuilder sb, ClassProperty property)
-        {
-            var attribute = property.propertyDeclarationSyntax.AttributeLists
-                .SelectMany(a => a.Attributes)
-                .FirstOrDefault(a => a.Name.ToString().Contains("DataType"));
-
-            if (attribute != null && attribute.ArgumentList?.Arguments.Count >= 1)
-            {
-                var arg = attribute.ArgumentList.Arguments[0].ToString(); // gets argument as string
-
-                // Remove DataType. prefix if present
-                if (arg.StartsWith("DataType."))
-                {
-                    arg = arg.Replace("DataType.", string.Empty);
-                }
-
-                switch (arg)
-                {
-                    case "Currency":
-                        sb.Append(".HasColumnType(\"decimal(18, 2)\")");
-                        break;
-
-                    case "Date":
-                        sb.Append(".HasColumnType(\"date\")");
-                        break;
-
-                    case "DateTime":
-                        sb.Append(".HasColumnType(\"datetime\")");
-                        break;
-
-                    case "Time":
-                        sb.Append(".HasColumnType(\"time\")");
-                        break;
-
-                    case "PhoneNumber":
-                        sb.Append(".HasColumnType(\"varchar(15)\")");
-                        break;
-
-                    case "EmailAddress":
-                        sb.Append(".HasColumnType(\"varchar(255)\")");
-                        break;
-
-                    case "Url":
-                        sb.Append(".HasColumnType(\"varchar(2083)\")"); // Max URL length in most browsers
-                        break;
-
-                    case "CreditCard":
-                        sb.Append(".HasColumnType(\"varchar(19)\")");
-                        break;
-
-                    case "PostalCode":
-                        sb.Append(".HasColumnType(\"varchar(10)\")");
-                        break;
-
-                    case "Html":
-                        sb.Append(".HasColumnType(\"text\")"); // Long text type for HTML content
-                        break;
-
-                    case "Text":
-                        sb.Append(".HasColumnType(\"text\")"); // Supports large text content
-                        break;
-
-                    case "MultilineText":
-                        sb.Append(".HasColumnType(\"text\")"); // Allows for multi-line text data
-                        break;
-
-                    //case "Upload":
-                    //    sb.Append(".HasColumnType(\"varbinary(max)\")"); // Suitable for file uploads
-                    //    break;
-
-                    case "Password":
-                        sb.Append(".HasColumnType(\"varchar(50)\")"); // Allows storage of encrypted passwords
-                        break;
-
-                    case "Custom":
-                        {
-                            HandleCustomDataType(sb, property);
-                            break;
-                        }
-                    case "Duration":
-                        sb.Append(".HasColumnType(\"time\")"); // Duration as a time value
-                        break;
-
-                    default:
-                        sb.Append(".HasColumnType(\"text\")"); // Default for unspecified data types
-                        break;
-                }
-
-            }
-        }
-
-        private static void HandleCustomDataType(StringBuilder sb, ClassProperty property)
-        {
-            if (property.Type.TypeName.Contains("List"))
-            {
-                sb
-                  //.AppendLine($"builder.Property(e => e.{property.PropertyName})")
-                  .AppendLine($".HasConversion(")
-                  .AppendLine($"    v => JsonSerializer.Serialize(v, DefaultJsonSerializerOptions.Options),")
-                  .AppendLine($"    v => JsonSerializer.Deserialize<{property.Type.TypeName.Replace("?", "")}>(v, DefaultJsonSerializerOptions.Options),")
-                  .AppendLine($"    new ValueComparer<{property.Type.TypeName.Replace("?", "")}>(")
-                  .AppendLine($"        (c1, c2) => c1.SequenceEqual(c2),")
-                  .AppendLine($"        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),")
-                  .AppendLine($"        c => c.ToList()));");
-            }
-            else
-            {
-                sb
-                  //.AppendLine($"builder.Property(e => e.{property.PropertyName})")
-                  .AppendLine($".HasConversion(")
-                  .AppendLine($"    v => JsonSerializer.Serialize(v, DefaultJsonSerializerOptions.Options),")
-                  .AppendLine($"    v => JsonSerializer.Deserialize<{property.Type.TypeName.Replace("?", "")}>(v, DefaultJsonSerializerOptions.Options),")
-                  .AppendLine($"    new ValueComparer<{property.Type.TypeName.Replace("?", "")}>(")
-                  .AppendLine($"        (c1, c2) => c1.Equals(c2),")
-                  .AppendLine($"        c => c == null ? 0 : c.GetHashCode(),")
-                  .AppendLine($"        c => c == null ? null : JsonSerializer.Deserialize<{property.Type.TypeName.Replace("?", "")}>(JsonSerializer.Serialize(c, DefaultJsonSerializerOptions.Options), DefaultJsonSerializerOptions.Options)));");
-
-            }
-
-           
-        }
+        #endregion
 
    
     }

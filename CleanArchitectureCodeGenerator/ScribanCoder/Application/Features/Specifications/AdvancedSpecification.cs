@@ -73,9 +73,9 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Spec
             var itemName = classObject.Name;
 
             // Get the master property for identifier role
-            var masterProperty = classObject.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Identifier").Select(p => p.PropertyName).FirstOrDefault();
+            var masterProperty = classObject.ClassProperties.Where(p => p.DataUsesAtt.PrimaryRole == "Identifier").Select(p => p.PropertyName).FirstOrDefault();
             // Get the list of searchable properties
-            var searchableProperty = classObject.ClassProperties.Where(p => p.ScaffoldingAtt.PropRole == "Searchable").Select(p => p.PropertyName).ToList();
+            var searchableProperty = classObject.ClassProperties.Where(p => p.DataUsesAtt.PrimaryRole == "Searchable").Select(p => p.PropertyName).ToList();
             if (masterProperty != null)
             {
                 searchableProperty.Add(masterProperty);
