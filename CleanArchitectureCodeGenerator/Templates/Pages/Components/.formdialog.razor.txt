@@ -1,4 +1,5 @@
 ﻿@using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Commands.AddEdit
+@using {{ rootnamespace }}.{{ applicationprojectname }}.Features.{{ modelnameplural }}.Queries.GetCount
 @using {{ rootnamespace }}.{{ domainprojectname }}.Common.Entities
 @using {{ rootnamespace }}.{{ uiprojectname }}.Components.Dialogs.MultiSelector
 @using {{ rootnamespace }}.{{ uiprojectname }}.Components.Dialogs.SingleSelector

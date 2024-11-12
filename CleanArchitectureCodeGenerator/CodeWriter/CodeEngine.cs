@@ -265,6 +265,12 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter
                  ApplicationHelper.ApplicationProjectDirectory
                  );
 
+            ScribanCoder.Application.Features.Queries.GetCount.GetCountQuery.Generate(
+                modalClassObject,
+                $"Features/{modalClassNamePlural}/Queries/GetCount/Get{modalClassNamePlural}CountQuery.cs",
+                ApplicationHelper.ApplicationProjectDirectory
+                );
+
             ScribanCoder.Application.Features.Queries.Pagination.PaginationQuery.Generate(
                  modalClassObject,
                  $"Features/{modalClassNamePlural}/Queries/Pagination/{modalClassNamePlural}PaginationQuery.cs",

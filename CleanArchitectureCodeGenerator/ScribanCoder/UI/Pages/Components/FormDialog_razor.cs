@@ -80,7 +80,7 @@ public static class FormDialog_razor
 
             if (HasAttribute(property, "DataEditor"))
             {
-                output.Append(HandleDataEditorAttribute(property));
+                output.Append(HandleDataEditorAttribute(property, classObject));
                 continue;
             }
 
@@ -111,7 +111,7 @@ public static class FormDialog_razor
         return output.ToString();
     }
 
-    private static string HandleDataEditorAttribute(ClassProperty property)
+    private static string HandleDataEditorAttribute(ClassProperty property, CSharpClassObject model)
     {
         var output = new StringBuilder();
         
@@ -172,9 +172,7 @@ public static class FormDialog_razor
                 case "EnumMudSelect":
                     output.Append(MudItem(GenerateEnumSelectComponent(property), width, lineBreak));
                     break;
-                case "SortOrder":
-                    output.Append(MudItem(GenerateDefaultComponent(property), width, lineBreak));
-                    break;
+         
                 case "ListStringTextEditor":
                     output.Append(MudItem(GenerateListStringTextEditorComponent(property), width, lineBreak));
                     break;
@@ -189,6 +187,9 @@ public static class FormDialog_razor
                     break;
                 case "SlugTextField":
                     output.Append(MudItem(GenerateSlugTextField(property, refProperty), width, lineBreak));
+                    break;
+                case "SortOrder":
+                    output.Append(MudItem(GenerateSortOrder(property, model.NamePlural), width, lineBreak));
                     break;
                 case "Upload":
                     output.Append(MudItem(GenerateUploadComponent(property, directoryName), width, lineBreak));
@@ -452,9 +453,17 @@ public static class FormDialog_razor
     private static string GenerateSlugTextField(ClassProperty property, string refProperty)
     {
         var output = new StringBuilder();
-        output.AppendLine($"<SlugTextField Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Value=\"model.{property.PropertyName}\" For=\"@(() => model.{property.PropertyName})\" @bind-InputText=\"model.{refProperty}\" Required=\"true\" RequiredError=\"@L[\"slug is required!\"]\"></SlugTextField>");
+        output.AppendLine($"<SlugTextField Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Value=\"model.{property.PropertyName}\" @bind-InputText=\"model.{refProperty}\"></SlugTextField>");
         return output.ToString();
     }
+
+    private static string GenerateSortOrder(ClassProperty property,string modelName)
+    {
+        var output = new StringBuilder();
+        output.AppendLine($"<SortOrder Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Value=\"model.{property.PropertyName}\" Query=\"new Get{modelName}CountQuery()\"></SortOrder>");
+        return output.ToString();
+    }
+
 
     private static string GenerateManyToOneSelectComponent(ClassProperty propertyId, ClassProperty refproperty)
     {

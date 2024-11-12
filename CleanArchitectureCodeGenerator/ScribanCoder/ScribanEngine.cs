@@ -186,6 +186,10 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder
                          $"Features/{model.NamePlural}/Queries/GetById/Get{model.Name}ByIdQuery.cs",
                          ApplicationHelper.ApplicationProjectDirectory, force);
 
+                    Application.Features.Queries.GetCount.GetCountQuery.Generate(
+                           model,
+                           $"Features/{model.NamePlural}/Queries/GetCount/Get{model.NamePlural}CountQuery.cs",
+                           ApplicationHelper.ApplicationProjectDirectory, force);
 
                     Application.Features.Queries.Pagination.PaginationQuery.Generate(
                          model,

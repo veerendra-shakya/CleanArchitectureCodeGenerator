@@ -482,6 +482,7 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 "Queries\\Export",
                 "Queries\\GetAll",
                 "Queries\\GetById",
+                "Queries\\GetCount",
                 "Queries\\Pagination",
                 "Pages",
                 "Pages\\Components",

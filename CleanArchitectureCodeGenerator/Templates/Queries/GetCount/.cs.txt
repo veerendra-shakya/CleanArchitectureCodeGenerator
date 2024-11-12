@@ -1,0 +1,23 @@
+﻿namespace {{ namespacename }};
+
+public class Get{{ modelnameplural }}CountQuery : IRequest<int>
+{
+}
+
+public class Get{{ modelnameplural }}CountQueryHandler : IRequestHandler<Get{{ modelnameplural }}CountQuery, int>
+{
+    private readonly IApplicationDbContext _context;
+
+    public Get{{ modelnameplural }}CountQueryHandler(IApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    public Task<int> Handle(Get{{ modelnameplural }}CountQuery request, CancellationToken cancellationToken)
+    {
+        int totalCount = _context.{{ modelnameplural }}.Count();
+        return Task.FromResult(totalCount);
+    }
+}
+
+
