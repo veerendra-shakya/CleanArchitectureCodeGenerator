@@ -112,6 +112,7 @@ namespace CleanArchitecture.CodeGenerator.Models
         public string ForeignKeyProperty { get; set; }
         public string LinkingTable { get; set; }
         public string DeleteBehavior { get; set; }
+        public bool VisibleOnGrid { get; set; }
     }
     /// <summary>
     /// Represents the design attributes applied to a UI component for a property, controlling the component's appearance and behavior.

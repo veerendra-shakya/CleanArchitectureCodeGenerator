@@ -1,9 +1,11 @@
 ﻿using CleanArchitecture.CodeGenerator.Helpers;
 using CleanArchitecture.CodeGenerator.Models;
+using Humanizer;
 using Scriban;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -28,6 +30,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages
                 string NamespaceName = Helper.GetNamespace(relativePath);
                 string mudTdHeaderDefinition = CreateMudTdHeaderDefinition(modalClassObject);
                 string? masterProperty = modalClassObject.ClassProperties.Where(p => p.DataUsesAtt.PrimaryRole == "Identifier").Select(p => p.PropertyName).FirstOrDefault();
+                var (pageAttribute, parameterProperty, queryCondition, createCondition) = CreateForeignKeyCode(modalClassObject);
 
                 // Initialize MasterData object
                 var masterdata = new
@@ -47,6 +50,11 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages
                     modelname = modalClassObject.Name,
                     mudtdheaderdefinition = mudTdHeaderDefinition,
                     masterproperty = masterProperty,
+                    fkpageattribute = pageAttribute,
+                    fkparameterproperty = parameterProperty, 
+                    fkquerycondition = queryCondition,
+                    createcondition = createCondition
+
                 };
 
                 // Parse and render the class template
@@ -80,6 +88,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages
                 if (property.PropertyName == "Deleted") continue;
                 if (property.PropertyName == "DeletedOn") continue;
                 if (property.PropertyName == "DeletedBy") continue;
+                if (!property.DataUsesAtt.VisibleOnGrid && property.DataUsesAtt.PrimaryRole != "Relationship") continue;
 
                 if (HasAttribute(property, "DataEditor"))
                 {
@@ -109,7 +118,6 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages
                     }
                     continue;
                 }
-      
 
                 // Regular property
                 output.AppendLine($"<PropertyColumn Property=\"x => x.{property.PropertyName}\" Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.{property.PropertyName})]\" />");
@@ -142,7 +150,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages
                     case "Upload":
                         output.Append(GenerateUploadColumn(property));
                         break;
-                  
+
                     case "ListStringTextEditor":
                         output.AppendLine($"<PropertyColumn Property=\"x => x.{property.PropertyName} != null ? x.{property.PropertyName}.Count : 0\" Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.{property.PropertyName})]\" />");
                         break;
@@ -172,21 +180,60 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages
             var output = new StringBuilder();
             if (property.Type.TypeName.Contains("List<JsonImage>?"))
             {
-                output.AppendLine($"<PropertyColumn Property=\"x => x.{property.PropertyName} != null ? x.{property.PropertyName}.Count : 0\" Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.{property.PropertyName})]\" />");
+                output.AppendLine($"<TemplateColumn Title=\"@L[_currentDto.GetMemberDisplayName(x => x.{property.PropertyName})]\">");
+                output.AppendLine($"    <CellTemplate>");
+                output.AppendLine($"        <MudBadge Content=\"@(context.Item.{property.PropertyName} != null ? context.Item.{property.PropertyName}.Count : 0)\" Overlap=\"true\" Class=\"mx-6 my-4\">");
+                output.AppendLine($"            <MudIcon Icon=\"@(context.Item.{property.PropertyName} != null ? Icons.Material.Filled.Image : Icons.Material.Filled.BrokenImage)\" Color=\"@(context.Item.{property.PropertyName} != null ? Color.Success : Color.Error)\" />");
+                output.AppendLine($"        </MudBadge>");
+                output.AppendLine($"    </CellTemplate>");
+                output.AppendLine($"</TemplateColumn>");
             }
             if (property.Type.TypeName.Contains("List<JsonFile>?"))
             {
-                output.AppendLine($"<PropertyColumn Property=\"x => x.{property.PropertyName} != null ? x.{property.PropertyName}.Count : 0\" Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.{property.PropertyName})]\" />");
+                output.AppendLine($"<TemplateColumn Title=\"@L[_currentDto.GetMemberDisplayName(x => x.{property.PropertyName})]\">");
+                output.AppendLine($"    <CellTemplate>");
+                output.AppendLine($"        <MudBadge Content=\"@(context.Item.{property.PropertyName} != null ? context.Item.{property.PropertyName}.Count : 0)\" Overlap=\"true\" Class=\"mx-6 my-4\">");
+                output.AppendLine($"            <MudIcon Icon=\"@(context.Item.{property.PropertyName} != null ? Icons.Material.Filled.FilePresent : Icons.Material.Filled.BrokenImage)\" Color=\"@(context.Item.{property.PropertyName} != null ? Color.Success : Color.Error)\" />");
+                output.AppendLine($"        </MudBadge>");
+                output.AppendLine($"    </CellTemplate>");
+                output.AppendLine($"</TemplateColumn>");
             }
             if (property.Type.TypeName.Contains("JsonImage?"))
             {
-                output.AppendLine($"<PropertyColumn Property=\"x => x.{property.PropertyName}\" Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.{property.PropertyName})]\" />");
+                output.AppendLine($"<TemplateColumn Title=\"@L[_currentDto.GetMemberDisplayName(x => x.{property.PropertyName})]\">");
+                output.AppendLine($"    <CellTemplate>");
+                output.AppendLine($"        <MudIcon Icon=\"@(context.Item.{property.PropertyName}?.Url != null ? Icons.Material.Filled.Image : Icons.Material.Filled.BrokenImage)\" Color=\"@(context.Item.{property.PropertyName}?.Url != null ? Color.Success : Color.Error)\" />");
+                output.AppendLine($"    </CellTemplate>");
+                output.AppendLine($"</TemplateColumn>");
             }
             if (property.Type.TypeName.Contains("JsonFile?"))
             {
-                output.AppendLine($"<PropertyColumn Property=\"x => x.{property.PropertyName}\" Title=\"@L[_currentDto.GetMemberDisplayName(x=>x.{property.PropertyName})]\" />");
+                output.AppendLine($"<TemplateColumn Title=\"@L[_currentDto.GetMemberDisplayName(x => x.{property.PropertyName})]\">");
+                output.AppendLine($"    <CellTemplate>");
+                output.AppendLine($"        <MudIcon Icon=\"@(context.Item.{property.PropertyName}?.Url != null ? Icons.Material.Filled.FilePresent : Icons.Material.Filled.BrokenImage)\" Color=\"@(context.Item.{property.PropertyName}?.Url != null ? Color.Success : Color.Error)\" />");
+                output.AppendLine($"    </CellTemplate>");
+                output.AppendLine($"</TemplateColumn>");
             }
             return output.ToString();
+        }
+
+
+        private static (string PageAttribute, string ParameterProperty, string QueryCondition, string CreateCondition) CreateForeignKeyCode(CSharpClassObject model)
+        {
+            var foreignKeyProperty = model.ClassProperties.Where(p => p.DataUsesAtt.IsForeignKey).FirstOrDefault();
+
+            if (foreignKeyProperty != null)
+            {
+                string pageAttribute = $"@page \"/pages/{model.NamePlural}/{{{foreignKeyProperty.PropertyName}:guid?}}\"";
+                string parameterProperty = $"[Parameter] public Guid? {foreignKeyProperty.PropertyName} {{ get; set; }}";
+                string queryCondition = $"Query.{foreignKeyProperty.PropertyName} = {foreignKeyProperty.PropertyName}.HasValue ? {foreignKeyProperty.PropertyName}.Value : Guid.Empty;";
+                string createCondition = $"if ({foreignKeyProperty.PropertyName}.HasValue) {{ command.{foreignKeyProperty.PropertyName} = {foreignKeyProperty.PropertyName}.Value; }}";
+
+                return (pageAttribute, parameterProperty, queryCondition, createCondition);
+            }
+
+            // Return empty strings if no foreign key property is found
+            return (string.Empty, string.Empty, string.Empty,string.Empty);
         }
 
 
@@ -255,19 +302,11 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages
             sb.AppendLine($"        @if (context.Item.{property.PropertyName} != null && context.Item.{property.PropertyName}.Count > 0)");
             sb.AppendLine("        {");
 
-            //sb.AppendLine("            <MudChipSet>");
-            //sb.AppendLine($"            @foreach (var item in context.Item.{property.PropertyName})");
-            //sb.AppendLine("            {");
-            //foreach (var displayProperty in displayProperties)
-            //{
-            //    sb.AppendLine($"                <MudChip Color=\"Color.Primary\">{displayProperty.DisplayName}: @item.{displayProperty.PropertyName}</MudChip>");
-            //}
-            //sb.AppendLine("            }");
-            //sb.AppendLine("            </MudChipSet>");
-
             sb.AppendLine("            <MudTooltip Arrow=\"true\" Placement=\"Placement.Left\">");
             sb.AppendLine("                <ChildContent>");
+            sb.AppendLine($"                <a href=\"/pages/{property.Type.TypeName.Replace("ICollection<", "").Replace(">", "").Pluralize()}/@context.Item.Id\" target=\"blank\">");
             sb.AppendLine($"                    <MudChip Color=\"Color.Default\">@context.Item.{property.PropertyName}.Count</MudChip>");
+            sb.AppendLine("                </a>");
             sb.AppendLine("                </ChildContent>");
             sb.AppendLine("                <TooltipContent>");
             sb.AppendLine($"                    @foreach (var item in context.Item.{property.PropertyName})");
@@ -283,7 +322,9 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages
             sb.AppendLine("        }");
             sb.AppendLine("        else");
             sb.AppendLine("        {");
-            sb.AppendLine($"            <MudChip Color=\"Color.Default\">0</MudChip>");
+            sb.AppendLine($"            <a href=\"/pages/{property.Type.TypeName.Replace("ICollection<", "").Replace(">", "").Pluralize()}/@context.Item.Id\" target=\"blank\">");
+            sb.AppendLine($"                <MudChip Color=\"Color.Default\">0</MudChip>");
+            sb.AppendLine("             </a>");
             sb.AppendLine("        }");
             sb.AppendLine("    </CellTemplate>");
             sb.AppendLine("</TemplateColumn>");

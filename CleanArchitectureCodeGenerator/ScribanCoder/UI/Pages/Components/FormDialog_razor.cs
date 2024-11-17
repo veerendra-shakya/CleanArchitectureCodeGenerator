@@ -8,7 +8,6 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.UI.Pages.Components;
 
 public static class FormDialog_razor
 {
-
     public static void Generate(CSharpClassObject modalClassObject, string relativeTargetPath, string targetProjectDirectory, bool force = false)
     {
         if (!Helper.IsValidModel(modalClassObject)) return;
@@ -169,10 +168,15 @@ public static class FormDialog_razor
             // Generate the component output based on the component type
             switch (componentArg)
             {
+                case "None":
+                    output.Append("");
+                    break;
                 case "EnumMudSelect":
                     output.Append(MudItem(GenerateEnumSelectComponent(property), width, lineBreak));
                     break;
-         
+                case "SortOrder":
+                    output.Append(MudItem(GenerateSortOrder(property, model.NamePlural), width, lineBreak));
+                    break;
                 case "ListStringTextEditor":
                     output.Append(MudItem(GenerateListStringTextEditorComponent(property), width, lineBreak));
                     break;
@@ -182,25 +186,53 @@ public static class FormDialog_razor
                 case "ListStringMudSelectMultiSelection":
                     output.Append(MudItem(GenerateListStringMudSelectMultiSelection(property, enumName), width, lineBreak));
                     break;
+                case "DictionaryStringKeyValueEditor":
+                    output.Append(MudItem(GenerateDictionaryStringKeyValueEditor(property), width, lineBreak));
+                    break;
                 case "HtmlEditor":
                     output.Append(MudItem(GenerateHtmlEditor(property), width, lineBreak));
                     break;
                 case "SlugTextField":
                     output.Append(MudItem(GenerateSlugTextField(property, refProperty), width, lineBreak));
                     break;
-                case "SortOrder":
-                    output.Append(MudItem(GenerateSortOrder(property, model.NamePlural), width, lineBreak));
-                    break;
                 case "Upload":
                     output.Append(MudItem(GenerateUploadComponent(property, directoryName), width, lineBreak));
                     break;
-                case "DictionaryStringKeyValueEditor":
-                    output.Append(MudItem(GenerateDictionaryStringKeyValueEditor(property), width, lineBreak));
+                case "JsonEditor":
+                    output.Append(MudItem(GenerateJsonEditor(property), width, lineBreak));
                     break;
-                case "None":
-                    output.Append("");
+                case "CustomComponent":
+                    output.Append(MudItem(GenerateCustomComponent(property), width, lineBreak));
                     break;
                     
+
+                case "TextField":
+                    output.Append(MudItem(GenerateTextField(property), width, lineBreak));
+                    break;
+                case "MultilineTextField":
+                    output.Append(MudItem(GenerateMultilineTextField(property), width, lineBreak));
+                    break;
+                case "NumericField":
+                    output.Append(MudItem(GenerateNumericField(property), width, lineBreak));
+                    break;
+                case "Select":
+                    output.Append(MudItem(GenerateSelect(property), width, lineBreak));
+                    break;
+                case "Checkbox":
+                    output.Append(MudItem(GenerateCheckbox(property), width, lineBreak));
+                    break;
+                case "RadioGroup":
+                    output.Append(MudItem(GenerateRadioGroup(property), width, lineBreak));
+                    break;
+                case "DatePicker":
+                    output.Append(MudItem(GenerateDatePicker(property), width, lineBreak));
+                    break;
+                case "Switch":
+                    output.Append(MudItem(GenerateSwitch(property), width, lineBreak));
+                    break;
+                case "Slider":
+                    output.Append(MudItem(GenerateSlider(property), width, lineBreak));
+                    break;
                 default:
                     output.Append(MudItem(GenerateDefaultComponent(property), width, lineBreak));
                     break;
@@ -442,7 +474,6 @@ public static class FormDialog_razor
         return output.ToString();
     }
 
-
     private static string GenerateHtmlEditor(ClassProperty property)
     {
         var output = new StringBuilder();
@@ -463,7 +494,6 @@ public static class FormDialog_razor
         output.AppendLine($"<SortOrder Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Value=\"model.{property.PropertyName}\" Query=\"new Get{modelName}CountQuery()\"></SortOrder>");
         return output.ToString();
     }
-
 
     private static string GenerateManyToOneSelectComponent(ClassProperty propertyId, ClassProperty refproperty)
     {
@@ -497,6 +527,75 @@ public static class FormDialog_razor
         return output.ToString();
     }
 
+    private static string GenerateJsonEditor(ClassProperty property)
+    {
+        var output = new StringBuilder();
+        output.AppendLine($"<MudTextField Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Value=\"model.{property.PropertyName}\" For=\"@(() => model.{property.PropertyName})\" Lines=\"5\"></MudTextField>");
+        return output.ToString();
+    }
+
+    private static string GenerateCustomComponent(ClassProperty property)
+    {
+        var output = new StringBuilder();
+        string CustomComponentTag = property.Type.TypeName.Replace("?", "") + "Editor";
+        output.AppendLine($"<{CustomComponentTag} Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Quota=\"model.{property.PropertyName}\"></{CustomComponentTag}>");
+        return output.ToString();
+    }
+
+    private static string GenerateTextField(ClassProperty property)
+    {
+        var output = new StringBuilder();
+        output.AppendLine($"<MudTextField Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Value=\"model.{property.PropertyName}\" For=\"@(() => model.{property.PropertyName})\"></MudTextField>");
+        return output.ToString();
+    }
+    private static string GenerateMultilineTextField(ClassProperty property)
+    {
+        var output = new StringBuilder();
+        output.AppendLine($"<MudTextField Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Value=\"model.{property.PropertyName}\" For=\"@(() => model.{property.PropertyName})\" Lines=\"5\"></MudTextField>");
+        return output.ToString();
+    }
+    private static string GenerateNumericField(ClassProperty property)
+    {
+        var output = new StringBuilder();
+        output.AppendLine($"<MudNumericField Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Value=\"model.{property.PropertyName}\" For=\"@(() => model.{property.PropertyName})\" Min=\"0\"></MudNumericField>");
+        return output.ToString();
+    }
+    private static string GenerateSelect(ClassProperty property)
+    {
+        var output = new StringBuilder();
+        output.AppendLine($"");
+        return output.ToString();
+    }
+    private static string GenerateCheckbox(ClassProperty property)
+    {
+        var output = new StringBuilder();
+        output.AppendLine($"<MudCheckBox Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Checked=\"model.{property.PropertyName}\" For=\"@(() => model.{property.PropertyName})\"></MudCheckBox>");
+        return output.ToString();
+    }
+    private static string GenerateRadioGroup(ClassProperty property)
+    {
+        var output = new StringBuilder();
+        output.AppendLine($"");
+        return output.ToString();
+    }
+    private static string GenerateDatePicker(ClassProperty property)
+    {
+        var output = new StringBuilder();
+        output.AppendLine($"<MudDatePicker Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Date=\"model.{property.PropertyName}\" For=\"@(() => model.{property.PropertyName})\" Required=\"false\" RequiredError=\"@L[\"{Utility.SplitCamelCase(property.PropertyName).ToLower()} is required!\"]\"></MudDatePicker>");
+        return output.ToString();
+    }
+    private static string GenerateSwitch(ClassProperty property)
+    {
+        var output = new StringBuilder();
+        output.AppendLine($"<MudSwitch Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Value=\"model.{property.PropertyName}\" For=\"@(() => model.{property.PropertyName})\" Color=\"Color.Primary\" UncheckedColor=\"Color.Secondary\" />");
+        return output.ToString();
+    }
+    private static string GenerateSlider(ClassProperty property)
+    {
+        var output = new StringBuilder();
+        output.AppendLine($"");
+        return output.ToString();
+    }
 
     #endregion
 

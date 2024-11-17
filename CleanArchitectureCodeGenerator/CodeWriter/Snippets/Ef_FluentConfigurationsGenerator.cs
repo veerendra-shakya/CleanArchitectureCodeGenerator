@@ -295,7 +295,7 @@ namespace CleanArchitecture.CodeGenerator.CodeWriter.Snippets
                         break;
 
                     default:
-                        sb.Append(".HasColumnType(\"varchar(50)\")");
+                        sb.Append("");
                         break;
                 }
 

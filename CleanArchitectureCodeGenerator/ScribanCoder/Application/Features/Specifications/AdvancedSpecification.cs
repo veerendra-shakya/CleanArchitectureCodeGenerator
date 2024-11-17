@@ -4,6 +4,7 @@ using Scriban;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -69,21 +70,20 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Spec
 
         private static string CreateAdvancedSpecificationQuery(CSharpClassObject classObject)
         {
-            // Get the item name from classObject.Name
             var itemName = classObject.Name;
 
-            // Get the master property for identifier role
             var masterProperty = classObject.ClassProperties.Where(p => p.DataUsesAtt.PrimaryRole == "Identifier").Select(p => p.PropertyName).FirstOrDefault();
-            // Get the list of searchable properties
             var searchableProperty = classObject.ClassProperties.Where(p => p.DataUsesAtt.PrimaryRole == "Searchable").Select(p => p.PropertyName).ToList();
+            var foreignKeyProperties = classObject.ClassProperties.Where(p => p.DataUsesAtt.IsForeignKey).ToList();
+
             if (masterProperty != null)
             {
                 searchableProperty.Add(masterProperty);
             }
             var output = new StringBuilder();
 
-            // Start building the query with {itemname} replaced
-            output.AppendLine($"Query.Where(q => q.{masterProperty} != null)");
+            output.AppendLine($"Query");
+           // output.AppendLine($".Where(q => q.{masterProperty} != null)");
 
             // Build the search condition for searchable properties
             if (searchableProperty.Any())
@@ -100,6 +100,16 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Spec
                 }
                 output.AppendLine(", !string.IsNullOrEmpty(filter.Keyword))");
             }
+
+            if(foreignKeyProperties != null)
+            {
+                foreach (var _property in foreignKeyProperties)
+                {
+                    string Id = _property.PropertyName;
+                    output.AppendLine($".Where(q => q.{Id} == filter.{Id}, filter.{Id} != Guid.Empty)");
+                }
+            }
+
 
             // Add the rest of the conditions with {itemname} replaced
             output.AppendLine($"            .Where(q => q.CreatedBy == filter.CurrentUser.UserId, filter.ListView == {itemName}ListView.My && filter.CurrentUser is not null)");

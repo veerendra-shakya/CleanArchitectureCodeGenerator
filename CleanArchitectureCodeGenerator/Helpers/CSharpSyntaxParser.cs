@@ -347,6 +347,17 @@ namespace CleanArchitecture.CodeGenerator.Helpers
                 _temp = _temp.Replace("\"", "");
                 classProperty.DataUsesAtt.LinkingTable = _temp;
             }
+
+            // Assign IsForeignKey value
+            var isVisibleOnGrid = attribute.ArgumentList.Arguments
+                .FirstOrDefault(arg => arg.ToString().Contains("visibleOnGrid"));
+            if (isVisibleOnGrid != null)
+            {
+                string AttributeString = isVisibleOnGrid.ToString();
+                AttributeString = AttributeString.Replace("visibleOnGrid:", "");
+                bool value = Convert.ToBoolean(AttributeString);
+                classProperty.DataUsesAtt.VisibleOnGrid = value;
+            }
         }
 
         private void HandleUIDesignAttributes(AttributeSyntax attribute, ClassProperty classProperty)

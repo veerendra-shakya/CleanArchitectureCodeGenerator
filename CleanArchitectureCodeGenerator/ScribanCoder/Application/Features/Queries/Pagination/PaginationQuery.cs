@@ -4,6 +4,7 @@ using Scriban;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -26,7 +27,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Quer
                 string templateFilePath = Utility.GetTemplateFile(relativePath, targetFile.FullName);
                 string templateContent = File.ReadAllText(templateFilePath, Encoding.UTF8);
                 string NamespaceName = Helper.GetNamespace(relativePath);
-
+                string StringCacheKey = GenerateStringCacheKey(modalClassObject);
 
                 // Initialize MasterData object
                 var masterdata = new
@@ -44,6 +45,7 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Quer
                     applicationprojectdirectory = ApplicationHelper.ApplicationProjectDirectory,
                     modelnameplural = modalClassObject.NamePlural,
                     modelname = modalClassObject.Name,
+                    stringcachekey = StringCacheKey,
                 };
 
                 // Parse and render the class template
@@ -66,5 +68,38 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Quer
             }
         }
 
+        public static string GenerateStringCacheKey(CSharpClassObject model)
+        {
+            var identifierProperty = model.ClassProperties.FirstOrDefault(p => p.DataUsesAtt.PrimaryRole == "Identifier");
+            var searchableProperties = model.ClassProperties.Where(p => p.DataUsesAtt.PrimaryRole == "Searchable").ToList();
+            var foreignKeyProperties = model.ClassProperties.Where(p => p.DataUsesAtt.IsForeignKey).ToList();
+            
+            if (identifierProperty != null)
+            {
+                searchableProperties.Insert(0, identifierProperty);
+            }
+            
+            if (foreignKeyProperties != null)
+            {
+                searchableProperties.AddRange(foreignKeyProperties);
+            }
+
+
+
+            var output = new StringBuilder();
+
+            output.Append("CurrentUser:{CurrentUser?.UserId}");
+            output.Append(",ListView:{ListView}");
+            output.Append(",Search:{Keyword}");
+            output.Append(",SortDirection:{SortDirection}");
+            output.Append(",OrderBy:{OrderBy},{PageNumber},{PageSize}");
+            
+            foreach (var property in searchableProperties)
+            {
+                output.Append($",{property.PropertyName}:{{{property.PropertyName}}}");
+            }
+
+            return output.ToString();
+        }
     }
 }

@@ -71,11 +71,16 @@ namespace CleanArchitecture.CodeGenerator.ScribanCoder.Application.Features.Spec
         {
             var masterProperty = model.ClassProperties.FirstOrDefault(p => p.DataUsesAtt.PrimaryRole == "Identifier");
             var searchableProperties = model.ClassProperties.Where(p => p.DataUsesAtt.PrimaryRole == "Searchable").ToList();
-
+            var foreignKeyProperties = model.ClassProperties.Where(p=>p.DataUsesAtt.IsForeignKey).ToList();
             if (masterProperty != null)
             {
                 // Insert masterProperty at the beginning of the list
                 searchableProperties.Insert(0, masterProperty);
+               
+            }
+            if(foreignKeyProperties!= null)
+            {
+                searchableProperties.AddRange(foreignKeyProperties);
             }
 
             var sb = new StringBuilder();
