@@ -29,6 +29,9 @@ public class {{ modelname }}Service : I{{ modelname }}Service
     private const string CacheKey = "{{ modelname }}DataServicesCacheKey";
     private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(30);
 
+    private readonly SemaphoreSlim _initializationLock = new(1, 1);
+    private bool _isInitialized = false;
+
     public event Action? OnChange;
     public List<{{ modelname }}> DataSource { get; private set; } = new();
 
@@ -43,24 +46,41 @@ public class {{ modelname }}Service : I{{ modelname }}Service
         _mapper = mapper;
     }
 
-    public void Initialize()
+    public async Task InitializeAsync()
     {
-        var cacheOptions = new FusionCacheEntryOptions
-        {
-            Duration = CacheDuration,
-            JitterMaxDuration = TimeSpan.FromSeconds(15), // Add jitter to avoid thundering herd problem
-            LockTimeout = TimeSpan.FromSeconds(20) // Adjust timeout based on expected operation time
-        };
+        if (_isInitialized) return;
 
-        DataSource = _fusionCache.GetOrSet(CacheKey,
-            _ => _context.{{ modelnameplural }}
-                .AsNoTracking()
-                .ToList(),
-                 cacheOptions
-        ) ?? new List<{{ modelname }}>();
+        await _initializationLock.WaitAsync();
+
+         try
+        {
+            if (!_isInitialized)
+            {
+                var cacheOptions = new FusionCacheEntryOptions
+                {
+                    Duration = CacheDuration,
+                    JitterMaxDuration = TimeSpan.FromSeconds(15),
+                    LockTimeout = TimeSpan.FromSeconds(20)
+                };
+
+                DataSource = await _fusionCache.GetOrSetAsync(CacheKey,
+                    async _ => await _context.{{ modelnameplural }}
+                        .AsNoTracking()
+                        .ToListAsync(),
+                         cacheOptions
+                ) ?? new List<{{ modelname }}>();
+
+                _isInitialized = true;
+            }
+        }
+        finally
+        {
+            _initializationLock.Release();
+        }
+
     }
 
-    public void Refresh()
+    public async Task RefreshAsync()
     {
         _fusionCache.Remove(CacheKey);
         
@@ -71,13 +91,19 @@ public class {{ modelname }}Service : I{{ modelname }}Service
             LockTimeout = TimeSpan.FromSeconds(20) // Adjust timeout based on expected operation time
         };
 
-        DataSource = _fusionCache.GetOrSet(CacheKey,
-            _ => _context.{{ modelnameplural }}
+        DataSource = await _fusionCache.GetOrSet(CacheKey,
+            async _ => await _context.{{ modelnameplural }}
                 .AsNoTracking()
-                .ToList(),
+                .ToListAsync(),
                  cacheOptions
         ) ?? new List<{{ modelname }}>();
         
         OnChange?.Invoke();
+    }
+
+    public async Task<List<{{ modelname }}>> GetDataSourceAsync()
+    {
+        await InitializeAsync();
+        return DataSource;
     }
 }

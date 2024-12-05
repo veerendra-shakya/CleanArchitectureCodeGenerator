@@ -8,5 +8,7 @@
         public string UiProject { get; set; }
         public string InfrastructureProject { get; set; }
         public string ApplicationProject { get; set; }
+        public string OpenAIApiKey { get; set; }
+        
     }
 }

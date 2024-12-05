@@ -45,6 +45,7 @@ namespace CleanArchitecture.CodeGenerator.Configuration
             PrintConfig("UI Project", configSettings.UiProject, ConsoleColor.Yellow);
             PrintConfig("Infrastructure Project", configSettings.InfrastructureProject, ConsoleColor.Yellow);
             PrintConfig("Application Project", configSettings.ApplicationProject, ConsoleColor.Yellow);
+            PrintConfig("OpenAI:ApiKey", configSettings.OpenAIApiKey, ConsoleColor.Yellow);
 
             Console.WriteLine("\n");
             Console.ForegroundColor = ConsoleColor.Green;

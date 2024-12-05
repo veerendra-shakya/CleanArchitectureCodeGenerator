@@ -26,7 +26,7 @@ public class {{ modelname }}Autocomplete : MudAutocomplete<Guid>
     private I{{ modelname }}Service DataProvider { get; set; } = default!;
 
     private List<{{ modelname }}>? _list_{{ modelname }};
-    private bool _isLoading = false;
+    private bool _isLoading = true;
     
     public {{ modelname }}Autocomplete()
     {
@@ -45,8 +45,7 @@ public class {{ modelname }}Autocomplete : MudAutocomplete<Guid>
 
     private async void {{ modelname }}Service_OnChangeAsync()
     {
-        await Task.Delay(1000);
-        _list_{{ modelname }} = DataProvider.DataSource.ToList();
+        _list_{{ modelname }} = await DataProvider.GetDataSourceAsync();
         _isLoading = false;
         await InvokeAsync(StateHasChanged);
     }
@@ -57,9 +56,9 @@ public class {{ modelname }}Autocomplete : MudAutocomplete<Guid>
         base.Dispose(disposing);
     }
 
-    private Task<IEnumerable<Guid>> SearchKeyValues(string value, CancellationToken cancellation)
+    private async Task<IEnumerable<Guid>> SearchKeyValues(string value, CancellationToken cancellation)
     {
-        _list_{{ modelname }} = DataProvider.DataSource.ToList();
+        _list_{{ modelname }} = await DataProvider.GetDataSourceAsync();
         var result = new List<Guid>();
         if (_list_{{ modelname }} is not null && string.IsNullOrEmpty(value))
         {
@@ -69,7 +68,7 @@ public class {{ modelname }}Autocomplete : MudAutocomplete<Guid>
         {
             {{ querystring }}
         }
-        return Task.FromResult(result.AsEnumerable());
+        return result;
     }
 
     private string ToString(Guid id)
@@ -131,7 +130,7 @@ public class {{ modelname }}Autocomplete : MudAutocomplete<Guid>
     private void OnRefreshClick()
     {
         _isLoading = true; // Set loading state to true
-        DataProvider.Refresh(); // Call refresh method
+        DataProvider.RefreshAsync(); // Call refresh method
     }
 
 }

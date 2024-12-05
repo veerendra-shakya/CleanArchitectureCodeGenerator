@@ -125,6 +125,7 @@ public static class FormDialog_razor
             string refProperty = string.Empty;
             int width = 6;
             bool lineBreak = false; 
+            string customComponentName = string.Empty;
 
             // Extract the main component type (first argument) without "EditorType." prefix
             var componentArg = attribute.ArgumentList.Arguments[0].ToString();
@@ -163,6 +164,11 @@ public static class FormDialog_razor
                     // Parse and assign to the lineBreak variable
                     bool.TryParse(argument.ToString().Replace("lineBreak:", "").Trim(), out lineBreak);
                 }
+                else if (argString.Contains("customComponentName:"))
+                {
+                    customComponentName = argument.ToString().Replace("customComponentName:", "").Trim().Trim('"');
+                }
+               
             }
 
             // Generate the component output based on the component type
@@ -202,7 +208,7 @@ public static class FormDialog_razor
                     output.Append(MudItem(GenerateJsonEditor(property), width, lineBreak));
                     break;
                 case "CustomComponent":
-                    output.Append(MudItem(GenerateCustomComponent(property), width, lineBreak));
+                    output.Append(MudItem(GenerateCustomComponent(property, customComponentName), width, lineBreak));
                     break;
                     
 
@@ -534,11 +540,12 @@ public static class FormDialog_razor
         return output.ToString();
     }
 
-    private static string GenerateCustomComponent(ClassProperty property)
+    private static string GenerateCustomComponent(ClassProperty property,string customComponentName)
     {
         var output = new StringBuilder();
-        string CustomComponentTag = property.Type.TypeName.Replace("?", "") + "Editor";
-        output.AppendLine($"<{CustomComponentTag} Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Quota=\"model.{property.PropertyName}\"></{CustomComponentTag}>");
+        //string CustomComponentTag = property.Type.TypeName.Replace("?", "") + "Editor";
+        string CustomComponentTag = customComponentName;
+        output.AppendLine($"<{CustomComponentTag} Label=\"@L[model.GetMemberDescription(x=>x.{property.PropertyName})]\" @bind-Value=\"model.{property.PropertyName}\"></{CustomComponentTag}>");
         return output.ToString();
     }
 

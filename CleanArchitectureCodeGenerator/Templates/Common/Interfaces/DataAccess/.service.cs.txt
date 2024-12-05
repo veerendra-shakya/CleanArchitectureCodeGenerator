@@ -20,8 +20,8 @@ public interface I{{ modelname }}Service
 {
     List<{{ modelname }}> DataSource { get; }
     event Action? OnChange;
-    void Initialize();
-    void Refresh();
-
+    Task InitializeAsync();
+    Task RefreshAsync();
+    Task<List<{{ modelname }}>> GetDataSourceAsync();
 }
 
